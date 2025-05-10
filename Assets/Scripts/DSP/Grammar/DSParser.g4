@@ -29,15 +29,16 @@ while_stmt
     ;
 
 jump_stmt
-    : JUMP ID
+    : JUMP label=ID
     ;
 
 label_decl
-    : LABEL ID COLON
+    : LABEL label=ID COLON
     ;
 
 dialogue_stmt
-    : SYNC? ID? STRING (WITH TAG+)?
+    : SYNC? (speaker=ID text=STRING (WITH tags=FRAG+)?
+           | text=STRING (WITH tags=FRAG+)?)
     ;
 
 call_stmt
@@ -53,7 +54,7 @@ call_command
     ;
 
 call_arg_pos
-    : (literal | VARIABLE)
+    : (literal | VARIABLE | ID)
     ;
 
 call_arg_key
@@ -61,7 +62,7 @@ call_arg_key
     ;
 
 menu_stmt
-    : MENU COLON dialogue_stmt? menu_item+
+    : MENU COLON intro=dialogue_stmt? menu_item+
     ;
 
 menu_item
