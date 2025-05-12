@@ -9,7 +9,7 @@ using System.Collections.Generic;
 }
 
 tokens { 
-    INDENT, DEDENT 
+    INDENT, DEDENT, STRING
 }
 
 @lexer::members {
@@ -26,7 +26,7 @@ tokens {
              newIndent += (InputStream.LA(1) == '\t') ? 4 : 1;
             InputStream.Consume();
         }
-        newIndent %= 4;
+        newIndent /= 4;
 
         // 处理缩进变化
         if (newIndent > _currentIndent) {
@@ -68,7 +68,6 @@ WHILE: 'while';
 JUMP: 'jump';
 LABEL: 'label';
 SYNC: 'sync';
-WITH: 'with';
 MENU: 'menu';
 TRUE: 'true';
 FALSE: 'false';
@@ -95,11 +94,12 @@ COLON: ':';
 LPAREN: '(';
 RPAREN: ')';
 
-// 标识符和字面量
+// 字面量
+TAG: '@' [a-zA-Z0-9_]+;
 ID: [a-zA-Z_] [a-zA-Z0-9_]*;
 VARIABLE: '$' ID ('.' ID)*;
 NUMBER: '-'? [0-9]+ ('.' [0-9]+)?;
-STRING: '"' (~["\\] | ESCAPE_SEQ)* '"';
+STRING_START: '"' -> pushMode(STRING_MODE), more;
 BOOL: TRUE | FALSE;
 
 // 空白和注释
@@ -110,3 +110,10 @@ BLOCK_COMMENT: '"""' .*? '"""' -> skip;
 
 // 转义序列
 fragment ESCAPE_SEQ: '\\' [btnfr"'\\];
+
+mode STRING_MODE;
+// 字符串内容（支持跨行）
+STRING_CONTENT: ~["\\\r\n]+ -> more;  // 匹配非引号、非转义字符
+STRING_ESCAPE: '\\' [btnfr"'\\] -> more;  // 处理转义字符，如 \n, \"
+STRING_END: '"' -> popMode, type(STRING);  // 遇到闭合引号，退出模式并生成STRING Token
+STRING_NEWLINE: ('\r'? '\n') -> more;  // 处理字符串内的换行（跨行支持）

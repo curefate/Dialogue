@@ -9,6 +9,7 @@ program
     : statement* EOF
     ;
 
+/*
 statement
     : if_stmt (NEWLINE | EOF)
     | while_stmt (NEWLINE | EOF)
@@ -18,6 +19,11 @@ statement
     | call_stmt (NEWLINE | EOF)
     | menu_stmt (NEWLINE | EOF)
     | assignment_stmt (NEWLINE | EOF)
+    ;
+*/
+
+statement
+    : dialogue_stmt WS* (ENDLINE | EOF)
     ;
 
 if_stmt
@@ -37,8 +43,7 @@ label_decl
     ;
 
 dialogue_stmt
-    : SYNC? (speaker=ID text=STRING (WITH tags=FRAG+)?
-           | text=STRING (WITH tags=FRAG+)?)
+    : SYNC? speaker=ID? text=STRING tags+=TAG*
     ;
 
 call_stmt
@@ -62,11 +67,11 @@ call_arg_key
     ;
 
 menu_stmt
-    : MENU COLON intro=dialogue_stmt? menu_item+
+    : MENU COLON INDENT intro=dialogue_stmt? menu_item+ DEDENT
     ;
 
 menu_item
-    : STRING COLON block
+    : option=STRING COLON block
     ;
 
 assignment_stmt
@@ -115,7 +120,6 @@ primary
 
 block
     : INDENT statement+ DEDENT
-    | statement
     ;
 
 literal

@@ -3,6 +3,7 @@ using UnityEngine;
 using System.IO;
 using System;
 using System.Linq;
+using Antlr4.Runtime.Misc;
 
 public class DialogueRunner : MonoBehaviour
 {
@@ -34,34 +35,33 @@ public class BasicDialogueVisitor : DSParserBaseVisitor<object>
 {
     public override object VisitDialogue_stmt(DSParser.Dialogue_stmtContext context)
     {
-        /* try
+        var text = context.text.Text.Trim('"');
+        var speaker = context.ID()?.GetText() ?? "Null";
+        var tags = context._tags;
+        Debug.Log($"说话者: {speaker}, 内容: {text}");
+        foreach (var tag in tags)
         {
-            // 必选部分
-            string text = context.STRING().GetText().Trim('"');
-            Debug.Log($"内容: {text}");
+            Debug.Log($"标签: {tag.Text}");
+        }
 
-            // 可选说话者
-            var speakerNode = context.ID();
-            if (speakerNode != null)
-            {
-                Debug.Log($"说话者: {speakerNode.GetText()}");
-            }
+        return null;
+    }
 
-            // 可选标签（WITH后的ID）
-            if (context.WITH() != null)
+    public override object VisitMenu_stmt([NotNull] DSParser.Menu_stmtContext context)
+    {
+        var intro = context.intro;
+        VisitDialogue_stmt(intro);
+        var menu_item = context.menu_item();
+        foreach (var item in menu_item)
+        {
+            var block = item.block();
+            var option = item.option.Text.Trim('"');
+            Debug.Log($"选项: {option}");
+            foreach(var line in block.statement())
             {
-                foreach (var tagNode in context.TAG().Skip(speakerNode != null ? 1 : 0))
-                {
-                    Debug.Log($"标签: {tagNode.GetText()}");
-                }
+                Debug.Log("test");
             }
         }
-        catch (Exception ex)
-        {
-            Debug.LogError($"解析对话时出错: {ex.Message}");
-        }
-        return null; */
-        Debug.Log(context.Start.Line);
         return null;
     }
 }

@@ -1,27 +1,30 @@
-parser grammar DialogueScript;
+parser grammar DSParser;
 
 options {
-    tokenVocab = DialogueScriptLexer;  // 分离词法规则（可选）
+    tokenVocab = DSLexer;
 }
 
 // 语法规则
 program
-    : (import_decl | statement)* EOF
+    : statement* EOF
     ;
 
-import_decl
-    : IMPORT file_path
+/*
+statement
+    : if_stmt (NEWLINE | EOF)
+    | while_stmt (NEWLINE | EOF)
+    | jump_stmt (NEWLINE | EOF)
+    | label_decl (NEWLINE | EOF)
+    | dialogue_stmt (NEWLINE | EOF)
+    | call_stmt (NEWLINE | EOF)
+    | menu_stmt (NEWLINE | EOF)
+    | assignment_stmt (NEWLINE | EOF)
     ;
+*/
 
 statement
-    : if_stmt
-    | while_stmt
-    | jump_stmt
-    | label_decl
-    | dialogue_stmt
-    | call_stmt
-    | menu_stmt
-    | assignment_stmt
+    : dialogue_stmt (NEWLINE | EOF)
+    | menu_stmt (NEWLINE | EOF)
     ;
 
 if_stmt
@@ -33,15 +36,15 @@ while_stmt
     ;
 
 jump_stmt
-    : JUMP ID
+    : JUMP label=ID
     ;
 
 label_decl
-    : LABEL ID COLON
+    : LABEL label=ID COLON
     ;
 
 dialogue_stmt
-    : SYNC? ID? STRING (WITH tags)?
+    : SYNC? speaker=ID? text=STRING (tags+=TAG+)?
     ;
 
 call_stmt
@@ -57,7 +60,7 @@ call_command
     ;
 
 call_arg_pos
-    : (literal | VARIABLE)
+    : (literal | VARIABLE | ID)
     ;
 
 call_arg_key
@@ -65,11 +68,11 @@ call_arg_key
     ;
 
 menu_stmt
-    : MENU COLON dialogue_stmt? menu_item+
+    : MENU COLON INDENT intro=dialogue_stmt? menu_item+ DEDENT
     ;
 
 menu_item
-    : STRING COLON block
+    : option=STRING COLON block
     ;
 
 assignment_stmt
@@ -118,15 +121,6 @@ primary
 
 block
     : INDENT statement+ DEDENT
-    | statement
-    ;
-
-tags
-    : (ID | STRING) (WS (ID | STRING))*
-    ;
-
-file_path
-    : ID (DOT ID)*
     ;
 
 literal

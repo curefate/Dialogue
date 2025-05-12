@@ -9,7 +9,7 @@ using System.Collections.Generic;
 }
 
 tokens { 
-    INDENT, DEDENT, STRING
+    INDENT, DEDENT, STRING, ENDLINE
 }
 
 @lexer::members {
@@ -19,6 +19,9 @@ tokens {
     private void HandleNewline() {
         // 跳过换行符
         Skip();
+
+        // 添加结束行token
+        Emit(new CommonToken(ENDLINE, "ENDLINE"));
         
         // 计算新行的缩进空格数
         int newIndent = 0;
@@ -26,9 +29,13 @@ tokens {
              newIndent += (InputStream.LA(1) == '\t') ? 4 : 1;
             InputStream.Consume();
         }
-        newIndent %= 4;
+
+        // 跳过空行
+        if (InputStream.LA(1) == '\n' || InputStream.LA(1) == '\r')
+            return;
 
         // 处理缩进变化
+        newIndent /= 4;
         if (newIndent > _currentIndent) {
             Emit(new CommonToken(INDENT, "INDENT"));
             _indentStack.Push(_currentIndent);
@@ -68,7 +75,6 @@ WHILE: 'while';
 JUMP: 'jump';
 LABEL: 'label';
 SYNC: 'sync';
-WITH: 'with';
 MENU: 'menu';
 TRUE: 'true';
 FALSE: 'false';
@@ -96,21 +102,24 @@ LPAREN: '(';
 RPAREN: ')';
 
 // 字面量
+TAG: '@' [a-zA-Z0-9_]+;
 ID: [a-zA-Z_] [a-zA-Z0-9_]*;
-FRAG: [a-zA-Z0-9_];
 VARIABLE: '$' ID ('.' ID)*;
 NUMBER: '-'? [0-9]+ ('.' [0-9]+)?;
 STRING_START: '"' -> pushMode(STRING_MODE), more;
 BOOL: TRUE | FALSE;
 
 // 空白和注释
-// WS: [ \t]+;
+// WS: [ \t];
 NEWLINE : '\r'? '\n' { HandleNewline(); };
 LINE_COMMENT: '#' ~[\r\n]* -> skip;
 BLOCK_COMMENT: '"""' .*? '"""' -> skip;
 
 // 转义序列
 fragment ESCAPE_SEQ: '\\' [btnfr"'\\];
+
+// 捕获错误词法
+ERROR_CHAR: . -> channel(HIDDEN);
 
 mode STRING_MODE;
 // 字符串内容（支持跨行）
