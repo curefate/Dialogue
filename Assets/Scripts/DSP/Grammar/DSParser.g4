@@ -23,7 +23,8 @@ statement
 */
 
 statement
-    : dialogue_stmt WS* (ENDLINE | EOF)
+    : dialogue_stmt
+    | menu_stmt
     ;
 
 if_stmt
@@ -43,7 +44,7 @@ label_decl
     ;
 
 dialogue_stmt
-    : SYNC? speaker=ID? text=STRING tags+=TAG*
+    : SYNC? speaker=ID? text=STRING tags+=TAG* (ENDLINE | EOF)
     ;
 
 call_stmt
@@ -67,11 +68,11 @@ call_arg_key
     ;
 
 menu_stmt
-    : MENU COLON INDENT intro=dialogue_stmt? menu_item+ DEDENT
+    : MENU COLON ENDLINE INDENT intro=dialogue_stmt? menu_item+ ENDLINE DEDENT
     ;
 
 menu_item
-    : option=STRING COLON block
+    : option=STRING COLON ENDLINE block
     ;
 
 assignment_stmt

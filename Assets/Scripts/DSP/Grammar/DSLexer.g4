@@ -17,9 +17,6 @@ tokens {
     private int _currentIndent = 0;
 
     private void HandleNewline() {
-        // 跳过换行符
-        Skip();
-
         // 添加结束行token
         Emit(new CommonToken(ENDLINE, "ENDLINE"));
         
@@ -110,8 +107,8 @@ STRING_START: '"' -> pushMode(STRING_MODE), more;
 BOOL: TRUE | FALSE;
 
 // 空白和注释
-// WS: [ \t];
 NEWLINE : '\r'? '\n' { HandleNewline(); };
+WS: [ \t]+ -> channel(HIDDEN);
 LINE_COMMENT: '#' ~[\r\n]* -> skip;
 BLOCK_COMMENT: '"""' .*? '"""' -> skip;
 
