@@ -9,7 +9,7 @@ using System.Collections.Generic;
 }
 
 tokens { 
-    INDENT, DEDENT, STRING, ENDLINE
+    INDENT, DEDENT, STRING, LINEMK
 }
 
 @lexer::members {
@@ -17,21 +17,16 @@ tokens {
     private int _currentIndent = 0;
 
     private void HandleNewline() {
-        // 添加结束行token
-        Emit(new CommonToken(ENDLINE, "ENDLINE"));
-        
-        // 计算新行的缩进空格数
         int newIndent = 0;
          while (InputStream.LA(1) == ' ' || InputStream.LA(1) == '\t') {
              newIndent += (InputStream.LA(1) == '\t') ? 4 : 1;
             InputStream.Consume();
         }
+        if (InputStream.LA(1) == '\r' || InputStream.LA(1) == '\n' || InputStream.LA(1) == Eof) {
+			Skip();
+			return;
+		}
 
-        // 跳过空行
-        if (InputStream.LA(1) == '\n' || InputStream.LA(1) == '\r')
-            return;
-
-        // 处理缩进变化
         newIndent /= 4;
         if (newIndent > _currentIndent) {
             Emit(new CommonToken(INDENT, "INDENT"));
@@ -44,17 +39,14 @@ tokens {
                 _currentIndent = _indentStack.Count > 0 ? _indentStack.Pop() : 0;
             }
         }
-        // 缩进不变时不生成任何 Token
+        else {
+            Emit(new CommonToken(LINEMK, "LINEMK"));
+        }
     }
 
     public override IToken NextToken() {
         var token = base.NextToken();
-        if (token.Type == Eof) {
-            while (_currentIndent > 0) {
-                Emit(new CommonToken(DEDENT, "DEDENT"));
-                _currentIndent = _indentStack.Count > 0 ? _indentStack.Pop() : 0;
-            }
-        }
+        UnityEngine.Debug.Log($"[{token.Channel}] {Vocabulary.GetSymbolicName(token.Type)}: {token.Text}: {token.Line}");
         return token;
     }
 }
@@ -107,7 +99,7 @@ STRING_START: '"' -> pushMode(STRING_MODE), more;
 BOOL: TRUE | FALSE;
 
 // 空白和注释
-NEWLINE : '\r'? '\n' { HandleNewline(); };
+NEWLINE: '\r'? '\n' { HandleNewline(); };
 WS: [ \t]+ -> channel(HIDDEN);
 LINE_COMMENT: '#' ~[\r\n]* -> skip;
 BLOCK_COMMENT: '"""' .*? '"""' -> skip;

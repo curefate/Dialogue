@@ -19,20 +19,20 @@ public class DialogueRunner : MonoBehaviour
         var tokens = new CommonTokenStream(lexer);
 
         tokens.Fill();
-        foreach (var token in tokens.GetTokens())
+        /* foreach (var token in tokens.GetTokens())
         {
             string channel = token.Channel == Lexer.Hidden ? "HIDDEN" : "DEFAULT";
-            Debug.Log($"[{channel}] {lexer.Vocabulary.GetSymbolicName(token.Type)}: {token.Text}");
-        }
+            Debug.Log($"[{channel}] {lexer.Vocabulary.GetSymbolicName(token.Type)}: {token.Text}: {token.Line}");
+        } */
 
         // 3. 创建语法分析器
-        var parser = new DSParser(tokens);
+        // var parser = new DSParser(tokens);
 
         // 4. 解析并获取语法树（从program规则开始）
-        var tree = parser.program();
+        // var tree = parser.program();
 
         // 5. 遍历语法树（示例：打印所有对话文本）
-        var visitor = new BasicDialogueVisitor();
+        // var visitor = new BasicDialogueVisitor();
         // visitor.Visit(tree);
     }
 }

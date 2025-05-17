@@ -36,7 +36,7 @@ public partial class DSLexer : Lexer {
 	protected static DFA[] decisionToDFA;
 	protected static PredictionContextCache sharedContextCache = new PredictionContextCache();
 	public const int
-		INDENT=1, DEDENT=2, STRING=3, ENDLINE=4, CALL=5, PLAY=6, HIDE=7, SHOW=8, 
+		INDENT=1, DEDENT=2, STRING=3, LINEMK=4, CALL=5, PLAY=6, HIDE=7, SHOW=8, 
 		WAIT=9, IF=10, ELSE=11, WHILE=12, JUMP=13, LABEL=14, SYNC=15, MENU=16, 
 		TRUE=17, FALSE=18, EQ=19, NEQ=20, GT=21, LT=22, GTE=23, LTE=24, PLUS=25, 
 		MINUS=26, MUL=27, DIV=28, NOT=29, OR=30, AND=31, ASSIGN=32, DOT=33, COLON=34, 
@@ -66,21 +66,16 @@ public partial class DSLexer : Lexer {
 	    private int _currentIndent = 0;
 
 	    private void HandleNewline() {
-	        // 添加结束行token
-	        Emit(new CommonToken(ENDLINE, "ENDLINE"));
-	        
-	        // 计算新行的缩进空格数
 	        int newIndent = 0;
 	         while (InputStream.LA(1) == ' ' || InputStream.LA(1) == '\t') {
 	             newIndent += (InputStream.LA(1) == '\t') ? 4 : 1;
 	            InputStream.Consume();
 	        }
+	        if (InputStream.LA(1) == '\r' || InputStream.LA(1) == '\n' || InputStream.LA(1) == Eof) {
+				Skip();
+				return;
+			}
 
-	        // 跳过空行
-	        if (InputStream.LA(1) == '\n' || InputStream.LA(1) == '\r')
-	            return;
-
-	        // 处理缩进变化
 	        newIndent /= 4;
 	        if (newIndent > _currentIndent) {
 	            Emit(new CommonToken(INDENT, "INDENT"));
@@ -93,17 +88,14 @@ public partial class DSLexer : Lexer {
 	                _currentIndent = _indentStack.Count > 0 ? _indentStack.Pop() : 0;
 	            }
 	        }
-	        // 缩进不变时不生成任何 Token
+	        else {
+	            Emit(new CommonToken(LINEMK, "LINEMK"));
+	        }
 	    }
 
 	    public override IToken NextToken() {
 	        var token = base.NextToken();
-	        if (token.Type == Eof) {
-	            while (_currentIndent > 0) {
-	                Emit(new CommonToken(DEDENT, "DEDENT"));
-	                _currentIndent = _indentStack.Count > 0 ? _indentStack.Pop() : 0;
-	            }
-	        }
+	        UnityEngine.Debug.Log($"[{token.Channel}] {Vocabulary.GetSymbolicName(token.Type)}: {token.Text}: {token.Line}");
 	        return token;
 	    }
 
@@ -125,7 +117,7 @@ public partial class DSLexer : Lexer {
 		"'('", "')'"
 	};
 	private static readonly string[] _SymbolicNames = {
-		null, "INDENT", "DEDENT", "STRING", "ENDLINE", "CALL", "PLAY", "HIDE", 
+		null, "INDENT", "DEDENT", "STRING", "LINEMK", "CALL", "PLAY", "HIDE", 
 		"SHOW", "WAIT", "IF", "ELSE", "WHILE", "JUMP", "LABEL", "SYNC", "MENU", 
 		"TRUE", "FALSE", "EQ", "NEQ", "GT", "LT", "GTE", "LTE", "PLUS", "MINUS", 
 		"MUL", "DIV", "NOT", "OR", "AND", "ASSIGN", "DOT", "COLON", "LPAREN", 

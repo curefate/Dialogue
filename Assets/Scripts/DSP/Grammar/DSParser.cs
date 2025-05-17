@@ -36,7 +36,7 @@ public partial class DSParser : Parser {
 	protected static DFA[] decisionToDFA;
 	protected static PredictionContextCache sharedContextCache = new PredictionContextCache();
 	public const int
-		INDENT=1, DEDENT=2, STRING=3, ENDLINE=4, CALL=5, PLAY=6, HIDE=7, SHOW=8, 
+		INDENT=1, DEDENT=2, STRING=3, LINEMK=4, CALL=5, PLAY=6, HIDE=7, SHOW=8, 
 		WAIT=9, IF=10, ELSE=11, WHILE=12, JUMP=13, LABEL=14, SYNC=15, MENU=16, 
 		TRUE=17, FALSE=18, EQ=19, NEQ=20, GT=21, LT=22, GTE=23, LTE=24, PLUS=25, 
 		MINUS=26, MUL=27, DIV=28, NOT=29, OR=30, AND=31, ASSIGN=32, DOT=33, COLON=34, 
@@ -66,7 +66,7 @@ public partial class DSParser : Parser {
 		"'('", "')'"
 	};
 	private static readonly string[] _SymbolicNames = {
-		null, "INDENT", "DEDENT", "STRING", "ENDLINE", "CALL", "PLAY", "HIDE", 
+		null, "INDENT", "DEDENT", "STRING", "LINEMK", "CALL", "PLAY", "HIDE", 
 		"SHOW", "WAIT", "IF", "ELSE", "WHILE", "JUMP", "LABEL", "SYNC", "MENU", 
 		"TRUE", "FALSE", "EQ", "NEQ", "GT", "LT", "GTE", "LTE", "PLUS", "MINUS", 
 		"MUL", "DIV", "NOT", "OR", "AND", "ASSIGN", "DOT", "COLON", "LPAREN", 
@@ -435,7 +435,7 @@ public partial class DSParser : Parser {
 		public IToken _TAG;
 		public IList<IToken> _tags = new List<IToken>();
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode STRING() { return GetToken(DSParser.STRING, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ENDLINE() { return GetToken(DSParser.ENDLINE, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode LINEMK() { return GetToken(DSParser.LINEMK, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode Eof() { return GetToken(DSParser.Eof, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SYNC() { return GetToken(DSParser.SYNC, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ID() { return GetToken(DSParser.ID, 0); }
@@ -503,7 +503,7 @@ public partial class DSParser : Parser {
 			}
 			State = 94;
 			_la = TokenStream.LA(1);
-			if ( !(_la==Eof || _la==ENDLINE) ) {
+			if ( !(_la==Eof || _la==LINEMK) ) {
 			ErrorHandler.RecoverInline(this);
 			}
 			else {
@@ -884,9 +884,9 @@ public partial class DSParser : Parser {
 		public Dialogue_stmtContext intro;
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode MENU() { return GetToken(DSParser.MENU, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode COLON() { return GetToken(DSParser.COLON, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode[] ENDLINE() { return GetTokens(DSParser.ENDLINE); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ENDLINE(int i) {
-			return GetToken(DSParser.ENDLINE, i);
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode[] LINEMK() { return GetTokens(DSParser.LINEMK); }
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode LINEMK(int i) {
+			return GetToken(DSParser.LINEMK, i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode INDENT() { return GetToken(DSParser.INDENT, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DEDENT() { return GetToken(DSParser.DEDENT, 0); }
@@ -925,7 +925,7 @@ public partial class DSParser : Parser {
 			State = 133;
 			Match(COLON);
 			State = 134;
-			Match(ENDLINE);
+			Match(LINEMK);
 			State = 135;
 			Match(INDENT);
 			State = 137;
@@ -953,7 +953,7 @@ public partial class DSParser : Parser {
 				_la = TokenStream.LA(1);
 			} while ( _la==STRING );
 			State = 144;
-			Match(ENDLINE);
+			Match(LINEMK);
 			State = 145;
 			Match(DEDENT);
 			}
@@ -972,7 +972,7 @@ public partial class DSParser : Parser {
 	public partial class Menu_itemContext : ParserRuleContext {
 		public IToken option;
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode COLON() { return GetToken(DSParser.COLON, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ENDLINE() { return GetToken(DSParser.ENDLINE, 0); }
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode LINEMK() { return GetToken(DSParser.LINEMK, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public BlockContext block() {
 			return GetRuleContext<BlockContext>(0);
 		}
@@ -1002,7 +1002,7 @@ public partial class DSParser : Parser {
 			State = 148;
 			Match(COLON);
 			State = 149;
-			Match(ENDLINE);
+			Match(LINEMK);
 			State = 150;
 			block();
 			}

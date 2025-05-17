@@ -44,7 +44,7 @@ label_decl
     ;
 
 dialogue_stmt
-    : SYNC? speaker=ID? text=STRING tags+=TAG* (ENDLINE | EOF)
+    : SYNC? speaker=ID? text=STRING tags+=TAG* (LINEMK | EOF)
     ;
 
 call_stmt
@@ -68,11 +68,11 @@ call_arg_key
     ;
 
 menu_stmt
-    : MENU COLON ENDLINE INDENT intro=dialogue_stmt? menu_item+ ENDLINE DEDENT
+    : MENU COLON LINEMK INDENT intro=dialogue_stmt? menu_item+ LINEMK DEDENT
     ;
 
 menu_item
-    : option=STRING COLON ENDLINE block
+    : option=STRING COLON LINEMK block
     ;
 
 assignment_stmt
