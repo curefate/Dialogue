@@ -6,24 +6,15 @@ options {
 
 // 语法规则
 program
-    : statement* EOF
+    : LINEMK? (statement | label_decl)* EOF
     ;
 
-/*
-statement
-    : if_stmt (NEWLINE | EOF)
-    | while_stmt (NEWLINE | EOF)
-    | jump_stmt (NEWLINE | EOF)
-    | label_decl (NEWLINE | EOF)
-    | dialogue_stmt (NEWLINE | EOF)
-    | call_stmt (NEWLINE | EOF)
-    | menu_stmt (NEWLINE | EOF)
-    | assignment_stmt (NEWLINE | EOF)
+label_decl
+    : LABEL label=ID COLON (LINEMK | INDENT)
     ;
-*/
 
 statement
-    : dialogue_stmt
+    : dialogue_stmt (LINEMK | INDENT | DEDENT | EOF)
     | menu_stmt
     ;
 
@@ -39,12 +30,8 @@ jump_stmt
     : JUMP label=ID
     ;
 
-label_decl
-    : LABEL label=ID COLON
-    ;
-
 dialogue_stmt
-    : SYNC? speaker=ID? text=STRING tags+=TAG* (LINEMK | EOF)
+    : SYNC? speaker=ID? text=STRING tags+=TAG*
     ;
 
 call_stmt
@@ -68,11 +55,11 @@ call_arg_key
     ;
 
 menu_stmt
-    : MENU COLON LINEMK INDENT intro=dialogue_stmt? menu_item+ LINEMK DEDENT
+    : MENU COLON INDENT (intro=dialogue_stmt LINEMK)? menu_item+ DEDENT
     ;
 
 menu_item
-    : option=STRING COLON LINEMK block
+    : option=STRING COLON block
     ;
 
 assignment_stmt
@@ -120,7 +107,7 @@ primary
     ;
 
 block
-    : INDENT statement+ DEDENT
+    : INDENT statement (LINEMK statement)* DEDENT
     ;
 
 literal

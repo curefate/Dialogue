@@ -67,6 +67,7 @@ SYNC: 'sync';
 MENU: 'menu';
 TRUE: 'true';
 FALSE: 'false';
+// IMPORT: 'import';
 
 // 运算符
 EQ: '==';
