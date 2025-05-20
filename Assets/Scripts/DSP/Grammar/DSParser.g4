@@ -4,114 +4,31 @@ options {
     tokenVocab = DSLexer;
 }
 
-// 语法规则
 program
-    : NL? (statement | label_decl)* EOF
+    : (statement | label_decl)* EOF
     ;
 
 label_decl
-    : LABEL label=ID COLON (NL | INDENT)
+    : LABEL label=ID COLON NEWLINE
     ;
 
 statement
-    : dialogue_stmt (NL | INDENT | DEDENT | EOF)
+    : dialogue_stmt
     | menu_stmt
     ;
 
-if_stmt
-    : IF expression COLON block (ELSE COLON block)?
-    ;
-
-while_stmt
-    : WHILE expression COLON block
-    ;
-
-jump_stmt
-    : JUMP label=ID
-    ;
-
 dialogue_stmt
-    : SYNC? speaker=ID? text=STRING tags+=TAG*
-    ;
-
-call_stmt
-    : SYNC? call_command call_arg_pos* call_arg_key*
-    ;
-
-call_command
-    : CALL ID      # CallCustomCommand
-    | PLAY         # PlayCommand
-    | HIDE         # HideCommand
-    | SHOW         # ShowCommand
-    | WAIT         # WaitCommand
-    ;
-
-call_arg_pos
-    : (literal | VARIABLE | ID)
-    ;
-
-call_arg_key
-    : ID EQ (expression | literal | VARIABLE)
+    : SYNC? speaker=ID? text=STRING tags+=TAG* NEWLINE
     ;
 
 menu_stmt
-    : MENU COLON INDENT (intro=dialogue_stmt NL)? menu_item+ DEDENT
+    : MENU COLON NEWLINE INDENT intro=dialogue_stmt? option+=menu_item+ DEDENT
     ;
 
 menu_item
-    : option=STRING COLON block
-    ;
-
-assignment_stmt
-    : VARIABLE EQ expression
-    ;
-
-expression
-    : logical_and (OR logical_and)*
-    ;
-
-logical_and
-    : equality (AND equality)*
-    ;
-
-equality
-    : comparison (EQ | NEQ) comparison
-    | comparison
-    ;
-
-comparison
-    : term ((GT | LT | GTE | LTE) term)*
-    | term
-    ;
-
-term
-    : factor ((PLUS | MINUS) factor)*
-    | factor
-    ;
-
-factor
-    : unary ((MUL | DIV) unary)*
-    | unary
-    ;
-
-unary
-    : (PLUS | MINUS | NOT)? primary
-    ;
-
-primary
-    : VARIABLE
-    | NUMBER
-    | BOOL
-    | STRING
-    | LPAREN expression RPAREN
+    : text=STRING COLON NEWLINE block
     ;
 
 block
-    : INDENT statement (NL statement)* DEDENT
-    ;
-
-literal
-    : NUMBER
-    | BOOL
-    | STRING
+    : INDENT statement+ DEDENT
     ;

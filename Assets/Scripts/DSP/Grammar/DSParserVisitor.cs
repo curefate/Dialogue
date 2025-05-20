@@ -50,82 +50,11 @@ public interface IDSParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitStatement([NotNull] DSParser.StatementContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.if_stmt"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitIf_stmt([NotNull] DSParser.If_stmtContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.while_stmt"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitWhile_stmt([NotNull] DSParser.While_stmtContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.jump_stmt"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitJump_stmt([NotNull] DSParser.Jump_stmtContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="DSParser.dialogue_stmt"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitDialogue_stmt([NotNull] DSParser.Dialogue_stmtContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.call_stmt"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitCall_stmt([NotNull] DSParser.Call_stmtContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>CallCustomCommand</c>
-	/// labeled alternative in <see cref="DSParser.call_command"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitCallCustomCommand([NotNull] DSParser.CallCustomCommandContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>PlayCommand</c>
-	/// labeled alternative in <see cref="DSParser.call_command"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitPlayCommand([NotNull] DSParser.PlayCommandContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>HideCommand</c>
-	/// labeled alternative in <see cref="DSParser.call_command"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitHideCommand([NotNull] DSParser.HideCommandContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>ShowCommand</c>
-	/// labeled alternative in <see cref="DSParser.call_command"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitShowCommand([NotNull] DSParser.ShowCommandContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>WaitCommand</c>
-	/// labeled alternative in <see cref="DSParser.call_command"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitWaitCommand([NotNull] DSParser.WaitCommandContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.call_arg_pos"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitCall_arg_pos([NotNull] DSParser.Call_arg_posContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.call_arg_key"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitCall_arg_key([NotNull] DSParser.Call_arg_keyContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="DSParser.menu_stmt"/>.
 	/// </summary>
@@ -139,69 +68,9 @@ public interface IDSParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitMenu_item([NotNull] DSParser.Menu_itemContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.assignment_stmt"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitAssignment_stmt([NotNull] DSParser.Assignment_stmtContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.expression"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitExpression([NotNull] DSParser.ExpressionContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.logical_and"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitLogical_and([NotNull] DSParser.Logical_andContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.equality"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitEquality([NotNull] DSParser.EqualityContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.comparison"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitComparison([NotNull] DSParser.ComparisonContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.term"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitTerm([NotNull] DSParser.TermContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.factor"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitFactor([NotNull] DSParser.FactorContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.unary"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitUnary([NotNull] DSParser.UnaryContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.primary"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitPrimary([NotNull] DSParser.PrimaryContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="DSParser.block"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitBlock([NotNull] DSParser.BlockContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.literal"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitLiteral([NotNull] DSParser.LiteralContext context);
 }

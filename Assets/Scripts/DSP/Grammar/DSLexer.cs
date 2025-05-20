@@ -32,21 +32,20 @@ using DFA = Antlr4.Runtime.Dfa.DFA;
 
 [System.CodeDom.Compiler.GeneratedCode("ANTLR", "4.13.2")]
 [System.CLSCompliant(false)]
-public partial class DSLexer : Lexer
-{
+public partial class DSLexer : Lexer {
 	protected static DFA[] decisionToDFA;
 	protected static PredictionContextCache sharedContextCache = new PredictionContextCache();
 	public const int
-		INDENT = 1, DEDENT = 2, STRING = 3, NL = 4, LPAR = 5, RPAR = 6, COLON = 7, UNARY_OPERATOR = 8,
-		EXCLAMATION = 9, MINUS = 10, BINARY_OPERATOR = 11, PLUS = 12, SLASH = 13, LESS = 14,
-		GREATER = 15, EQUAL = 16, PERCENT = 17, EQEQUAL = 18, NOTEQUAL = 19, LESSEQUAL = 20,
-		GREATEREQUAL = 21, PLUSEQUAL = 22, MINEQUAL = 23, STAREQUAL = 24, SLASHEQUAL = 25,
-		PERCENTEQUAL = 26, CALL = 27, PLAY = 28, HIDE = 29, SHOW = 30, WAIT = 31, IF = 32, ELSE = 33,
-		WHILE = 34, JUMP = 35, LABEL = 36, SYNC = 37, MENU = 38, BOOL = 39, TRUE = 40, FALSE = 41,
-		NUMBER = 42, ID = 43, TAG = 44, VARIABLE = 45, WS = 46, LINE_COMMENT = 47, BLOCK_COMMENT = 48,
-		ERROR_CHAR = 49, NEWLINE = 50, STRING_START = 51;
+		INDENT=1, DEDENT=2, STRING=3, NL=4, LPAR=5, RPAR=6, COLON=7, UNARY_OPERATOR=8, 
+		EXCLAMATION=9, MINUS=10, BINARY_OPERATOR=11, PLUS=12, SLASH=13, LESS=14, 
+		GREATER=15, EQUAL=16, PERCENT=17, EQEQUAL=18, NOTEQUAL=19, LESSEQUAL=20, 
+		GREATEREQUAL=21, PLUSEQUAL=22, MINEQUAL=23, STAREQUAL=24, SLASHEQUAL=25, 
+		PERCENTEQUAL=26, CALL=27, PLAY=28, HIDE=29, SHOW=30, WAIT=31, IF=32, ELSE=33, 
+		WHILE=34, JUMP=35, LABEL=36, SYNC=37, MENU=38, BOOL=39, TRUE=40, FALSE=41, 
+		NUMBER=42, ID=43, TAG=44, VARIABLE=45, WS=46, LINE_COMMENT=47, BLOCK_COMMENT=48, 
+		ERROR_CHAR=49, NEWLINE=50, STRING_START=51;
 	public const int
-		STRING_MODE = 1;
+		STRING_MODE=1;
 	public static string[] channelNames = {
 		"DEFAULT_TOKEN_CHANNEL", "HIDDEN"
 	};
@@ -56,90 +55,90 @@ public partial class DSLexer : Lexer
 	};
 
 	public static readonly string[] ruleNames = {
-		"LPAR", "RPAR", "COLON", "UNARY_OPERATOR", "EXCLAMATION", "MINUS", "BINARY_OPERATOR",
-		"PLUS", "SLASH", "LESS", "GREATER", "EQUAL", "PERCENT", "EQEQUAL", "NOTEQUAL",
-		"LESSEQUAL", "GREATEREQUAL", "PLUSEQUAL", "MINEQUAL", "STAREQUAL", "SLASHEQUAL",
-		"PERCENTEQUAL", "CALL", "PLAY", "HIDE", "SHOW", "WAIT", "IF", "ELSE",
-		"WHILE", "JUMP", "LABEL", "SYNC", "MENU", "BOOL", "TRUE", "FALSE", "NUMBER",
-		"ID", "TAG", "VARIABLE", "STRING_START", "INTEGER", "FLOAT", "NON_ZERO_DIGIT",
-		"DIGIT", "DOT", "AT", "ALPHABET", "CHAR", "WS", "LINE_COMMENT", "BLOCK_COMMENT",
-		"ERROR_CHAR", "NEWLINE", "STRING_CONTENT", "STRING_ESCAPE", "STRING_END",
+		"LPAR", "RPAR", "COLON", "UNARY_OPERATOR", "EXCLAMATION", "MINUS", "BINARY_OPERATOR", 
+		"PLUS", "SLASH", "LESS", "GREATER", "EQUAL", "PERCENT", "EQEQUAL", "NOTEQUAL", 
+		"LESSEQUAL", "GREATEREQUAL", "PLUSEQUAL", "MINEQUAL", "STAREQUAL", "SLASHEQUAL", 
+		"PERCENTEQUAL", "CALL", "PLAY", "HIDE", "SHOW", "WAIT", "IF", "ELSE", 
+		"WHILE", "JUMP", "LABEL", "SYNC", "MENU", "BOOL", "TRUE", "FALSE", "NUMBER", 
+		"ID", "TAG", "VARIABLE", "STRING_START", "INTEGER", "FLOAT", "NON_ZERO_DIGIT", 
+		"DIGIT", "DOT", "AT", "ALPHABET", "CHAR", "WS", "LINE_COMMENT", "BLOCK_COMMENT", 
+		"ERROR_CHAR", "NEWLINE", "STRING_CONTENT", "STRING_ESCAPE", "STRING_END", 
 		"STRING_NEWLINE"
 	};
 
 
-	private Stack<int> _indentStack = new();
-	private List<IToken> _tokenList = new();
-	private int _currentIndent = 0;
-	private IToken _pre_token = null;
-	private bool _fbl = true;
+	    private Stack<int> _indentStack = new();
+	    private List<IToken> _tokenList = new();
+	    private int _currentIndent = 0;
+	    private IToken _pre_token = null;
+		private bool _fbl = true;
 
-	private void HandleNewline()
-	{
-		int newIndent = 0;
-		while (InputStream.LA(1) == ' ' || InputStream.LA(1) == '\t')
-		{
-			newIndent += (InputStream.LA(1) == '\t') ? 4 : 1;
-			InputStream.Consume();
-		}
-		if (InputStream.LA(1) == '\r' || InputStream.LA(1) == '\n' || InputStream.LA(1) == Eof)
-			return;
+	    private void HandleNewline() 
+	    {
+	        int newIndent = 0;
+	        while (InputStream.LA(1) == ' ' || InputStream.LA(1) == '\t') 
+	        {
+	            newIndent += (InputStream.LA(1) == '\t') ? 4 : 1;
+	            InputStream.Consume();
+	        }
+	        if (InputStream.LA(1) == '\r' || InputStream.LA(1) == '\n' || InputStream.LA(1) == Eof)
+				return;
 
-		newIndent /= 4;
-		if (newIndent > _currentIndent)
-		{
-			var token = new CommonToken(INDENT, "INDENT");
-			_tokenList.Add(token);
-			_indentStack.Push(_currentIndent);
-			_currentIndent = newIndent;
-		}
-		else if (newIndent < _currentIndent)
-		{
-			while (_currentIndent > newIndent)
+	        newIndent /= 4;
+	        if (newIndent > _currentIndent)
+	        {
+	            var token = new CommonToken(INDENT, "INDENT");
+	            _tokenList.Add(token);
+	            _indentStack.Push(_currentIndent);
+	            _currentIndent = newIndent;
+	        } 
+	        else if (newIndent < _currentIndent)
+	        {
+	            while (_currentIndent > newIndent)
+	            {
+	                var token = new CommonToken(DEDENT, "DEDENT");
+	                _tokenList.Add(token);
+	                _currentIndent = _indentStack.Count > 0 ? _indentStack.Pop() : 0;
+	            }
+	        }
+	    }
+
+	    public override IToken NextToken()
+	    {
+	        IToken token = null;
+	        if (_tokenList.Count > 0)
+	        {
+	            token = _tokenList[0];
+	            _tokenList.RemoveAt(0);
+	        }
+	        else
+	        {
+	            token = base.NextToken();
+	            if (_fbl && token.Channel == 0 && token.Type != NEWLINE)
+					_fbl = false;
+	        }
+
+	        if (InputStream.LA(1) == Eof)
 			{
-				var token = new CommonToken(DEDENT, "DEDENT");
-				_tokenList.Add(token);
-				_currentIndent = _indentStack.Count > 0 ? _indentStack.Pop() : 0;
+				while (_indentStack.Count > 0)
+				{
+					var tokenDedent = new CommonToken(DEDENT, "DEDENT");
+					_tokenList.Add(tokenDedent);
+					_indentStack.Pop();
+				}
 			}
-		}
-	}
 
-	public override IToken NextToken()
-	{
-		IToken token = null;
-		if (_tokenList.Count > 0)
-		{
-			token = _tokenList[0];
-			_tokenList.RemoveAt(0);
-		}
-		else
-		{
-			token = base.NextToken();
-			if (_fbl && token.Channel == 0 && token.Type != NEWLINE)
-				_fbl = false;
-		}
+	        if (_fbl && token.Type == NEWLINE)
+				return NextToken();
 
-		if (InputStream.LA(1) == Eof)
-		{
-			while (_indentStack.Count > 0)
-			{
-				var tokenDedent = new CommonToken(DEDENT, "DEDENT");
-				_tokenList.Add(tokenDedent);
-				_indentStack.Pop();
-			}
-		}
+	        if (_pre_token != null && _pre_token.Type == NEWLINE && token.Type == NEWLINE)
+				return NextToken();
 
-		if (_fbl && token.Type == NEWLINE)
-			return NextToken();
-
-		if (_pre_token != null && _pre_token.Type == NEWLINE && token.Type == NEWLINE)
-			return NextToken();
-
-		if (token.Channel == 0)
-			UnityEngine.Debug.Log($"[{token.Channel}] {Vocabulary.GetSymbolicName(token.Type)}: {token.Text}: {token.Line}");
-		_pre_token = token;
-		return token;
-	}
+	        if (token.Channel == 0)
+	            UnityEngine.Debug.Log($"[{token.Channel}] {Vocabulary.GetSymbolicName(token.Type)}: {token.Text}: {token.Line}");
+	        _pre_token = token;
+	        return token;
+	    }
 
 
 	public DSLexer(ICharStream input)
@@ -152,19 +151,19 @@ public partial class DSLexer : Lexer
 	}
 
 	private static readonly string[] _LiteralNames = {
-		null, null, null, null, null, "'('", "')'", "':'", null, "'!'", "'-'",
-		null, "'+'", "'/'", "'<'", "'>'", "'='", "'%'", "'=='", "'!='", "'<='",
-		"'>='", "'+='", "'-='", "'*='", "'/='", "'%='", "'call'", "'play'", "'hide'",
-		"'show'", "'wait'", "'if'", "'else'", "'while'", "'jump'", "'label'",
+		null, null, null, null, null, "'('", "')'", "':'", null, "'!'", "'-'", 
+		null, "'+'", "'/'", "'<'", "'>'", "'='", "'%'", "'=='", "'!='", "'<='", 
+		"'>='", "'+='", "'-='", "'*='", "'/='", "'%='", "'call'", "'play'", "'hide'", 
+		"'show'", "'wait'", "'if'", "'else'", "'while'", "'jump'", "'label'", 
 		"'sync'", "'menu'", null, "'true'", "'false'"
 	};
 	private static readonly string[] _SymbolicNames = {
-		null, "INDENT", "DEDENT", "STRING", "NL", "LPAR", "RPAR", "COLON", "UNARY_OPERATOR",
-		"EXCLAMATION", "MINUS", "BINARY_OPERATOR", "PLUS", "SLASH", "LESS", "GREATER",
-		"EQUAL", "PERCENT", "EQEQUAL", "NOTEQUAL", "LESSEQUAL", "GREATEREQUAL",
-		"PLUSEQUAL", "MINEQUAL", "STAREQUAL", "SLASHEQUAL", "PERCENTEQUAL", "CALL",
-		"PLAY", "HIDE", "SHOW", "WAIT", "IF", "ELSE", "WHILE", "JUMP", "LABEL",
-		"SYNC", "MENU", "BOOL", "TRUE", "FALSE", "NUMBER", "ID", "TAG", "VARIABLE",
+		null, "INDENT", "DEDENT", "STRING", "NL", "LPAR", "RPAR", "COLON", "UNARY_OPERATOR", 
+		"EXCLAMATION", "MINUS", "BINARY_OPERATOR", "PLUS", "SLASH", "LESS", "GREATER", 
+		"EQUAL", "PERCENT", "EQEQUAL", "NOTEQUAL", "LESSEQUAL", "GREATEREQUAL", 
+		"PLUSEQUAL", "MINEQUAL", "STAREQUAL", "SLASHEQUAL", "PERCENTEQUAL", "CALL", 
+		"PLAY", "HIDE", "SHOW", "WAIT", "IF", "ELSE", "WHILE", "JUMP", "LABEL", 
+		"SYNC", "MENU", "BOOL", "TRUE", "FALSE", "NUMBER", "ID", "TAG", "VARIABLE", 
 		"WS", "LINE_COMMENT", "BLOCK_COMMENT", "ERROR_CHAR", "NEWLINE", "STRING_START"
 	};
 	public static readonly IVocabulary DefaultVocabulary = new Vocabulary(_LiteralNames, _SymbolicNames);
@@ -188,26 +187,20 @@ public partial class DSLexer : Lexer
 
 	public override int[] SerializedAtn { get { return _serializedATN; } }
 
-	static DSLexer()
-	{
+	static DSLexer() {
 		decisionToDFA = new DFA[_ATN.NumberOfDecisions];
-		for (int i = 0; i < _ATN.NumberOfDecisions; i++)
-		{
+		for (int i = 0; i < _ATN.NumberOfDecisions; i++) {
 			decisionToDFA[i] = new DFA(_ATN.GetDecisionState(i), i);
 		}
 	}
-	public override void Action(RuleContext _localctx, int ruleIndex, int actionIndex)
-	{
-		switch (ruleIndex)
-		{
-			case 54: NEWLINE_action(_localctx, actionIndex); break;
+	public override void Action(RuleContext _localctx, int ruleIndex, int actionIndex) {
+		switch (ruleIndex) {
+		case 54 : NEWLINE_action(_localctx, actionIndex); break;
 		}
 	}
-	private void NEWLINE_action(RuleContext _localctx, int actionIndex)
-	{
-		switch (actionIndex)
-		{
-			case 0: HandleNewline(); break;
+	private void NEWLINE_action(RuleContext _localctx, int actionIndex) {
+		switch (actionIndex) {
+		case 0:  HandleNewline();  break;
 		}
 	}
 
