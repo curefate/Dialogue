@@ -6,15 +6,15 @@ options {
 
 // 语法规则
 program
-    : LINEMK? (statement | label_decl)* EOF
+    : NL? (statement | label_decl)* EOF
     ;
 
 label_decl
-    : LABEL label=ID COLON (LINEMK | INDENT)
+    : LABEL label=ID COLON (NL | INDENT)
     ;
 
 statement
-    : dialogue_stmt (LINEMK | INDENT | DEDENT | EOF)
+    : dialogue_stmt (NL | INDENT | DEDENT | EOF)
     | menu_stmt
     ;
 
@@ -55,7 +55,7 @@ call_arg_key
     ;
 
 menu_stmt
-    : MENU COLON INDENT (intro=dialogue_stmt LINEMK)? menu_item+ DEDENT
+    : MENU COLON INDENT (intro=dialogue_stmt NL)? menu_item+ DEDENT
     ;
 
 menu_item
@@ -107,7 +107,7 @@ primary
     ;
 
 block
-    : INDENT statement (LINEMK statement)* DEDENT
+    : INDENT statement (NL statement)* DEDENT
     ;
 
 literal
