@@ -18,6 +18,7 @@ statement
     | jump_stmt
     | call_stmt
     | assign_stmt
+    | if_stmt
     ;
 
 // ====================== dialogue ======================
@@ -41,7 +42,7 @@ jump_stmt
 
 // ====================== call ==========================
 call_stmt
-    : SYNC? (call_command | call_function) args_p+=call_arg_pos* args_k+=call_arg_key*
+    : SYNC? (call_command | call_function) args_p+=call_arg_pos* args_k+=call_arg_key* NEWLINE
     ;
 
 call_command
@@ -65,7 +66,12 @@ call_arg_key
 
 // ====================== assign ========================
 assign_stmt
-    : VARIABLE (EQUAL | PLUSEQUAL | MINEQUAL | STAREQUAL | SLASHEQUAL | PERCENTEQUAL) expression
+    : VARIABLE (EQUAL | PLUSEQUAL | MINEQUAL | STAREQUAL | SLASHEQUAL | PERCENTEQUAL) expression NEWLINE
+    ;
+
+// ====================== if ============================
+if_stmt
+    : IF expression COLON NEWLINE if_block=block (ELSE COLON NEWLINE else_block=block)?
     ;
 
 // ====================== others ========================

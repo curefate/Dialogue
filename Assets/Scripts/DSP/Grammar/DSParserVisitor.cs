@@ -110,6 +110,12 @@ public interface IDSParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitAssign_stmt([NotNull] DSParser.Assign_stmtContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.if_stmt"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitIf_stmt([NotNull] DSParser.If_stmtContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="DSParser.expression"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

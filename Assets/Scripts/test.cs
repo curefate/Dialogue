@@ -80,14 +80,14 @@ public class BasicDialogueVisitor : DSParserBaseVisitor<object>
     {
         var labelName = context.label.Text;
         Debug.Log($"标签: {labelName}");
-        return base.VisitLabel_decl(context);
+        return null;
     }
 
     public override object VisitJump_stmt([NotNull] DSParser.Jump_stmtContext context)
     {
         var labelName = context.label.Text;
         Debug.Log($"跳转到标签: {labelName}");
-        return base.VisitJump_stmt(context);
+        return null;
     }
 
     public override object VisitCall_stmt([NotNull] DSParser.Call_stmtContext context)
@@ -120,7 +120,7 @@ public class BasicDialogueVisitor : DSParserBaseVisitor<object>
             }
         }
         Debug.Log(log);
-        return base.VisitCall_stmt(context);
+        return null;
     }
 
     public override object VisitAssign_stmt([NotNull] DSParser.Assign_stmtContext context)
@@ -128,6 +128,25 @@ public class BasicDialogueVisitor : DSParserBaseVisitor<object>
         var v = context.VARIABLE().GetText();
         var value = context.expression().GetText();
         Debug.Log($"赋值: {v} = {value}");
-        return base.VisitAssign_stmt(context);
+        return null;
+    }
+
+    public override object VisitIf_stmt([NotNull] DSParser.If_stmtContext context)
+    {
+        var condition = context.expression().GetText();
+        Debug.Log($"条件判断: {condition}");
+        var if_block = context.if_block;
+        var else_block = context.else_block;
+        if (if_block != null)
+        {
+            Debug.Log("如果条件成立，执行:");
+            Visit(if_block);
+        }
+        if (else_block != null)
+        {
+            Debug.Log("否则，执行:");
+            Visit(else_block);
+        }
+        return null;
     }
 }
