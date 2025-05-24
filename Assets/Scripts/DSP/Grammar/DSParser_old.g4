@@ -39,7 +39,7 @@ call_stmt
     ;
 
 call_command
-    : CALL ID      # CallCustomCommand
+    : CALL func=ID # CallCustomCommand
     | PLAY         # PlayCommand
     | HIDE         # HideCommand
     | SHOW         # ShowCommand

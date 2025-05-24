@@ -68,6 +68,119 @@ public interface IDSParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitMenu_item([NotNull] DSParser.Menu_itemContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.jump_stmt"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitJump_stmt([NotNull] DSParser.Jump_stmtContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.call_stmt"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCall_stmt([NotNull] DSParser.Call_stmtContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>CallCustomCommand</c>
+	/// labeled alternative in <see cref="DSParser.call_command"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCallCustomCommand([NotNull] DSParser.CallCustomCommandContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>PlayCommand</c>
+	/// labeled alternative in <see cref="DSParser.call_command"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitPlayCommand([NotNull] DSParser.PlayCommandContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>HideCommand</c>
+	/// labeled alternative in <see cref="DSParser.call_command"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitHideCommand([NotNull] DSParser.HideCommandContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>ShowCommand</c>
+	/// labeled alternative in <see cref="DSParser.call_command"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitShowCommand([NotNull] DSParser.ShowCommandContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>WaitCommand</c>
+	/// labeled alternative in <see cref="DSParser.call_command"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitWaitCommand([NotNull] DSParser.WaitCommandContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.call_arg_pos"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCall_arg_pos([NotNull] DSParser.Call_arg_posContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.call_arg_key"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCall_arg_key([NotNull] DSParser.Call_arg_keyContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.assignment_stmt"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitAssignment_stmt([NotNull] DSParser.Assignment_stmtContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.expression"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExpression([NotNull] DSParser.ExpressionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.expr_logical_and"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExpr_logical_and([NotNull] DSParser.Expr_logical_andContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.expr_equality"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExpr_equality([NotNull] DSParser.Expr_equalityContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.expr_comparison"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExpr_comparison([NotNull] DSParser.Expr_comparisonContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.expr_term"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExpr_term([NotNull] DSParser.Expr_termContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.expr_factor"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExpr_factor([NotNull] DSParser.Expr_factorContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.expr_unary"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExpr_unary([NotNull] DSParser.Expr_unaryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.expr_primary"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitExpr_primary([NotNull] DSParser.Expr_primaryContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="DSParser.block"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>

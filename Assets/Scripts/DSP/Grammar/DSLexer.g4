@@ -87,49 +87,32 @@ tokens {
     }
 }
 
-// ====================== symbols ======================
-LPAR            : '('; // OPEN_PAREN
-RPAR            : ')'; // CLOSE_PAREN
-COLON           : ':';
-UNARY_OPERATOR  : EXCLAMATION
-                | MINUS
-                ;
-EXCLAMATION     : '!';
-MINUS           : '-';
-BINARY_OPERATOR : PLUS
-                | MINUS
-                | SLASH
-                | LESS
-                | GREATER
-                | EQUAL
-                | PERCENT
-                | EQEQUAL
-                | NOTEQUAL
-                | LESSEQUAL
-                | GREATEREQUAL
-                | PLUSEQUAL
-                | MINEQUAL
-                | STAREQUAL
-                | SLASHEQUAL
-                | PERCENTEQUAL
-                ;
-PLUS            : '+';
-SLASH           : '/';
-LESS            : '<';
-GREATER         : '>';
-EQUAL           : '=';
-PERCENT         : '%';
-EQEQUAL         : '==';
-NOTEQUAL        : '!=';
-LESSEQUAL       : '<=';
-GREATEREQUAL    : '>=';
-PLUSEQUAL       : '+=';
-MINEQUAL        : '-=';
-STAREQUAL       : '*=';
-SLASHEQUAL      : '/=';
-PERCENTEQUAL    : '%=';
+// ====================== expr =========================
+LPAR         : '('; // OPEN_PAREN
+RPAR         : ')'; // CLOSE_PAREN
+EXCLAMATION  : '!';
+PLUS         : '+';
+MINUS        : '-';
+STAR         : '*';
+SLASH        : '/';
+LESS         : '<';
+GREATER      : '>';
+EQUAL        : '=';
+PERCENT      : '%';
+EQEQUAL      : '==';
+NOTEQUAL     : '!=';
+LESSEQUAL    : '<=';
+GREATEREQUAL : '>=';
+PLUSEQUAL    : '+=';
+MINEQUAL     : '-=';
+STAREQUAL    : '*=';
+SLASHEQUAL   : '/=';
+PERCENTEQUAL : '%=';
+AND          : '&&' | 'and';
+OR           : '||' | 'or';
 
 // ===================== keyworkds =====================
+COLON  : ':';
 CALL   : 'call';
 PLAY   : 'play';
 HIDE   : 'hide';
@@ -182,7 +165,6 @@ STRING_NEWLINE : ('\r'? '\n')     -> more;  // 处理字符串内的换行（跨
 
 // ===================== backup ========================
 // SEMI             : ';';
-// STAR             : '*';
 // VBAR             : '|';
 // AMPER            : '&';
 // TILDE            : '~';

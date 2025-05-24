@@ -74,4 +74,18 @@ public class BasicDialogueVisitor : DSParserBaseVisitor<object>
         Debug.Log("菜单结束");
         return null;
     }
+
+    public override object VisitLabel_decl([NotNull] DSParser.Label_declContext context)
+    {
+        var labelName = context.label.Text;
+        Debug.Log($"标签: {labelName}");
+        return base.VisitLabel_decl(context);
+    }
+
+    public override object VisitJump_stmt([NotNull] DSParser.Jump_stmtContext context)
+    {
+        var labelName = context.label.Text;
+        Debug.Log($"跳转到标签: {labelName}");
+        return base.VisitJump_stmt(context);
+    }
 }
