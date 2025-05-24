@@ -16,12 +16,16 @@ statement
     : dialogue_stmt
     | menu_stmt
     | jump_stmt
+    | call_stmt
+    | assign_stmt
     ;
 
+// ====================== dialogue ======================
 dialogue_stmt
     : SYNC? speaker=ID? text=STRING tags+=TAG* NEWLINE
     ;
 
+// ====================== menu ==========================
 menu_stmt
     : MENU COLON NEWLINE INDENT intro=dialogue_stmt? option+=menu_item+ DEDENT
     ;
@@ -30,10 +34,12 @@ menu_item
     : text=STRING COLON NEWLINE block
     ;
 
+// ====================== jump ==========================
 jump_stmt
     : JUMP label=ID NEWLINE
     ;
 
+// ====================== call ==========================
 call_stmt
     : SYNC? call_command args_p+=call_arg_pos* args_k+=call_arg_key*
     ;
@@ -54,10 +60,12 @@ call_arg_key
     : ID EQUAL (expression | STRING | BOOL | NUMBER | VARIABLE)
     ;
 
-assignment_stmt
+// ====================== assign ========================
+assign_stmt
     : VARIABLE (EQUAL | PLUSEQUAL | MINEQUAL | STAREQUAL | SLASHEQUAL | PERCENTEQUAL) expression
     ;
 
+// ====================== others ========================
 expression
     : expr_logical_and (OR expr_logical_and)*
     ;
