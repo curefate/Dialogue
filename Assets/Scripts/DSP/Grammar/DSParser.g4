@@ -41,15 +41,18 @@ jump_stmt
 
 // ====================== call ==========================
 call_stmt
-    : SYNC? call_command args_p+=call_arg_pos* args_k+=call_arg_key*
+    : SYNC? (call_command | call_function) args_p+=call_arg_pos* args_k+=call_arg_key*
     ;
 
 call_command
-    : CALL func=ID # CallCustomCommand
-    | PLAY         # PlayCommand
-    | HIDE         # HideCommand
-    | SHOW         # ShowCommand
-    | WAIT         # WaitCommand
+    : PLAY
+    | HIDE
+    | SHOW
+    | WAIT
+    ;
+
+call_function
+    : CALL func=ID
     ;
 
 call_arg_pos

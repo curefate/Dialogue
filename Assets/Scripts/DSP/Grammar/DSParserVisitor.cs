@@ -80,40 +80,17 @@ public interface IDSParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitCall_stmt([NotNull] DSParser.Call_stmtContext context);
 	/// <summary>
-	/// Visit a parse tree produced by the <c>CallCustomCommand</c>
-	/// labeled alternative in <see cref="DSParser.call_command"/>.
+	/// Visit a parse tree produced by <see cref="DSParser.call_command"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitCallCustomCommand([NotNull] DSParser.CallCustomCommandContext context);
+	Result VisitCall_command([NotNull] DSParser.Call_commandContext context);
 	/// <summary>
-	/// Visit a parse tree produced by the <c>PlayCommand</c>
-	/// labeled alternative in <see cref="DSParser.call_command"/>.
+	/// Visit a parse tree produced by <see cref="DSParser.call_function"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitPlayCommand([NotNull] DSParser.PlayCommandContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>HideCommand</c>
-	/// labeled alternative in <see cref="DSParser.call_command"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitHideCommand([NotNull] DSParser.HideCommandContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>ShowCommand</c>
-	/// labeled alternative in <see cref="DSParser.call_command"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitShowCommand([NotNull] DSParser.ShowCommandContext context);
-	/// <summary>
-	/// Visit a parse tree produced by the <c>WaitCommand</c>
-	/// labeled alternative in <see cref="DSParser.call_command"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitWaitCommand([NotNull] DSParser.WaitCommandContext context);
+	Result VisitCall_function([NotNull] DSParser.Call_functionContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="DSParser.call_arg_pos"/>.
 	/// </summary>
@@ -127,11 +104,11 @@ public interface IDSParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitCall_arg_key([NotNull] DSParser.Call_arg_keyContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.assignment_stmt"/>.
+	/// Visit a parse tree produced by <see cref="DSParser.assign_stmt"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitAssignment_stmt([NotNull] DSParser.Assignment_stmtContext context);
+	Result VisitAssign_stmt([NotNull] DSParser.Assign_stmtContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="DSParser.expression"/>.
 	/// </summary>

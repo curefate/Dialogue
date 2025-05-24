@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using Antlr4.Runtime.Misc;
 using System.Collections.Generic;
+using UnityEditor.Build.Content;
 
 public class DialogueRunner : MonoBehaviour
 {
@@ -87,5 +88,46 @@ public class BasicDialogueVisitor : DSParserBaseVisitor<object>
         var labelName = context.label.Text;
         Debug.Log($"跳转到标签: {labelName}");
         return base.VisitJump_stmt(context);
+    }
+
+    public override object VisitCall_stmt([NotNull] DSParser.Call_stmtContext context)
+    {
+        var log = "调用";
+        if (context.call_command() != null)
+        {
+            var cmd = context.call_command().GetText();
+            log += $" {cmd}";
+        }
+        else
+        {
+            var func = context.call_function().func.Text;
+            log += $" {func}";
+        }
+        var argsp = context._args_p;
+        if (argsp != null)
+        {
+            foreach (var arg in argsp)
+            {
+                log += $" {arg.GetText()}";
+            }
+        }
+        var argsk = context._args_k;
+        if (argsk != null)
+        {
+            foreach (var arg in argsk)
+            {
+                log += $" {arg.GetText()}";
+            }
+        }
+        Debug.Log(log);
+        return base.VisitCall_stmt(context);
+    }
+
+    public override object VisitAssign_stmt([NotNull] DSParser.Assign_stmtContext context)
+    {
+        var v = context.VARIABLE().GetText();
+        var value = context.expression().GetText();
+        Debug.Log($"赋值: {v} = {value}");
+        return base.VisitAssign_stmt(context);
     }
 }
