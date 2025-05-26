@@ -45,10 +45,11 @@ public class BasicDialogueVisitor : DSParserBaseVisitor<object>
 {
     public override object VisitDialogue_stmt(DSParser.Dialogue_stmtContext context)
     {
+        bool isSync = context.SYNC() != null;
         var text = context.text.Text.Trim('"');
         var speaker = context.ID()?.GetText() ?? "Null";
         var tags = context._tags;
-        string log = $"说话者: {speaker}, 内容: {text}";
+        string log = $"{isSync} 说话者: {speaker}, 内容: {text}";
         foreach (var tag in tags)
         {
             log += $"标签: {tag.Text}";
@@ -95,13 +96,26 @@ public class BasicDialogueVisitor : DSParserBaseVisitor<object>
         var log = "调用";
         if (context.call_command() != null)
         {
-            var cmd = context.call_command().GetText();
-            log += $" {cmd}";
-        }
-        else
-        {
-            var func = context.call_function().func.Text;
-            log += $" {func}";
+            if (context.call_command().CALL() != null)
+            {
+                log += $"Call: {context.call_command().func.Text}";
+            }
+            else if (context.call_command().PLAY() != null)
+            {
+                log += "Play ";
+            }
+            else if (context.call_command().HIDE() != null)
+            {
+                log += "Hide ";
+            }
+            else if (context.call_command().SHOW() != null)
+            {
+                log += "Show ";
+            }
+            else if (context.call_command().WAIT() != null)
+            {
+                log += "Wait ";
+            }
         }
         var argsp = context._args_p;
         if (argsp != null)
@@ -123,7 +137,7 @@ public class BasicDialogueVisitor : DSParserBaseVisitor<object>
         return null;
     }
 
-    public override object VisitAssign_stmt([NotNull] DSParser.Assign_stmtContext context)
+    public override object VisitSet_stmt([NotNull] DSParser.Set_stmtContext context)
     {
         var v = context.VARIABLE().GetText();
         var value = context.expression().GetText();

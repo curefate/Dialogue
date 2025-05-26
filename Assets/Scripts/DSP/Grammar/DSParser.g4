@@ -17,7 +17,7 @@ statement
     | menu_stmt
     | jump_stmt
     | call_stmt
-    | assign_stmt
+    | set_stmt
     | if_stmt
     ;
 
@@ -42,18 +42,15 @@ jump_stmt
 
 // ====================== call ==========================
 call_stmt
-    : SYNC? (call_command | call_function) args_p+=call_arg_pos* args_k+=call_arg_key* NEWLINE
+    : SYNC? call_command args_p+=call_arg_pos* args_k+=call_arg_key* NEWLINE
     ;
 
 call_command
-    : PLAY
+    : CALL func=ID
+    | PLAY
     | HIDE
     | SHOW
     | WAIT
-    ;
-
-call_function
-    : CALL func=ID
     ;
 
 call_arg_pos
@@ -64,9 +61,9 @@ call_arg_key
     : ID EQUAL (expression | STRING | BOOL | NUMBER | VARIABLE)
     ;
 
-// ====================== assign ========================
-assign_stmt
-    : VARIABLE (EQUAL | PLUSEQUAL | MINEQUAL | STAREQUAL | SLASHEQUAL | PERCENTEQUAL) expression NEWLINE
+// ====================== set ===========================
+set_stmt
+    : VARIABLE eq=(EQUAL | PLUSEQUAL | MINEQUAL | STAREQUAL | SLASHEQUAL | PERCENTEQUAL) expression NEWLINE
     ;
 
 // ====================== if ============================

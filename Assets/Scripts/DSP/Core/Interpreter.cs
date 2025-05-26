@@ -1,24 +1,28 @@
 using UnityEngine;
 using System;
+using Antlr4.Runtime.Misc;
+using System.Collections.Generic;
+using UnityEditor.Rendering.Canvas.ShaderGraph;
 
 namespace Assets.Scripts.DSP.Core
 {
     public class Interpreter : MonoBehaviour
     {
-        // private static readonly Regex NarrationRegex = new(@"^\t*"".*""$");
-
-        private CommandSet Precompilation(string scriptContent)
+        /* private CommandSet Precompilation(string scriptContent)
         {
             throw new NotImplementedException();
         }
+ */
+        private string PreProcess(string scriptContent)
+        {
+            string ret = scriptContent.Replace("\t", "    ");
+            ret += "\n";
+            return ret;
+        }
     }
 
-    /* public class VariableSet
+    public class Visitor : DSParserBaseVisitor<bool>
     {
-        public Dictionary<string, string> Dic_string;
-        public Dictionary<string, int> Dic_int;
-        public Dictionary<string, float> Dic_float;
-        public Dictionary<string, bool> Dic_bool;
-        // $speed
-    } */
+
+    }
 }
