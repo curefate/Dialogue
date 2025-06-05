@@ -3,26 +3,23 @@ using System;
 using Antlr4.Runtime.Misc;
 using System.Collections.Generic;
 using UnityEditor.Rendering.Canvas.ShaderGraph;
+using Mono.Cecil.Cil;
 
 namespace Assets.Scripts.DSP.Core
 {
     public class Interpreter : MonoBehaviour
     {
-        /* private CommandSet Precompilation(string scriptContent)
+
+        /* private List<Instruction> Precompilation(string ctx)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("Precompilation is not implemented yet.");
         }
- */
+
         private string PreProcess(string scriptContent)
         {
             string ret = scriptContent.Replace("\t", "    ");
             ret += "\n";
             return ret;
-        }
-    }
-
-    public class Visitor : DSParserBaseVisitor<bool>
-    {
-
+        } */
     }
 }

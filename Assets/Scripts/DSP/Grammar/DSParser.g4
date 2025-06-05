@@ -5,17 +5,19 @@ options {
 }
 
 program
-    : (statement | label_decl)* EOF
+    : label_block* EOF
     ;
 
-label_decl
-    : LABEL label=ID COLON NEWLINE
+label_block
+    : LABEL label=ID COLON NEWLINE statement+
+    | LABEL label=ID COLON NEWLINE INDENT statement+ DEDENT
     ;
 
 statement
     : dialogue_stmt
     | menu_stmt
     | jump_stmt
+    | tour_stmt
     | call_stmt
     | set_stmt
     | if_stmt
@@ -28,7 +30,7 @@ dialogue_stmt
 
 // ====================== menu ==========================
 menu_stmt
-    : MENU COLON NEWLINE INDENT intro=dialogue_stmt? option+=menu_item+ DEDENT
+    : options+=menu_item+
     ;
 
 menu_item
@@ -40,25 +42,18 @@ jump_stmt
     : JUMP label=ID NEWLINE
     ;
 
+// ====================== tour ==========================
+tour_stmt
+    : TOUR label=ID NEWLINE
+    ;
+
 // ====================== call ==========================
 call_stmt
-    : SYNC? call_command args_p+=call_arg_pos* args_k+=call_arg_key* NEWLINE
+    : CALL func_name=ID LPAR (args+=call_args (COMMA args+=call_args)*)? RPAR NEWLINE
     ;
 
-call_command
-    : CALL func=ID
-    | PLAY
-    | HIDE
-    | SHOW
-    | WAIT
-    ;
-
-call_arg_pos
-    : STRING | BOOL | NUMBER | VARIABLE
-    ;
-
-call_arg_key
-    : ID EQUAL (expression | STRING | BOOL | NUMBER | VARIABLE)
+call_args
+    : expression | STRING | BOOL | NUMBER | VARIABLE
     ;
 
 // ====================== set ===========================
@@ -68,7 +63,7 @@ set_stmt
 
 // ====================== if ============================
 if_stmt
-    : IF expression COLON NEWLINE if_block=block (ELSE COLON NEWLINE else_block=block)?
+    : IF conditions+=expression COLON NEWLINE blocks+=block (ELIF conditions+=expression COLON NEWLINE blocks+=block)* (ELSE COLON NEWLINE blocks+=block)?
     ;
 
 // ====================== others ========================
@@ -111,3 +106,14 @@ expr_primary
 block
     : INDENT statement+ DEDENT
     ;
+
+// ====================== backup ========================
+/*
+arg_pos
+    : expression | STRING | BOOL | NUMBER | VARIABLE
+    ;
+
+arg_key
+    : key=ID EQUAL value=(expression | STRING | BOOL | NUMBER | VARIABLE)
+    ;
+*/

@@ -113,18 +113,16 @@ OR           : '||' | 'or';
 
 // ===================== keyworkds =====================
 COLON  : ':';
+COMMA  : ',';
 CALL   : 'call';
-PLAY   : 'play';
-HIDE   : 'hide';
-SHOW   : 'show';
-WAIT   : 'wait';
 IF     : 'if';
+ELIF   : 'elif';
 ELSE   : 'else';
 WHILE  : 'while';
-JUMP   : 'jump';
-LABEL  : 'label';
+JUMP   : 'jump' | '->';
+TOUR   : 'tour' | '-><';
+LABEL  : 'label' | '~';
 SYNC   : 'sync';
-MENU   : 'menu';
 // IMPORT : 'import';
 // MATCH  : 'match';
 // CASE   : 'case';
@@ -136,7 +134,7 @@ FALSE        : 'false';
 NUMBER       : MINUS? (INTEGER | FLOAT);
 ID           : ALPHABET CHAR*;
 TAG          : AT CHAR+;
-VARIABLE     : '$' ID (DOT ID)*;
+VARIABLE     : '$' ID;
 STRING_START : '"' -> pushMode(STRING_MODE), more;
 
 // ===================== fragment ======================
@@ -188,4 +186,3 @@ STRING_NEWLINE : ('\r'? '\n')     -> more;  // 处理字符串内的换行（跨
 // RSQB             : ']'; // CLOSE_BRACK
 // LBRACE           : '{'; // OPEN_BRACE
 // RBRACE           : '}'; // CLOSE_BRACE
-// COMMA            : ',';

@@ -61,26 +61,15 @@ public class BasicDialogueVisitor : DSParserBaseVisitor<object>
 
     public override object VisitMenu_stmt([NotNull] DSParser.Menu_stmtContext context)
     {
-        Debug.Log("菜单选项");
-        var intro = context.intro;
-        if (intro != null)
-            VisitDialogue_stmt(intro);
-        var options = context._option;
+        Debug.Log("访问菜单语句");
+        var options = context._options;
         foreach (var option in options)
         {
-            var text = option.text.Text.Trim('"');
-            Debug.Log("选项: " + text);
-            var block = option.block();
-            Visit(block);
+            var optionText = option.text.Text.Trim('"');
+            Debug.Log($"菜单选项: {optionText}");
+            Visit(option.block());
         }
-        Debug.Log("菜单结束");
-        return null;
-    }
-
-    public override object VisitLabel_decl([NotNull] DSParser.Label_declContext context)
-    {
-        var labelName = context.label.Text;
-        Debug.Log($"标签: {labelName}");
+        Debug.Log("菜单语句结束");
         return null;
     }
 
@@ -91,47 +80,20 @@ public class BasicDialogueVisitor : DSParserBaseVisitor<object>
         return null;
     }
 
+    public override object VisitTour_stmt([NotNull] DSParser.Tour_stmtContext context)
+    {
+        var tourName = context.label.Text;
+        Debug.Log($"巡游到标签: {tourName}");
+        return null;
+    }
+
     public override object VisitCall_stmt([NotNull] DSParser.Call_stmtContext context)
     {
-        var log = "调用";
-        if (context.call_command() != null)
+        var log = $"调用 {context.func_name.Text}";
+        var args = context._args;
+        foreach (var arg in args)
         {
-            if (context.call_command().CALL() != null)
-            {
-                log += $"Call: {context.call_command().func.Text}";
-            }
-            else if (context.call_command().PLAY() != null)
-            {
-                log += "Play ";
-            }
-            else if (context.call_command().HIDE() != null)
-            {
-                log += "Hide ";
-            }
-            else if (context.call_command().SHOW() != null)
-            {
-                log += "Show ";
-            }
-            else if (context.call_command().WAIT() != null)
-            {
-                log += "Wait ";
-            }
-        }
-        var argsp = context._args_p;
-        if (argsp != null)
-        {
-            foreach (var arg in argsp)
-            {
-                log += $" {arg.GetText()}";
-            }
-        }
-        var argsk = context._args_k;
-        if (argsk != null)
-        {
-            foreach (var arg in argsk)
-            {
-                log += $" {arg.GetText()}";
-            }
+            log += $" 参数: {arg.GetText()}";
         }
         Debug.Log(log);
         return null;
@@ -147,20 +109,6 @@ public class BasicDialogueVisitor : DSParserBaseVisitor<object>
 
     public override object VisitIf_stmt([NotNull] DSParser.If_stmtContext context)
     {
-        var condition = context.expression().GetText();
-        Debug.Log($"条件判断: {condition}");
-        var if_block = context.if_block;
-        var else_block = context.else_block;
-        if (if_block != null)
-        {
-            Debug.Log("如果条件成立，执行:");
-            Visit(if_block);
-        }
-        if (else_block != null)
-        {
-            Debug.Log("否则，执行:");
-            Visit(else_block);
-        }
         return null;
     }
 }
