@@ -9,8 +9,7 @@ program
     ;
 
 label_block
-    : LABEL label=ID COLON NEWLINE statement+
-    | LABEL label=ID COLON NEWLINE INDENT statement+ DEDENT
+    : LABEL label=ID COLON NEWLINE INDENT+ statement+ DEDENT+
     ;
 
 statement
@@ -104,7 +103,7 @@ expr_primary
     ;
 
 block
-    : INDENT statement+ DEDENT
+    : INDENT+ statement+ DEDENT+
     ;
 
 // ====================== backup ========================
