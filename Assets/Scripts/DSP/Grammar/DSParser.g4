@@ -9,7 +9,7 @@ program
     ;
 
 label_block
-    : LABEL label=ID COLON NEWLINE INDENT+ statement+ DEDENT+
+    : LABEL label=ID COLON NEWLINE INDENT* statement+ DEDENT*
     ;
 
 statement

@@ -9,6 +9,8 @@ namespace Assets.Scripts.DSP.Core
 {
     public class Interpreter : MonoBehaviour
     {
+        public Action<IR_Dialogue> OnDialogue;
+        
 
         /* private List<Instruction> Precompilation(string ctx)
         {
