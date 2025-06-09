@@ -7,7 +7,7 @@ using System.Collections.Generic;
 public class LabelBlock
 {
     public string Label { get; set; }
-    public List<IIRInstruction> Instructions { get; set; } = new List<IIRInstruction>();
+    public List<IIRInstruction> Instructions { get; private set; } = new List<IIRInstruction>();
 }
 
 public interface IIRInstruction

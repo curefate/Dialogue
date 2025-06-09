@@ -36,14 +36,14 @@ public class DialogueRunner : MonoBehaviour
 
         // 5. 遍历语法树（示例：打印所有对话文本）
         var visitor = new BasicDialogueVisitor();
-        visitor.Visit(tree);
+        Debug.Log(visitor.Visit(tree));
     }
 }
 
 // 简单访问器（继承自生成的DialogueScriptBaseVisitor）
-public class BasicDialogueVisitor : DSParserBaseVisitor<object>
+public class BasicDialogueVisitor : DSParserBaseVisitor<int>
 {
-    public override object VisitDialogue_stmt(DSParser.Dialogue_stmtContext context)
+    public override int VisitDialogue_stmt(DSParser.Dialogue_stmtContext context)
     {
         bool isSync = context.SYNC() != null;
         var text = context.text.Text.Trim('"');
@@ -56,10 +56,10 @@ public class BasicDialogueVisitor : DSParserBaseVisitor<object>
         }
         Debug.Log(log);
 
-        return null;
+        return 0;
     }
 
-    public override object VisitMenu_stmt([NotNull] DSParser.Menu_stmtContext context)
+    public override int VisitMenu_stmt([NotNull] DSParser.Menu_stmtContext context)
     {
         Debug.Log("访问菜单语句");
         var options = context._options;
@@ -70,24 +70,24 @@ public class BasicDialogueVisitor : DSParserBaseVisitor<object>
             Visit(option.block());
         }
         Debug.Log("菜单语句结束");
-        return null;
+        return 1;
     }
 
-    public override object VisitJump_stmt([NotNull] DSParser.Jump_stmtContext context)
+    public override int VisitJump_stmt([NotNull] DSParser.Jump_stmtContext context)
     {
         var labelName = context.label.Text;
         Debug.Log($"跳转到标签: {labelName}");
-        return null;
+        return 2;
     }
 
-    public override object VisitTour_stmt([NotNull] DSParser.Tour_stmtContext context)
+    public override int VisitTour_stmt([NotNull] DSParser.Tour_stmtContext context)
     {
         var tourName = context.label.Text;
         Debug.Log($"巡游到标签: {tourName}");
-        return null;
+        return 3;
     }
 
-    public override object VisitCall_stmt([NotNull] DSParser.Call_stmtContext context)
+    public override int VisitCall_stmt([NotNull] DSParser.Call_stmtContext context)
     {
         var log = $"调用 {context.func_name.Text}";
         var args = context._args;
@@ -96,19 +96,19 @@ public class BasicDialogueVisitor : DSParserBaseVisitor<object>
             log += $" 参数: {arg.GetText()}";
         }
         Debug.Log(log);
-        return null;
+        return 4;
     }
 
-    public override object VisitSet_stmt([NotNull] DSParser.Set_stmtContext context)
+    public override int VisitSet_stmt([NotNull] DSParser.Set_stmtContext context)
     {
         var v = context.VARIABLE().GetText();
         var value = context.expression().GetText();
         Debug.Log($"赋值: {v} = {value}");
-        return null;
+        return 5;
     }
 
-    public override object VisitIf_stmt([NotNull] DSParser.If_stmtContext context)
+    public override int VisitIf_stmt([NotNull] DSParser.If_stmtContext context)
     {
-        return null;
+        return 6;
     }
 }
