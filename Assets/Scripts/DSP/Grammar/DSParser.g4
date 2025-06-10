@@ -48,24 +48,28 @@ tour_stmt
 
 // ====================== call ==========================
 call_stmt
-    : CALL func_name=ID LPAR (args+=call_args (COMMA args+=call_args)*)? RPAR NEWLINE
-    ;
-
-call_args
-    : expression | STRING | BOOL | NUMBER | VARIABLE
+    : CALL func_name=ID LPAR (args+=argument (COMMA args+=argument)*)? RPAR NEWLINE
     ;
 
 // ====================== set ===========================
 set_stmt
-    : VARIABLE eq=(EQUAL | PLUSEQUAL | MINEQUAL | STAREQUAL | SLASHEQUAL | PERCENTEQUAL) expression NEWLINE
+    : VARIABLE eq=(EQUAL | PLUSEQUAL | MINEQUAL | STAREQUAL | SLASHEQUAL | PERCENTEQUAL) value=argument NEWLINE
     ;
 
 // ====================== if ============================
 if_stmt
-    : IF conditions+=expression COLON NEWLINE blocks+=block (ELIF conditions+=expression COLON NEWLINE blocks+=block)* (ELSE COLON NEWLINE blocks+=block)?
+    : IF conditions+=condition COLON NEWLINE blocks+=block (ELIF conditions+=condition COLON NEWLINE blocks+=block)* (ELSE COLON NEWLINE blocks+=block)?
+    ;
+
+condition
+    : expression | BOOL | VARIABLE
     ;
 
 // ====================== others ========================
+argument
+    : expression | STRING | BOOL | NUMBER | VARIABLE
+    ;
+
 expression
     : expr_logical_and (OR expr_logical_and)*
     ;

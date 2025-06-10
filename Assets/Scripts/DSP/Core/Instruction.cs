@@ -36,7 +36,7 @@ public class IR_Dialogue : IIRInstruction
 public class IR_Menu : IIRInstruction
 {
     public string ErrorLog { get; set; } = string.Empty;
-    public List<string> MenuOptions { get; set; }
+    public List<string> MenuOptions { get; set; } = new List<string>();
     public List<List<IIRInstruction>> MenuActions { get; set; } = new List<List<IIRInstruction>>();
     public void Execute(Interpreter interpreter)
     {
@@ -68,7 +68,7 @@ public class IR_Call : IIRInstruction
 {
     public string ErrorLog { get; set; } = string.Empty;
     public string FunctionName { get; set; }
-    public List<KeyValuePair<object, int>> Arguments { get; set; } // Pair<value, IToken.Type>
+    public List<KeyValuePair<object, VariableType>> Arguments { get; set; } // Pair<value, IToken.Type>
     public void Execute(Interpreter interpreter)
     {
         throw new NotImplementedException("IR_Call.Execute is not implemented yet.");
@@ -79,7 +79,7 @@ public class IR_Set : IIRInstruction
 {
     public string ErrorLog { get; set; } = string.Empty;
     public string VariableName { get; set; }
-    public KeyValuePair<object, int> Value { get; set; } // Could be a primitive type or an expression
+    public KeyValuePair<object, VariableType> Value { get; set; } // Could be a primitive type or an expression
     public void Execute(Interpreter interpreter)
     {
         throw new NotImplementedException("IR_Set.Execute is not implemented yet.");
@@ -89,7 +89,7 @@ public class IR_Set : IIRInstruction
 public class IR_If : IIRInstruction
 {
     public string ErrorLog { get; set; } = string.Empty;
-    public KeyValuePair<object, int> Condition { get; set; } // Could be a boolean expression or a variable
+    public KeyValuePair<object, VariableType> Condition { get; set; } // Could be a boolean expression or a variable
     public List<IIRInstruction> TrueBranch { get; set; } = new List<IIRInstruction>();
     public List<IIRInstruction> FalseBranch { get; set; } = new List<IIRInstruction>();
 
@@ -97,4 +97,15 @@ public class IR_If : IIRInstruction
     {
         throw new NotImplementedException("IR_If.Execute is not implemented yet.");
     }
+}
+
+public enum VariableType
+{
+    Null = -1,
+    Integer,
+    Float,
+    String,
+    Boolean,
+    Expression,
+    Variable,
 }
