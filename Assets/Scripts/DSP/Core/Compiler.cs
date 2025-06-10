@@ -102,6 +102,7 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
         var inst = new IR_Set
         {
             VariableName = context.VARIABLE().GetText(),
+            Symbol = context.eq.Text,
             Value = ParseArgument(context.value),
         };
         return inst;

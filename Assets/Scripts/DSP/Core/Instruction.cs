@@ -79,6 +79,7 @@ public class IR_Set : IIRInstruction
 {
     public string ErrorLog { get; set; } = string.Empty;
     public string VariableName { get; set; }
+    public string Symbol { get; set; } // Could be '=', '+=', '-=', etc.
     public KeyValuePair<object, VariableType> Value { get; set; } // Could be a primitive type or an expression
     public void Execute(Interpreter interpreter)
     {

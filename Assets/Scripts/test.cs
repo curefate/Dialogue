@@ -102,7 +102,7 @@ public class BasicDialogueVisitor : DSParserBaseVisitor<int>
     public override int VisitSet_stmt([NotNull] DSParser.Set_stmtContext context)
     {
         var v = context.VARIABLE().GetText();
-        var value = context.expression().GetText();
+        var value = context.value.GetText();
         Debug.Log($"赋值: {v} = {value}");
         return 5;
     }
