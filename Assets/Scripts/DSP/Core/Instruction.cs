@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using Assets.Scripts.DSP.Core;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 
 public class LabelBlock
 {
@@ -23,9 +24,9 @@ public interface IIRInstruction
 public class IR_Dialogue : IIRInstruction
 {
     public string ErrorLog { get; set; } = string.Empty;
-    public bool IsSync { get; private set; }
-    public string Speaker { get; private set; }
-    public string Text { get; private set; }
+    public bool IsSync { get; set; }
+    public string Speaker { get; set; }
+    public string Text { get; set; }
     public List<string> Tags { get; private set; }
     public void Execute(Interpreter interpreter)
     {
@@ -68,7 +69,7 @@ public class IR_Call : IIRInstruction
 {
     public string ErrorLog { get; set; } = string.Empty;
     public string FunctionName { get; set; }
-    public List<KeyValuePair<object, VariableType>> Arguments { get; set; } // Pair<value, IToken.Type>
+    public List<Expression> Arguments { get; set; }
     public void Execute(Interpreter interpreter)
     {
         throw new NotImplementedException("IR_Call.Execute is not implemented yet.");
@@ -80,7 +81,7 @@ public class IR_Set : IIRInstruction
     public string ErrorLog { get; set; } = string.Empty;
     public string VariableName { get; set; }
     public string Symbol { get; set; } // Could be '=', '+=', '-=', etc.
-    public KeyValuePair<object, VariableType> Value { get; set; } // Could be a primitive type or an expression
+    public Expression Value { get; set; }
     public void Execute(Interpreter interpreter)
     {
         throw new NotImplementedException("IR_Set.Execute is not implemented yet.");
@@ -90,23 +91,12 @@ public class IR_Set : IIRInstruction
 public class IR_If : IIRInstruction
 {
     public string ErrorLog { get; set; } = string.Empty;
-    public KeyValuePair<object, VariableType> Condition { get; set; } // Could be a boolean expression or a variable
-    public List<IIRInstruction> TrueBranch { get; set; } = new List<IIRInstruction>();
-    public List<IIRInstruction> FalseBranch { get; set; } = new List<IIRInstruction>();
+    public Expression Condition { get; set; }
+    public List<IIRInstruction> TrueBranch { get; private set; } = new List<IIRInstruction>();
+    public List<IIRInstruction> FalseBranch { get; private set; } = new List<IIRInstruction>();
 
     public void Execute(Interpreter interpreter)
     {
         throw new NotImplementedException("IR_If.Execute is not implemented yet.");
     }
-}
-
-public enum VariableType
-{
-    Null = -1,
-    Integer,
-    Float,
-    String,
-    Boolean,
-    Expression,
-    Variable,
 }
