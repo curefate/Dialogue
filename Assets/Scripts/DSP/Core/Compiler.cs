@@ -9,8 +9,10 @@ using UnityEngine.Rendering;
 public class Compiler
 {
     private readonly InstructionBuilder _instructionBuilder = new();
+
     public List<LabelBlock> Compile(string input)
     {
+        input = PreProcess(input);
         var inputStream = new AntlrInputStream(input);
         var lexer = new DSLexer(inputStream);
         var tokens = new CommonTokenStream(lexer);
@@ -19,7 +21,7 @@ public class Compiler
         var labels = new List<LabelBlock>();
         foreach (var label_block in tree.label_block())
         {
-            var label = new LabelBlock
+            var new_label = new LabelBlock
             {
                 Label = label_block.label.Text
             };
@@ -28,12 +30,19 @@ public class Compiler
                 var instruction = _instructionBuilder.Visit(stmt);
                 if (instruction != null)
                 {
-                    label.Instructions.Add(instruction);
+                    new_label.Instructions.Add(instruction);
                 }
             }
-            labels.Add(label);
+            labels.Add(new_label);
         }
         return labels;
+    }
+
+    private string PreProcess(string scriptContent)
+    {
+        string ret = scriptContent.Replace("\t", "    ");
+        ret += "\n";
+        return ret;
     }
 }
 
@@ -125,7 +134,12 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
         var args = context._args ?? throw new ArgumentException("Call arguments cannot be null.");
         foreach (var arg in args)
         {
-            inst.Arguments.Add(_expressionBuilder.Visit(arg));
+            if (arg == null)
+            {
+                throw new ArgumentException("Call argument expression cannot be null.");
+            }
+            var expr = _expressionBuilder.Visit(arg) ?? throw new ArgumentException("Call argument expression cannot be null.");
+            inst.Arguments.Add(expr);
         }
         return inst;
     }
@@ -207,7 +221,7 @@ public class ExpressionBuilder : DSParserBaseVisitor<Expression>
     /// <summary>
     /// 解析表达式文本并生成可执行的委托
     /// </summary>
-    public Func<object> Build(string expressionText)
+    /* public Func<object> Build(string expressionText)
     {
         var input = new AntlrInputStream(expressionText);
         var lexer = new DSLexer(input);
@@ -221,7 +235,7 @@ public class ExpressionBuilder : DSParserBaseVisitor<Expression>
         }
 
         return Expression.Lambda<Func<object>>(expr).Compile();
-    }
+    } */
 
     #region 表达式节点处理方法
     public override Expression VisitExpression(DSParser.ExpressionContext context)
