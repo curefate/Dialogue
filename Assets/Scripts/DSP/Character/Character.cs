@@ -1,9 +1,7 @@
 using UnityEngine;
 
-namespace Assets.Scripts.DSP.Character
+public class DCharacter : MonoBehaviour
 {
-    public class DCharacter : MonoBehaviour
-    {
-
-    }
+    public string ShowName;
+    public string IndexName;
 }

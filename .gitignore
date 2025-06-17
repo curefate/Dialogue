@@ -16,3 +16,5 @@
 *.tokens
 *.meta
 *.asset
+/Assets/TextMesh Pro
+*.prefab

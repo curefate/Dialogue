@@ -10,7 +10,8 @@ namespace Assets.Scripts.DSP.Core
 {
     public class Interpreter : MonoBehaviour
     {
-        // public Action<IR_Dialogue> OnDialogue;
+        public Action<IR_Dialogue> OnDialogue;
+        public Action<IR_Menu> OnMenu;
 
         private readonly Dictionary<string, (object Value, Type Type)> _variableDict = new();
 
