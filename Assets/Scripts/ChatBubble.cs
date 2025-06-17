@@ -2,9 +2,10 @@ using System.Collections;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class ChatBubble : MonoBehaviour
+public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField]
     private Image bubbleImage;
@@ -16,19 +17,21 @@ public class ChatBubble : MonoBehaviour
     private int MinHorizontalPadding = 100;
     [SerializeField]
     private int MaxVerticalPadding = 300;
+    [SerializeField]
+    private bool CanHighLight = false;
+
+    private Color _color = Color.white;
 
     void Start()
     {
         if (bubbleImage == null)
         {
-            bubbleImage = GetComponentInChildren<Image>();
+            bubbleImage = GetComponent<Image>();
         }
         if (bubbleText == null)
         {
             bubbleText = GetComponentInChildren<TextMeshProUGUI>();
         }
-
-        PushText("Hello, World!"); // Example text to start with
     }
 
     void FixedUpdate()
@@ -47,6 +50,12 @@ public class ChatBubble : MonoBehaviour
         );
         bubbleImage.rectTransform.sizeDelta = Vector2.Lerp(bubbleImage.rectTransform.sizeDelta, bubbleSize * 1.2f, Time.deltaTime * 10);
         bubbleText.rectTransform.sizeDelta = Vector2.Lerp(bubbleText.rectTransform.sizeDelta, bubbleSize, Time.deltaTime * 10);
+
+        // HighLight
+        if (CanHighLight)
+        {
+            bubbleImage.color = Color.Lerp(bubbleImage.color, _color, Time.deltaTime * 10);
+        }
     }
 
     public void Clear()
@@ -86,6 +95,31 @@ public class ChatBubble : MonoBehaviour
             bubbleText.color = new Color(bubbleText.color.r, bubbleText.color.g, bubbleText.color.b, alpha);
             elapsed += Time.deltaTime;
             yield return null;
+        }
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData.button == PointerEventData.InputButton.Left)
+        {
+            // Handle left click
+            Debug.Log("Click");
+        }
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (CanHighLight)
+        {
+            _color = new Color(1f, 1f, 0.5f, 1f); // Highlight color
+        }
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (CanHighLight)
+        {
+            _color = Color.white; // Reset to original color
         }
     }
 }
