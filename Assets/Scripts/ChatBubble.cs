@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -21,6 +22,7 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     private bool CanHighLight = false;
 
     private Color _color = Color.white;
+    public readonly List<ChatBubble> _options = new();
 
     void Start()
     {
@@ -56,6 +58,21 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         {
             bubbleImage.color = Color.Lerp(bubbleImage.color, _color, Time.deltaTime * 10);
         }
+
+        // Arange position of option bubbles
+        if (_options.Count > 0)
+        {
+            float offsetY = 0f;
+            foreach (var option in _options)
+            {
+                option.transform.localPosition = new Vector3(
+                    transform.localPosition.x + bubbleImage.rectTransform.sizeDelta.x / 2 + option.bubbleImage.rectTransform.sizeDelta.x / 2,
+                    transform.localPosition.y + offsetY,
+                    transform.localPosition.z
+                );
+                offsetY -= option.bubbleImage.rectTransform.sizeDelta.y * 1.2f; // Adjust the spacing as needed
+            }
+        }
     }
 
     public void Clear()
@@ -66,6 +83,11 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     public void PushText(string text)
     {
         StartCoroutine(PushTextCoroutine(text));
+    }
+
+    public void SetText(string text)
+    {
+        bubbleText.text = text;
     }
 
     private IEnumerator PushTextCoroutine(string text)
