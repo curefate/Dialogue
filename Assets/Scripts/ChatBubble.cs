@@ -12,17 +12,21 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     private Image bubbleImage;
     [SerializeField]
     private TextMeshProUGUI bubbleText;
-    [SerializeField]
-    private int MaxHorizontalPadding = 300;
-    [SerializeField]
-    private int MinHorizontalPadding = 100;
-    [SerializeField]
-    private int MaxVerticalPadding = 300;
-    [SerializeField]
-    private bool CanHighLight = false;
 
     private Color _color = Color.white;
-    public readonly List<ChatBubble> _options = new();
+
+    public GameObject FollowTarget;
+    public int MaxHorizontalPadding = 300;
+    public int MinHorizontalPadding = 100;
+    public int MaxVerticalPadding = 300;
+    public Color OriginColor = Color.white;
+    public Color SelectedColor = Color.yellow;
+    public bool CanHighLight = false;
+
+    public readonly List<ChatBubble> _subBubbles = new();
+    public int OptionNumber { get; set; } = -1;
+
+
 
     void Start()
     {
@@ -59,19 +63,30 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
             bubbleImage.color = Color.Lerp(bubbleImage.color, _color, Time.deltaTime * 10);
         }
 
-        // Arange position of option bubbles
-        if (_options.Count > 0)
+        // Arange position of sub bubbles
+        if (_subBubbles.Count > 0)
         {
             float offsetY = 0f;
-            foreach (var option in _options)
+            foreach (var sub in _subBubbles)
             {
-                option.transform.localPosition = new Vector3(
-                    transform.localPosition.x + bubbleImage.rectTransform.sizeDelta.x / 2 + option.bubbleImage.rectTransform.sizeDelta.x / 2,
+                sub.transform.localPosition = new Vector3(
+                    transform.localPosition.x + bubbleImage.rectTransform.sizeDelta.x / 2 + sub.bubbleImage.rectTransform.sizeDelta.x / 2,
                     transform.localPosition.y + offsetY,
                     transform.localPosition.z
                 );
-                offsetY -= option.bubbleImage.rectTransform.sizeDelta.y * 1.2f; // Adjust the spacing as needed
+                offsetY -= sub.bubbleImage.rectTransform.sizeDelta.y * 1.2f; // Adjust the spacing as needed
             }
+        }
+
+        // Follow target
+        if (FollowTarget != null)
+        {
+            Vector2 pos = WorldToCanvasPosition(FollowTarget.transform.position);
+            GetComponent<RectTransform>().anchoredPosition = Vector2.Lerp(
+                GetComponent<RectTransform>().anchoredPosition,
+                pos,
+                Time.deltaTime * 10
+            );
         }
     }
 
@@ -99,7 +114,7 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         }
     }
 
-    public void Fade(float duration = 0.5f)
+    public void FadeOut(float duration = 0.5f)
     {
         duration = Mathf.Max(0.1f, duration);
         StartCoroutine(FadeCoroutine(duration));
@@ -120,6 +135,13 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         }
     }
 
+    public void ShowIn()
+    {
+        float alpha = 1;
+        bubbleImage.color = new Color(bubbleImage.color.r, bubbleImage.color.g, bubbleImage.color.b, alpha);
+        bubbleText.color = new Color(bubbleText.color.r, bubbleText.color.g, bubbleText.color.b, alpha);
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
         if (eventData.button == PointerEventData.InputButton.Left)
@@ -133,7 +155,7 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     {
         if (CanHighLight)
         {
-            _color = new Color(1f, 1f, 0.5f, 1f); // Highlight color
+            _color = SelectedColor;
         }
     }
 
@@ -141,7 +163,42 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     {
         if (CanHighLight)
         {
-            _color = Color.white; // Reset to original color
+            _color = OriginColor;
         }
+    }
+
+    /* private Vector2 WorldToCanvasPosition(Vector3 worldPosition)
+    {
+        Vector2 screenPosition = Camera.main.WorldToScreenPoint(worldPosition);
+        Vector2 localPoint;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            GetComponent<RectTransform>(),
+            screenPosition,
+            null, // 对于Overlay模式，相机参数为null
+            out localPoint);
+
+        return localPoint;
+    } */
+
+    private Vector2 WorldToCanvasPosition(Vector3 worldPosition)
+    {
+        var camera = Camera.main;
+        Vector3 screenPosition = camera.WorldToScreenPoint(worldPosition);
+        var canvasRectTransform = GetComponent<RectTransform>();//
+        Vector2 canvasSize = canvasRectTransform.rect.size; // 获取Canvas的大小（宽度和高度）
+        Vector2 screenSize = new(Screen.width, Screen.height); // 获取屏幕大小
+
+        // 转换为Canvas的百分比坐标（如果Canvas设置为百分比模式）
+        Vector2 canvasPercentPosition = new Vector2(
+            (screenPosition.x / Screen.width) * canvasSize.x,
+            (screenPosition.y / Screen.height) * canvasSize.y
+        );
+
+        // 或者转换为Canvas的像素坐标（如果Canvas设置为像素模式）
+        Vector2 canvasPixelPosition = new Vector2(
+            screenPosition.x - (Screen.width - canvasSize.x) / 2,
+            screenPosition.y - (Screen.height - canvasSize.y) / 2
+        );
+        return canvasPixelPosition; // 返回像素坐标
     }
 }
