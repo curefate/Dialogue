@@ -8,7 +8,7 @@ public class ChatManager : MonoBehaviour
     [SerializeField] private GameObject ChatBubblePrefab;
     [SerializeField] private GameObject OptionBubblePrefab;
 
-    private Dictionary<DCharacter, ChatBubble> _chatBubbles = new();
+    private readonly Dictionary<DCharacter, ChatBubble> _chatBubbles = new();
 
     private void AddChatBubble(DCharacter character)
     {
@@ -65,5 +65,23 @@ public class ChatManager : MonoBehaviour
                 kvp.Value.FadeOut(duration);
             }
         }
+    }
+
+    public void RunInstruction(IR_Dialogue instruction)
+    {
+        if (instruction == null)
+        {
+            Debug.LogWarning("Instruction is null.");
+            return;
+        }
+
+        DCharacter character = GameObject.Find(instruction.Speaker)?.GetComponent<DCharacter>();
+        if (character == null)
+        {
+            Debug.LogWarning($"Character '{instruction.Speaker}' not found.");
+            return;
+        }
+
+        Say(character, instruction.Text);
     }
 }

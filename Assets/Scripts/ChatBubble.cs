@@ -25,6 +25,7 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
 
     public readonly List<ChatBubble> _subBubbles = new();
     public int OptionNumber { get; set; } = -1;
+    public bool Done { get; private set; } = false;
 
 
 
@@ -107,11 +108,13 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
 
     private IEnumerator PushTextCoroutine(string text)
     {
+        Done = false;
         foreach (char c in text)
         {
             bubbleText.text += c;
             yield return new WaitForSeconds(0.05f); // Adjust the delay as needed
         }
+        Done = true;
     }
 
     public void FadeOut(float duration = 0.5f)
