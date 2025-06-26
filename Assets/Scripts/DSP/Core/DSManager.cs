@@ -30,39 +30,8 @@ public class DSManager : MonoBehaviour
         }
         foreach (var label in _labelBlocks)
         {
-            Debug.Log($"Label: {label.Label}, Instructions Count: {label.Instructions.Count}");
+            Debug.Log($"Label: {label.LabelName}, Instructions Count: {label.Instructions.Count}");
             label.Run(_interpreter);
-        }
-    }
-
-    public void Run(string labelName = "start")
-    {
-        var label = _labelBlocks.Find(l => l.Label == labelName);
-        if (label != null)
-        {
-            // _instructionStack.Clear();
-            foreach (var instruction in label.Instructions)
-            {
-                _instructionStack.Push(instruction);
-            }
-            Next();
-        }
-        else
-        {
-            Debug.LogError($"Label '{labelName}' not found.");
-        }
-    }
-
-    public void Next()
-    {
-        if (_instructionStack.Count > 0)
-        {
-            var instruction = _instructionStack.Pop();
-            instruction.Execute(_interpreter);
-        }
-        else
-        {
-            Debug.LogWarning("No instructions to execute.");
         }
     }
 }

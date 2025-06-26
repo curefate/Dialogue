@@ -23,7 +23,7 @@ public class Compiler
         {
             var new_label = new LabelBlock
             {
-                Label = label_block.label.Text
+                LabelName = label_block.label.Text
             };
             foreach (var stmt in label_block.statement())
             {
@@ -61,7 +61,7 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
     {
         var labelName = context.label.Text;
         var statements = context.statement();
-        var label_block = new LabelBlock { Label = labelName };
+        var label_block = new LabelBlock { LabelName = labelName };
         foreach (var stmt in statements)
         {
             var instruction = Visit(stmt);
@@ -201,43 +201,6 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
 // TODO read
 public class ExpressionBuilder : DSParserBaseVisitor<Expression>
 {
-    private readonly Func<string, object> _valueResolver;
-
-    // 内部使用的变量访问器类
-    private class VariableAccessor
-    {
-        private readonly string _name;
-        private readonly Func<string, object> _resolver;
-
-        public VariableAccessor(string name, Func<string, object> resolver)
-        {
-            _name = name;
-            _resolver = resolver;
-        }
-
-        public object GetValue() => _resolver(_name);
-    }
-
-    /// <summary>
-    /// 解析表达式文本并生成可执行的委托
-    /// </summary>
-    /* public Func<object> Build(string expressionText)
-    {
-        var input = new AntlrInputStream(expressionText);
-        var lexer = new DSLexer(input);
-        var parser = new DSParser(new CommonTokenStream(lexer));
-        var expr = Visit(parser.expression());
-
-        // 包装成object返回类型
-        if (expr.Type != typeof(object))
-        {
-            expr = Expression.Convert(expr, typeof(object));
-        }
-
-        return Expression.Lambda<Func<object>>(expr).Compile();
-    } */
-
-    #region 表达式节点处理方法
     public override Expression VisitExpression(DSParser.ExpressionContext context)
     {
         if (context.expr_logical_and().Length > 1)
@@ -288,13 +251,9 @@ public class ExpressionBuilder : DSParserBaseVisitor<Expression>
     {
         if (context.VARIABLE() != null)
         {
-            // 处理变量（延迟解析）
-            string varName = context.VARIABLE().GetText()[1..];
-            var accessor = new VariableAccessor(varName, _valueResolver);
-            return Expression.Call(
-                Expression.Constant(accessor),
-                typeof(VariableAccessor).GetMethod("GetValue")
-            );
+            // 直接返回变量名的字符串表达式
+            string varName = context.VARIABLE().GetText();
+            return Expression.Constant(varName);
         }
         else if (context.NUMBER() != null)
         {
@@ -325,5 +284,4 @@ public class ExpressionBuilder : DSParserBaseVisitor<Expression>
         }
         throw new NotSupportedException($"unsupport expr: {context.GetText()}");
     }
-    #endregion
 }

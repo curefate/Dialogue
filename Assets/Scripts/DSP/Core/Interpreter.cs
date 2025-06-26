@@ -5,21 +5,142 @@ using System.Collections.Generic;
 using UnityEditor.Rendering.Canvas.ShaderGraph;
 using Mono.Cecil.Cil;
 using NUnit.Framework.Internal;
+using System.Linq.Expressions;
 
 namespace Assets.Scripts.DSP.Core
 {
     public class Interpreter : MonoBehaviour
     {
+        // Events
         public Action<IR_Dialogue> OnDialogue;
         public Action<IR_Menu> OnMenu;
 
+        // Evaluate expressions
+        #region Expression Evaluation
+        public object EvaluateExpression(Expression expression)
+        {
+            switch (expression)
+            {
+                case ConstantExpression constantExpr:
+                    // 处理变量名和常量
+                    if (constantExpr.Value is string strValue && expression.Type == typeof(string) && strValue.StartsWith("$"))
+                    {
+                        return GetVariableValue(strValue[1..]);
+                    }
+                    return constantExpr.Value;
+
+                case BinaryExpression binaryExpr:
+                    var left = EvaluateExpression(binaryExpr.Left);
+                    var right = EvaluateExpression(binaryExpr.Right);
+
+                    // 处理不同类型运算
+                    return binaryExpr.NodeType switch
+                    {
+                        ExpressionType.Equal => Equals(left, right),
+                        ExpressionType.NotEqual => !Equals(left, right),
+                        ExpressionType.GreaterThan => Convert.ToDouble(left) > Convert.ToDouble(right),
+                        ExpressionType.LessThan => Convert.ToDouble(left) < Convert.ToDouble(right),
+                        ExpressionType.AndAlso => Convert.ToBoolean(left) && Convert.ToBoolean(right),
+                        ExpressionType.OrElse => Convert.ToBoolean(left) || Convert.ToBoolean(right),
+                        ExpressionType.Add => HandleAdd(left, right),
+                        ExpressionType.Subtract => Convert.ToDouble(left) - Convert.ToDouble(right),
+                        ExpressionType.Multiply => Convert.ToDouble(left) * Convert.ToDouble(right),
+                        ExpressionType.Divide => Convert.ToDouble(left) / Convert.ToDouble(right),
+                        ExpressionType.Modulo => Convert.ToDouble(left) % Convert.ToDouble(right),
+                        // TODO more operators such pow, +=, etc.
+                        _ => throw new NotSupportedException($"不支持的二元运算符: {binaryExpr.NodeType}")
+                    };
+
+                case UnaryExpression unaryExpr:
+                    var operand = EvaluateExpression(unaryExpr.Operand);
+                    return unaryExpr.NodeType switch
+                    {
+                        ExpressionType.Negate => -Convert.ToDouble(operand),
+                        ExpressionType.Not => !Convert.ToBoolean(operand),
+                        _ => throw new NotSupportedException($"不支持的一元运算符: {unaryExpr.NodeType}")
+                    };
+
+                default:
+                    throw new NotSupportedException($"不支持的表达式类型: {expression.GetType().Name}");
+            }
+        }
+
+        private object HandleAdd(object left, object right)
+        {
+            // 处理字符串拼接或数字加法
+            if (left is string || right is string)
+            {
+                return $"{left}{right}";
+            }
+            return Convert.ToDouble(left) + Convert.ToDouble(right);
+        }
+        #endregion
+
+        // Temporary storage for running
+        #region runtime
+        public readonly List<LabelBlock> _labelBlocks = new(); //TODO dic?
+        public readonly Stack<IIRInstruction> _instructionStack = new();
+
+        public void Run(string labelName = "start")
+        {
+            var label = _labelBlocks.Find(l => l.LabelName == labelName);
+            if (label != null)
+            {
+                _instructionStack.Clear();
+                foreach (var instruction in label.Instructions)
+                {
+                    _instructionStack.Push(instruction);
+                }
+                Next();
+            }
+            else
+            {
+                Debug.LogError($"Label '{labelName}' not found.");
+                throw new KeyNotFoundException($"Label '{labelName}' not found in the interpreter's label blocks.");
+            }
+        }
+
+        public void Next()
+        {
+            if (_instructionStack.Count > 0)
+            {
+                var instruction = _instructionStack.Pop();
+                instruction.Execute(this);
+            }
+            else
+            {
+                Debug.LogWarning("No instructions to execute.");
+                throw new InvalidOperationException("No instructions left in the stack to execute.");
+            }
+        }
+        #endregion
+
+        // Variable Registration
+        #region Variable Registration
         private readonly Dictionary<string, (object Value, Type Type)> _variableDict = new();
-
-        private readonly Dictionary<string, Delegate> _functionDict = new();
-
-        public void SetVariable(string name, object value, Type type)
-            => _variableDict[name] = (value, type);
-
+        public bool ContainsVariable(string name) => _variableDict.ContainsKey(name);
+        public void SetVariable(string name, object value)
+        {
+            if (value == null)
+            {
+                Debug.LogError($"Cannot set variable '{name}' to null.");
+                return;
+            }
+            var type = value.GetType();
+            if (type != typeof(string) && type != typeof(int) && type != typeof(float) && type != typeof(bool))
+            {
+                Debug.LogError($"Unsupported variable type '{type.Name}' for variable '{name}'. Only string, int, float, and bool are allowed.");
+                return;
+            }
+            if (_variableDict.ContainsKey(name))
+            {
+                _variableDict[name] = (value, type);
+            }
+            else
+            {
+                _variableDict.Add(name, (value, type));
+            }
+        }
         public (object Value, Type Type) GetVariable(string name)
         {
             if (_variableDict.TryGetValue(name, out var value))
@@ -29,7 +150,6 @@ namespace Assets.Scripts.DSP.Core
             Debug.LogError($"Variable '{name}' not found.");
             return (null, null);
         }
-
         public object GetVariableValue(string name)
         {
             if (_variableDict.TryGetValue(name, out var value))
@@ -39,7 +159,6 @@ namespace Assets.Scripts.DSP.Core
             Debug.LogError($"Variable '{name}' not found.");
             return null;
         }
-
         public Type GetVariableType(string name)
         {
             if (_variableDict.TryGetValue(name, out var value))
@@ -49,8 +168,11 @@ namespace Assets.Scripts.DSP.Core
             Debug.LogError($"Variable '{name}' not found.");
             return null;
         }
+        #endregion
 
-        # region Function Registration
+        // Function Registration
+        #region Function Registration
+        private readonly Dictionary<string, Delegate> _functionDict = new();
         public void AddFunction<TResult>(string funcName, Func<TResult> func) => _functionDict[funcName] = func;
         public void AddFunction<T0, TResult>(string funcName, Func<T0, TResult> func) => _functionDict[funcName] = func;
         public void AddFunction<T0, T1, TResult>(string funcName, Func<T0, T1, TResult> func) => _functionDict[funcName] = func;
