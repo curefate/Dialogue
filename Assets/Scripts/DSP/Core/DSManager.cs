@@ -10,7 +10,7 @@ public class DSManager : MonoBehaviour
     [SerializeField]
     private Interpreter _interpreter;
     private readonly Compiler _compiler = new();
-    private readonly List<LabelBlock> _labelBlocks = new();
+    private readonly List<InstructionBlock> _labelBlocks = new();
     private readonly Stack<IIRInstruction> _instructionStack = new();
 
     void Awake()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
+using Assets.Scripts.DSP.Core;
 using Unity.VisualScripting;
 using UnityEngine.Rendering;
 
@@ -10,7 +11,7 @@ public class Compiler
 {
     private readonly InstructionBuilder _instructionBuilder = new();
 
-    public List<LabelBlock> Compile(string input)
+    public List<InstructionBlock> Compile(string input)
     {
         input = PreProcess(input);
         var inputStream = new AntlrInputStream(input);
@@ -18,10 +19,10 @@ public class Compiler
         var tokens = new CommonTokenStream(lexer);
         var parser = new DSParser(tokens);
         var tree = parser.program();
-        var labels = new List<LabelBlock>();
+        var labels = new List<InstructionBlock>();
         foreach (var label_block in tree.label_block())
         {
-            var new_label = new LabelBlock
+            var new_label = new InstructionBlock
             {
                 LabelName = label_block.label.Text
             };
@@ -48,7 +49,7 @@ public class Compiler
 
 public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
 {
-    public List<LabelBlock> LabelBlocks { get; } = new List<LabelBlock>();
+    public List<InstructionBlock> LabelBlocks { get; } = new List<InstructionBlock>();
     private readonly ExpressionBuilder _expressionBuilder = new();
 
     public override IIRInstruction VisitProgram([NotNull] DSParser.ProgramContext context)
@@ -61,7 +62,7 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
     {
         var labelName = context.label.Text;
         var statements = context.statement();
-        var label_block = new LabelBlock { LabelName = labelName };
+        var label_block = new InstructionBlock { LabelName = labelName };
         foreach (var stmt in statements)
         {
             var instruction = Visit(stmt);
@@ -198,7 +199,7 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
     }
 }
 
-// TODO read
+// TODO more visit
 public class ExpressionBuilder : DSParserBaseVisitor<Expression>
 {
     public override Expression VisitExpression(DSParser.ExpressionContext context)
@@ -253,7 +254,7 @@ public class ExpressionBuilder : DSParserBaseVisitor<Expression>
         {
             // 直接返回变量名的字符串表达式
             string varName = context.VARIABLE().GetText();
-            return Expression.Constant(varName);
+            return Expression.Constant(new TypedValue(varName, typeof(object))); // 使用 object 类型作为占位符
         }
         else if (context.NUMBER() != null)
         {
@@ -262,20 +263,20 @@ public class ExpressionBuilder : DSParserBaseVisitor<Expression>
             if (numText.Contains('.'))
             {
                 // 处理浮点数
-                return Expression.Constant(double.Parse(numText));
+                return Expression.Constant(new TypedValue(float.Parse(numText), typeof(float)));
             }
             // 处理整数
-            return Expression.Constant(int.Parse(numText));
+            return Expression.Constant(new TypedValue(int.Parse(numText), typeof(int)));
         }
         else if (context.BOOL() != null)
         {
             // 处理布尔常量
-            return Expression.Constant(bool.Parse(context.BOOL().GetText()));
+            return Expression.Constant(new TypedValue(bool.Parse(context.BOOL().GetText()), typeof(bool)));
         }
         else if (context.STRING() != null)
         {
             // 处理字符串常量
-            return Expression.Constant(context.STRING().GetText().Trim('"'));
+            return Expression.Constant(new TypedValue(context.STRING().GetText().Trim('"'), typeof(string)));
         }
         else if (context.LPAR() != null)
         {

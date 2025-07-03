@@ -15,81 +15,182 @@ namespace Assets.Scripts.DSP.Core
         public Action<IR_Dialogue> OnDialogue;
         public Action<IR_Menu> OnMenu;
 
-        // Evaluate expressions
         #region Expression Evaluation
-        public object EvaluateExpression(Expression expression)
+        public TypedValue EvaluateExpression(Expression expression)
         {
+            // TODO stricter type checking and error handling
             switch (expression)
             {
                 case ConstantExpression constantExpr:
                     // 处理变量名和常量
-                    if (constantExpr.Value is string strValue && expression.Type == typeof(string) && strValue.StartsWith("$"))
+                    var typedVar = constantExpr.Value as TypedValue;
+                    if (typedVar.Type == typeof(object) && typedVar.Value is string strValue && strValue.StartsWith("$"))
                     {
-                        return GetVariableValue(strValue[1..]);
+                        return GetVariable(strValue[1..]);
                     }
-                    return constantExpr.Value;
+                    return typedVar;
 
                 case BinaryExpression binaryExpr:
                     var left = EvaluateExpression(binaryExpr.Left);
                     var right = EvaluateExpression(binaryExpr.Right);
 
                     // 处理不同类型运算
-                    return binaryExpr.NodeType switch
+                    switch (binaryExpr.NodeType)
                     {
-                        ExpressionType.Equal => Equals(left, right),
-                        ExpressionType.NotEqual => !Equals(left, right),
-                        ExpressionType.GreaterThan => Convert.ToDouble(left) > Convert.ToDouble(right),
-                        ExpressionType.LessThan => Convert.ToDouble(left) < Convert.ToDouble(right),
-                        ExpressionType.AndAlso => Convert.ToBoolean(left) && Convert.ToBoolean(right),
-                        ExpressionType.OrElse => Convert.ToBoolean(left) || Convert.ToBoolean(right),
-                        ExpressionType.Add => HandleAdd(left, right),
-                        ExpressionType.Subtract => Convert.ToDouble(left) - Convert.ToDouble(right),
-                        ExpressionType.Multiply => Convert.ToDouble(left) * Convert.ToDouble(right),
-                        ExpressionType.Divide => Convert.ToDouble(left) / Convert.ToDouble(right),
-                        ExpressionType.Modulo => Convert.ToDouble(left) % Convert.ToDouble(right),
-                        // TODO more operators such pow, +=, etc.
-                        _ => throw new NotSupportedException($"不支持的二元运算符: {binaryExpr.NodeType}")
-                    };
+                        case ExpressionType.Equal:
+                            return new TypedValue(Equals(left.Value, right.Value), typeof(bool));
+                        case ExpressionType.NotEqual:
+                            return new TypedValue(!Equals(left.Value, right.Value), typeof(bool));
+                        case ExpressionType.AndAlso:
+                            return new TypedValue(Convert.ToBoolean(left.Value) && Convert.ToBoolean(right.Value), typeof(bool));
+                        case ExpressionType.OrElse:
+                            return new TypedValue(Convert.ToBoolean(left.Value) || Convert.ToBoolean(right.Value), typeof(bool));
+                        case ExpressionType.GreaterThan:
+                            if (left.Type == typeof(string) && right.Type == typeof(string))
+                            {
+                                return new TypedValue(string.Compare((string)left.Value, (string)right.Value) > 0, typeof(bool));
+                            }
+                            else if (left.Type == typeof(float) || right.Type == typeof(float))
+                            {
+                                return new TypedValue(Convert.ToSingle(left.Value) > Convert.ToSingle(right.Value), typeof(bool));
+                            }
+                            else
+                            {
+                                return new TypedValue(Convert.ToInt32(left.Value) > Convert.ToInt32(right.Value), typeof(bool));
+                            }
+                        case ExpressionType.GreaterThanOrEqual:
+                            if (left.Type == typeof(string) && right.Type == typeof(string))
+                            {
+                                return new TypedValue(string.Compare((string)left.Value, (string)right.Value) >= 0, typeof(bool));
+                            }
+                            else if (left.Type == typeof(float) || right.Type == typeof(float))
+                            {
+                                return new TypedValue(Convert.ToSingle(left.Value) >= Convert.ToSingle(right.Value), typeof(bool));
+                            }
+                            else
+                            {
+                                return new TypedValue(Convert.ToInt32(left.Value) >= Convert.ToInt32(right.Value), typeof(bool));
+                            }
+                        case ExpressionType.LessThan:
+                            if (left.Type == typeof(string) && right.Type == typeof(string))
+                            {
+                                return new TypedValue(string.Compare((string)left.Value, (string)right.Value) < 0, typeof(bool));
+                            }
+                            else if (left.Type == typeof(float) || right.Type == typeof(float))
+                            {
+                                return new TypedValue(Convert.ToSingle(left.Value) < Convert.ToSingle(right.Value), typeof(bool));
+                            }
+                            else
+                            {
+                                return new TypedValue(Convert.ToInt32(left.Value) < Convert.ToInt32(right.Value), typeof(bool));
+                            }
+                        case ExpressionType.LessThanOrEqual:
+                            if (left.Type == typeof(string) && right.Type == typeof(string))
+                            {
+                                return new TypedValue(string.Compare((string)left.Value, (string)right.Value) <= 0, typeof(bool));
+                            }
+                            else if (left.Type == typeof(float) || right.Type == typeof(float))
+                            {
+                                return new TypedValue(Convert.ToSingle(left.Value) <= Convert.ToSingle(right.Value), typeof(bool));
+                            }
+                            else
+                            {
+                                return new TypedValue(Convert.ToInt32(left.Value) <= Convert.ToInt32(right.Value), typeof(bool));
+                            }
+                        case ExpressionType.Add:
+                            if (left.Type == typeof(string) && right.Type == typeof(string))
+                            {
+                                return new TypedValue((string)left.Value + (string)right.Value, typeof(string));
+                            }
+                            else if (left.Type == typeof(float) || right.Type == typeof(float))
+                            {
+                                return new TypedValue(Convert.ToSingle(left.Value) + Convert.ToSingle(right.Value), typeof(float));
+                            }
+                            else
+                            {
+                                return new TypedValue(Convert.ToInt32(left.Value) + Convert.ToInt32(right.Value), typeof(int));
+                            }
+                        case ExpressionType.Subtract:
+                            if (left.Type == typeof(float) || right.Type == typeof(float))
+                            {
+                                return new TypedValue(Convert.ToSingle(left.Value) - Convert.ToSingle(right.Value), typeof(float));
+                            }
+                            else
+                            {
+                                return new TypedValue(Convert.ToInt32(left.Value) - Convert.ToInt32(right.Value), typeof(int));
+                            }
+                        case ExpressionType.Multiply:
+                            if (left.Type == typeof(float) || right.Type == typeof(float))
+                            {
+                                return new TypedValue(Convert.ToSingle(left.Value) * Convert.ToSingle(right.Value), typeof(float));
+                            }
+                            else
+                            {
+                                return new TypedValue(Convert.ToInt32(left.Value) * Convert.ToInt32(right.Value), typeof(int));
+                            }
+                        case ExpressionType.Divide:
+                            if (left.Type == typeof(float) || right.Type == typeof(float))
+                            {
+                                return new TypedValue(Convert.ToSingle(left.Value) / Convert.ToSingle(right.Value), typeof(float));
+                            }
+                            else
+                            {
+                                return new TypedValue(Convert.ToInt32(left.Value) / Convert.ToInt32(right.Value), typeof(int));
+                            }
+                        case ExpressionType.Modulo:
+                            if (left.Type == typeof(float) || right.Type == typeof(float))
+                            {
+                                return new TypedValue(Convert.ToSingle(left.Value) % Convert.ToSingle(right.Value), typeof(float));
+                            }
+                            else
+                            {
+                                return new TypedValue(Convert.ToInt32(left.Value) % Convert.ToInt32(right.Value), typeof(int));
+                            }
+                        // TODO more operators such pow, etc.
+                        default:
+                            throw new NotSupportedException($"Unsupported binary operation: {binaryExpr.NodeType}");
+                    }
+                    ;
 
                 case UnaryExpression unaryExpr:
                     var operand = EvaluateExpression(unaryExpr.Operand);
-                    return unaryExpr.NodeType switch
+                    switch (unaryExpr.NodeType)
                     {
-                        ExpressionType.Negate => -Convert.ToDouble(operand),
-                        ExpressionType.Not => !Convert.ToBoolean(operand),
-                        _ => throw new NotSupportedException($"不支持的一元运算符: {unaryExpr.NodeType}")
-                    };
+                        case ExpressionType.Negate:
+                            if (operand.Type == typeof(float))
+                            {
+                                return new TypedValue(-Convert.ToSingle(operand.Value), typeof(float));
+                            }
+                            else
+                            {
+                                return new TypedValue(-Convert.ToInt32(operand.Value), typeof(int));
+                            }
+                        case ExpressionType.Not:
+                            return new TypedValue(!Convert.ToBoolean(operand.Value), typeof(bool));
+                        default:
+                            throw new NotSupportedException($"Unsupported unary operation: {unaryExpr.NodeType}");
+                    }
+                    ;
 
                 default:
-                    throw new NotSupportedException($"不支持的表达式类型: {expression.GetType().Name}");
+                    throw new NotSupportedException($"Unsupport expresstion type: {expression.GetType().Name}");
             }
-        }
-
-        private object HandleAdd(object left, object right)
-        {
-            // 处理字符串拼接或数字加法
-            if (left is string || right is string)
-            {
-                return $"{left}{right}";
-            }
-            return Convert.ToDouble(left) + Convert.ToDouble(right);
         }
         #endregion
 
-        // Temporary storage for running
-        #region runtime
-        public readonly List<LabelBlock> _labelBlocks = new(); //TODO dic?
-        public readonly Stack<IIRInstruction> _instructionStack = new();
+        #region Runtime
+        public readonly List<InstructionBlock> _labelBlocks = new(); //TODO dic?
+        public readonly Stack<IIRInstruction> _runStack = new();
 
         public void Run(string labelName = "start")
         {
             var label = _labelBlocks.Find(l => l.LabelName == labelName);
             if (label != null)
             {
-                _instructionStack.Clear();
+                _runStack.Clear();
                 foreach (var instruction in label.Instructions)
                 {
-                    _instructionStack.Push(instruction);
+                    _runStack.Push(instruction);
                 }
                 Next();
             }
@@ -102,9 +203,9 @@ namespace Assets.Scripts.DSP.Core
 
         public void Next()
         {
-            if (_instructionStack.Count > 0)
+            if (_runStack.Count > 0)
             {
-                var instruction = _instructionStack.Pop();
+                var instruction = _runStack.Pop();
                 instruction.Execute(this);
             }
             else
@@ -115,9 +216,8 @@ namespace Assets.Scripts.DSP.Core
         }
         #endregion
 
-        // Variable Registration
         #region Variable Registration
-        private readonly Dictionary<string, (object Value, Type Type)> _variableDict = new();
+        private readonly Dictionary<string, TypedValue> _variableDict = new();
         public bool ContainsVariable(string name) => _variableDict.ContainsKey(name);
         public void SetVariable(string name, object value)
         {
@@ -127,6 +227,12 @@ namespace Assets.Scripts.DSP.Core
                 return;
             }
             var type = value.GetType();
+            if (type == typeof(TypedValue))
+            {
+                var typedValue = (TypedValue)value;
+                type = typedValue.Type;
+                value = typedValue.Value;
+            }
             if (type != typeof(string) && type != typeof(int) && type != typeof(float) && type != typeof(bool))
             {
                 Debug.LogError($"Unsupported variable type '{type.Name}' for variable '{name}'. Only string, int, float, and bool are allowed.");
@@ -134,43 +240,30 @@ namespace Assets.Scripts.DSP.Core
             }
             if (_variableDict.ContainsKey(name))
             {
-                _variableDict[name] = (value, type);
+                // Check if the type matches the existing variable
+                if (_variableDict[name].Type != type)
+                {
+                    Debug.LogError($"Variable '{name}' already exists with a different type '{_variableDict[name].Type.Name}'. Cannot change type.");
+                    return;
+                }
+                _variableDict[name] = new TypedValue(value, type);
             }
             else
             {
-                _variableDict.Add(name, (value, type));
+                _variableDict.Add(name, new TypedValue(value, type));
             }
         }
-        public (object Value, Type Type) GetVariable(string name)
+        public TypedValue GetVariable(string name)
         {
-            if (_variableDict.TryGetValue(name, out var value))
+            if (_variableDict.TryGetValue(name, out var variable))
             {
-                return value;
-            }
-            Debug.LogError($"Variable '{name}' not found.");
-            return (null, null);
-        }
-        public object GetVariableValue(string name)
-        {
-            if (_variableDict.TryGetValue(name, out var value))
-            {
-                return value.Value;
-            }
-            Debug.LogError($"Variable '{name}' not found.");
-            return null;
-        }
-        public Type GetVariableType(string name)
-        {
-            if (_variableDict.TryGetValue(name, out var value))
-            {
-                return value.Type;
+                return variable;
             }
             Debug.LogError($"Variable '{name}' not found.");
             return null;
         }
         #endregion
 
-        // Function Registration
         #region Function Registration
         private readonly Dictionary<string, Delegate> _functionDict = new();
         public void AddFunction<TResult>(string funcName, Func<TResult> func) => _functionDict[funcName] = func;
@@ -413,5 +506,21 @@ namespace Assets.Scripts.DSP.Core
             }
         }
         # endregion
+    }
+
+    public class TypedValue
+    {
+        public object Value { get; }
+        public Type Type { get; }
+
+        public TypedValue(object value, Type type)
+        {
+            if (type != typeof(string) && type != typeof(int) && type != typeof(float) && type != typeof(bool) && type != typeof(object))
+            {
+                throw new ArgumentException($"Unsupported variable type '{type.Name}'. Only string, int, float, and bool are allowed.", nameof(type));
+            }
+            Value = value ?? throw new ArgumentNullException(nameof(value), "Value cannot be null.");
+            Type = type;
+        }
     }
 }

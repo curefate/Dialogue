@@ -5,7 +5,7 @@ using Assets.Scripts.DSP.Core;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-public class LabelBlock
+public class InstructionBlock
 {
     public string LabelName { get; set; }
     public List<IIRInstruction> Instructions { get; private set; } = new List<IIRInstruction>();
@@ -35,6 +35,7 @@ public class IR_Dialogue : IIRInstruction
     public List<string> Tags { get; private set; } = new List<string>();
     public void Execute(Interpreter interpreter)
     {
+        // TODO inner exprs and functions
         interpreter.OnDialogue?.Invoke(this);
     }
 }
@@ -54,13 +55,13 @@ public class IR_Jump : IIRInstruction
     public string TargetLabel { get; set; }
     public void Execute(Interpreter interpreter)
     {
-        interpreter._instructionStack.Clear();
+        interpreter._runStack.Clear();
         var labelBlock = interpreter._labelBlocks.FirstOrDefault(l => l.LabelName == TargetLabel);
         if (labelBlock != null)
         {
             foreach (var instruction in labelBlock.Instructions)
             {
-                interpreter._instructionStack.Push(instruction);
+                interpreter._runStack.Push(instruction);
             }
         }
     }
@@ -76,7 +77,7 @@ public class IR_Tour : IIRInstruction
         {
             foreach (var instruction in labelBlock.Instructions)
             {
-                interpreter._instructionStack.Push(instruction);
+                interpreter._runStack.Push(instruction);
             }
         }
     }
@@ -88,11 +89,8 @@ public class IR_Call : IIRInstruction
     public List<Expression> Arguments { get; set; } = new List<Expression>();
     public void Execute(Interpreter interpreter)
     {
-        // expression to object
-
-        // Invoke the function with the provided arguments
-
-        // TODO
+        var args = Arguments.Select(arg => interpreter.EvaluateExpression(arg).Value).ToArray();
+        interpreter.Invoke(FunctionName, args);
     }
 }
 
@@ -103,7 +101,24 @@ public class IR_Set : IIRInstruction
     public Expression Value { get; set; }
     public void Execute(Interpreter interpreter)
     {
-        // TODO
+        // Evaluate the expression and set the variable
+        var evaluatedValue = interpreter.EvaluateExpression(Value);
+        if (interpreter.ContainsVariable(VariableName))
+        {
+            switch (Symbol)
+            {
+                case "=":
+                    interpreter.SetVariable(VariableName, evaluatedValue);
+                    break;
+                // TODO ADD +=, -=, etc.
+                default:
+                    throw new NotSupportedException($"Symbol '{Symbol}' is not supported.");
+            }
+        }
+        else
+        {
+            interpreter.SetVariable(VariableName, evaluatedValue);
+        }
     }
 }
 
@@ -114,6 +129,24 @@ public class IR_If : IIRInstruction
     public List<IIRInstruction> FalseBranch { get; private set; } = new List<IIRInstruction>();
     public void Execute(Interpreter interpreter)
     {
-        // TODO
+        var conditionResult = interpreter.EvaluateExpression(Condition);
+        if (conditionResult == null || conditionResult.Type != typeof(bool))
+        {
+            throw new InvalidOperationException("Condition must evaluate to a boolean value.");
+        }
+        if ((bool)conditionResult.Value)
+        {
+            foreach (var instruction in TrueBranch)
+            {
+                interpreter._runStack.Push(instruction);
+            }
+        }
+        else
+        {
+            foreach (var instruction in FalseBranch)
+            {
+                interpreter._runStack.Push(instruction);
+            }
+        }
     }
 }
