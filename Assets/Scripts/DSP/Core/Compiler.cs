@@ -162,21 +162,6 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
         var current_inst = inst;
         for (int i = 0; i < context._conditions.Count; i++)
         {
-            // For the last else block without condition
-            if (i == context._conditions.Count - 1)
-            {
-                var else_block = context._blocks[i + 1];
-                foreach (var stmt in else_block.statement())
-                {
-                    var instruction = Visit(stmt);
-                    if (instruction != null)
-                    {
-                        current_inst.TrueBranch.Add(instruction);
-                    }
-                }
-                break;
-            }
-
             var condition = context._conditions[i];
             var block = context._blocks[i];
             if (i != 0)
@@ -195,7 +180,20 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
                 }
             }
         }
-        throw new NotImplementedException("If_stmt is not implemented yet.");
+        if (context._conditions.Count < context._blocks.Count)
+        {
+            // 处理 else 分支
+            var else_block = context._blocks[^1];
+            foreach (var stmt in else_block.statement())
+            {
+                var instruction = Visit(stmt);
+                if (instruction != null)
+                {
+                    current_inst.FalseBranch.Add(instruction);
+                }
+            }
+        }
+        return inst;
     }
 }
 

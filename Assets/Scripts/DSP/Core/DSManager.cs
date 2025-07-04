@@ -10,8 +10,6 @@ public class DSManager : MonoBehaviour
     [SerializeField]
     private Interpreter _interpreter;
     private readonly Compiler _compiler = new();
-    private readonly List<InstructionBlock> _labelBlocks = new();
-    private readonly Stack<IIRInstruction> _instructionStack = new();
 
     void Awake()
     {
@@ -26,9 +24,9 @@ public class DSManager : MonoBehaviour
         var new_labels = _compiler.Compile(dialogueFile.text);
         foreach (var label in new_labels)
         {
-            _labelBlocks.Add(label);
+            _interpreter.LabelBlocks.Add(label);
         }
-        foreach (var label in _labelBlocks)
+        foreach (var label in _interpreter.LabelBlocks)
         {
             Debug.Log($"Label: {label.LabelName}, Instructions Count: {label.Instructions.Count}");
             label.Run(_interpreter);

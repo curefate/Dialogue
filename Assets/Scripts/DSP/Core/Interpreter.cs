@@ -179,18 +179,18 @@ namespace Assets.Scripts.DSP.Core
         #endregion
 
         #region Runtime
-        public readonly List<InstructionBlock> _labelBlocks = new(); //TODO dic?
-        public readonly Stack<IIRInstruction> _runStack = new();
+        public readonly List<InstructionBlock> LabelBlocks = new(); //TODO dic?
+        public readonly LinkedList<IIRInstruction> RunningQueue = new();
 
         public void Run(string labelName = "start")
         {
-            var label = _labelBlocks.Find(l => l.LabelName == labelName);
-            if (label != null)
+            var block = LabelBlocks.Find(l => l.LabelName == labelName);
+            if (block != null)
             {
-                _runStack.Clear();
-                foreach (var instruction in label.Instructions)
+                RunningQueue.Clear();
+                foreach (var instruction in block.Instructions)
                 {
-                    _runStack.Push(instruction);
+                    RunningQueue.AddLast(instruction);
                 }
                 Next();
             }
@@ -203,9 +203,10 @@ namespace Assets.Scripts.DSP.Core
 
         public void Next()
         {
-            if (_runStack.Count > 0)
+            if (RunningQueue.Count > 0)
             {
-                var instruction = _runStack.Pop();
+                var instruction = RunningQueue.First.Value;
+                RunningQueue.RemoveFirst();
                 instruction.Execute(this);
             }
             else
@@ -266,12 +267,14 @@ namespace Assets.Scripts.DSP.Core
 
         #region Function Registration
         private readonly Dictionary<string, Delegate> _functionDict = new();
+        /*
         public void AddFunction<TResult>(string funcName, Func<TResult> func) => _functionDict[funcName] = func;
         public void AddFunction<T0, TResult>(string funcName, Func<T0, TResult> func) => _functionDict[funcName] = func;
         public void AddFunction<T0, T1, TResult>(string funcName, Func<T0, T1, TResult> func) => _functionDict[funcName] = func;
         public void AddFunction<T0, T1, T2, TResult>(string funcName, Func<T0, T1, T2, TResult> func) => _functionDict[funcName] = func;
         public void AddFunction<T0, T1, T2, T3, TResult>(string funcName, Func<T0, T1, T2, T3, TResult> func) => _functionDict[funcName] = func;
         public void AddFunction<T0, T1, T2, T3, T4, TResult>(string funcName, Func<T0, T1, T2, T3, T4, TResult> func) => _functionDict[funcName] = func;
+        */
         public void AddFunction(string funcName, Action action) => _functionDict[funcName] = action;
         public void AddFunction<T0>(string funcName, Action<T0> action) => _functionDict[funcName] = action;
         public void AddFunction<T0, T1>(string funcName, Action<T0, T1> action) => _functionDict[funcName] = action;

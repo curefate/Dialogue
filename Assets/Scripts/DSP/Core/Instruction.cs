@@ -55,13 +55,13 @@ public class IR_Jump : IIRInstruction
     public string TargetLabel { get; set; }
     public void Execute(Interpreter interpreter)
     {
-        interpreter._runStack.Clear();
-        var labelBlock = interpreter._labelBlocks.FirstOrDefault(l => l.LabelName == TargetLabel);
+        interpreter.RunningQueue.Clear();
+        var labelBlock = interpreter.LabelBlocks.FirstOrDefault(l => l.LabelName == TargetLabel);
         if (labelBlock != null)
         {
             foreach (var instruction in labelBlock.Instructions)
             {
-                interpreter._runStack.Push(instruction);
+                interpreter.RunningQueue.AddLast(instruction);
             }
         }
     }
@@ -72,12 +72,13 @@ public class IR_Tour : IIRInstruction
     public string TargetLabel { get; set; }
     public void Execute(Interpreter interpreter)
     {
-        var labelBlock = interpreter._labelBlocks.FirstOrDefault(l => l.LabelName == TargetLabel);
-        if (labelBlock != null)
+        var block = interpreter.LabelBlocks.FirstOrDefault(l => l.LabelName == TargetLabel);
+        if (block != null)
         {
-            foreach (var instruction in labelBlock.Instructions)
+            for (int i = block.Instructions.Count - 1; i >= 0; i--)
             {
-                interpreter._runStack.Push(instruction);
+                var instruction = block.Instructions[i];
+                interpreter.RunningQueue.AddFirst(instruction);
             }
         }
     }
@@ -101,23 +102,15 @@ public class IR_Set : IIRInstruction
     public Expression Value { get; set; }
     public void Execute(Interpreter interpreter)
     {
-        // Evaluate the expression and set the variable
         var evaluatedValue = interpreter.EvaluateExpression(Value);
-        if (interpreter.ContainsVariable(VariableName))
+        switch (Symbol)
         {
-            switch (Symbol)
-            {
-                case "=":
-                    interpreter.SetVariable(VariableName, evaluatedValue);
-                    break;
-                // TODO ADD +=, -=, etc.
-                default:
-                    throw new NotSupportedException($"Symbol '{Symbol}' is not supported.");
-            }
-        }
-        else
-        {
-            interpreter.SetVariable(VariableName, evaluatedValue);
+            case "=":
+                interpreter.SetVariable(VariableName[1..], evaluatedValue);
+                break;
+            // TODO ADD +=, -=, etc.
+            default:
+                throw new NotSupportedException($"Symbol '{Symbol}' is not supported.");
         }
     }
 }
@@ -136,16 +129,18 @@ public class IR_If : IIRInstruction
         }
         if ((bool)conditionResult.Value)
         {
-            foreach (var instruction in TrueBranch)
+            for (int i = TrueBranch.Count - 1; i >= 0; i--)
             {
-                interpreter._runStack.Push(instruction);
+                var instruction = TrueBranch[i];
+                interpreter.RunningQueue.AddFirst(instruction);
             }
         }
         else
         {
-            foreach (var instruction in FalseBranch)
+            for (int i = FalseBranch.Count - 1; i >= 0; i--)
             {
-                interpreter._runStack.Push(instruction);
+                var instruction = FalseBranch[i];
+                interpreter.RunningQueue.AddFirst(instruction);
             }
         }
     }
