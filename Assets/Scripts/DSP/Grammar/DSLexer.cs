@@ -134,8 +134,8 @@ public partial class DSLexer : Lexer {
 	        if (_pre_token != null && _pre_token.Type == NEWLINE && token.Type == NEWLINE)
 				return NextToken();
 
-	        /* if (token.Channel == 0)
-	            UnityEngine.Debug.Log($"[{token.Channel}] {Vocabulary.GetSymbolicName(token.Type)}: {token.Text}: {token.Line}"); */
+	        // if (token.Channel == 0)
+	            // UnityEngine.Debug.Log($"[{token.Channel}] {Vocabulary.GetSymbolicName(token.Type)}: {token.Text}: {token.Line}");
 	        _pre_token = token;
 	        return token;
 	    }

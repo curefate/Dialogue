@@ -6,6 +6,8 @@ using Antlr4.Runtime.Misc;
 using Assets.Scripts.DSP.Core;
 using Unity.VisualScripting;
 using UnityEngine.Rendering;
+using UnityEngine;
+using System.Linq;
 
 public class Compiler
 {
@@ -42,7 +44,7 @@ public class Compiler
     private string PreProcess(string scriptContent)
     {
         string ret = scriptContent.Replace("\t", "    ");
-        ret += "\n";
+        ret.Concat("\n");
         return ret;
     }
 }
@@ -182,7 +184,7 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
         }
         if (context._conditions.Count < context._blocks.Count)
         {
-            // 处理 else 分支
+            // Handle the last else block
             var else_block = context._blocks[^1];
             foreach (var stmt in else_block.statement())
             {
@@ -197,7 +199,6 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
     }
 }
 
-// TODO more visit
 public class ExpressionBuilder : DSParserBaseVisitor<Expression>
 {
     public override Expression VisitExpression(DSParser.ExpressionContext context)
@@ -232,53 +233,139 @@ public class ExpressionBuilder : DSParserBaseVisitor<Expression>
     {
         if (context.expr_comparison().Length > 1)
         {
-            var left = Visit(context.expr_comparison(0));
-            var right = Visit(context.expr_comparison(1));
-            var op = context.GetChild(1).GetText();
-
-            return op switch
+            Expression result = Visit(context.expr_comparison(0));
+            for (int i = 1; i < context.expr_comparison().Length; i++)
             {
-                "==" => Expression.Equal(left, right),
-                "!=" => Expression.NotEqual(left, right),
-                _ => throw new NotSupportedException($"unsupport symbol: {op}")
-            };
+                var op = context.GetChild(i * 2 - 1).GetText(); // Get the operator between comparisons
+                var nextExpr = Visit(context.expr_comparison(i));
+                result = op switch
+                {
+                    "==" => Expression.Equal(result, nextExpr),
+                    "!=" => Expression.NotEqual(result, nextExpr),
+                    _ => throw new NotSupportedException($"unsupport symbol: {op}")
+                };
+            }
+            return result;
         }
         return Visit(context.expr_comparison(0));
+    }
+
+    public override Expression VisitExpr_comparison(DSParser.Expr_comparisonContext context)
+    {
+        if (context.expr_term().Length > 1)
+        {
+            Expression result = Visit(context.expr_term(0));
+            for (int i = 1; i < context.expr_term().Length; i++)
+            {
+                var op = context.GetChild(i * 2 - 1).GetText(); // Get the operator between terms
+                var nextExpr = Visit(context.expr_term(i));
+                result = op switch
+                {
+                    "<" => Expression.LessThan(result, nextExpr),
+                    ">" => Expression.GreaterThan(result, nextExpr),
+                    "<=" => Expression.LessThanOrEqual(result, nextExpr),
+                    ">=" => Expression.GreaterThanOrEqual(result, nextExpr),
+                    _ => throw new NotSupportedException($"unsupport symbol: {op}")
+                };
+            }
+            return result;
+        }
+        return Visit(context.expr_term(0));
+    }
+
+    public override Expression VisitExpr_term([NotNull] DSParser.Expr_termContext context)
+    {
+        if (context.expr_factor().Length > 1)
+        {
+            Expression result = Visit(context.expr_factor(0));
+            for (int i = 1; i < context.expr_factor().Length; i++)
+            {
+                var op = context.GetChild(i * 2 - 1).GetText(); // Get the operator between factors
+                var nextExpr = Visit(context.expr_factor(i));
+                result = op switch
+                {
+                    "+" => Expression.Add(result, nextExpr),
+                    "-" => Expression.Subtract(result, nextExpr),
+                    _ => throw new NotSupportedException($"unsupport symbol: {op}")
+                };
+            }
+            return result;
+        }
+        return Visit(context.expr_factor(0));
+    }
+
+    public override Expression VisitExpr_factor([NotNull] DSParser.Expr_factorContext context)
+    {
+        if (context.expr_unary().Length > 1)
+        {
+            Expression result = Visit(context.expr_unary(0));
+            for (int i = 1; i < context.expr_unary().Length; i++)
+            {
+                var op = context.GetChild(i * 2 - 1).GetText(); // Get the operator between unary expressions
+                var nextExpr = Visit(context.expr_unary(i));
+                result = op switch
+                {
+                    "*" => Expression.Multiply(result, nextExpr),
+                    "/" => Expression.Divide(result, nextExpr),
+                    "%" => Expression.Modulo(result, nextExpr),
+                    _ => throw new NotSupportedException($"unsupport symbol: {op}")
+                };
+            }
+            return result;
+        }
+        return Visit(context.expr_unary(0));
+    }
+
+    public override Expression VisitExpr_unary([NotNull] DSParser.Expr_unaryContext context)
+    {
+        var op = context.PLUS() ?? context.MINUS() ?? context.EXCLAMATION();
+        if (op != null)
+        {
+            var operand = Visit(context.expr_primary());
+            return op.Symbol.Type switch
+            {
+                DSParser.PLUS => operand, // Unary plus, no change
+                DSParser.MINUS => Expression.Negate(operand), // Unary minus
+                DSParser.EXCLAMATION => Expression.Not(operand), // Logical NOT
+                _ => throw new NotSupportedException($"unsupport unary operator: {op.GetText()}")
+            };
+        }
+        return Visit(context.expr_primary());
     }
 
     public override Expression VisitExpr_primary(DSParser.Expr_primaryContext context)
     {
         if (context.VARIABLE() != null)
         {
-            // 直接返回变量名的字符串表达式
+            // Handle variable names
             string varName = context.VARIABLE().GetText();
-            return Expression.Constant(new TypedValue(varName, typeof(object))); // 使用 object 类型作为占位符
+            return Expression.Constant(new TypedValue(varName, typeof(object))); // use object type to represent variable names
         }
         else if (context.NUMBER() != null)
         {
-            // 处理数字常量
+            // Handle numeric constants
             var numText = context.NUMBER().GetText();
             if (numText.Contains('.'))
             {
-                // 处理浮点数
+                // float
                 return Expression.Constant(new TypedValue(float.Parse(numText), typeof(float)));
             }
-            // 处理整数
+            // integer
             return Expression.Constant(new TypedValue(int.Parse(numText), typeof(int)));
         }
         else if (context.BOOL() != null)
         {
-            // 处理布尔常量
+            // Handle boolean constants
             return Expression.Constant(new TypedValue(bool.Parse(context.BOOL().GetText()), typeof(bool)));
         }
         else if (context.STRING() != null)
         {
-            // 处理字符串常量
+            // Handle string constants
             return Expression.Constant(new TypedValue(context.STRING().GetText().Trim('"'), typeof(string)));
         }
         else if (context.LPAR() != null)
         {
-            // 处理括号表达式
+            // Handle brakets
             return Visit(context.expression());
         }
         throw new NotSupportedException($"unsupport expr: {context.GetText()}");

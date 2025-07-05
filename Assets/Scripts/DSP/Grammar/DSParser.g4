@@ -83,7 +83,7 @@ expr_term
     ;
 
 expr_factor
-    : expr_unary ((STAR | SLASH) expr_unary)*
+    : expr_unary ((STAR | SLASH | PERCENT) expr_unary)*
     ;
 
 expr_unary
