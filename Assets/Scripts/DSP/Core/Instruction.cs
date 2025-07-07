@@ -31,10 +31,12 @@ public class IR_Dialogue : IIRInstruction
     public bool IsSync { get; set; }
     public string Speaker { get; set; }
     public string Text { get; set; }
+    public string RawText { get; set; }
     public List<string> Tags { get; private set; } = new List<string>();
+    public List<IR_Call> EmbeddedCalls { get; private set; } = new List<IR_Call>();
     public void Execute(Interpreter interpreter)
     {
-        // TODO inner exprs and functions
+        // TODO inner exprs
         interpreter.OnDialogue?.Invoke(this);
     }
 }
@@ -46,6 +48,7 @@ public class IR_Menu : IIRInstruction
     public void Execute(Interpreter interpreter)
     {
         interpreter.OnMenu?.Invoke(this);
+        // TODO
     }
 }
 
@@ -85,6 +88,7 @@ public class IR_Tour : IIRInstruction
 
 public class IR_Call : IIRInstruction
 {
+    public bool IsSync { get; set; }
     public string FunctionName { get; set; }
     public List<DSExpression> Arguments { get; set; } = new List<DSExpression>();
     public void Execute(Interpreter interpreter)

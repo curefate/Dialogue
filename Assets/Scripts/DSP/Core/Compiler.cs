@@ -8,6 +8,8 @@ using Unity.VisualScripting;
 using UnityEngine.Rendering;
 using UnityEngine;
 using System.Linq;
+using System.Text;
+using Antlr4.Runtime.Tree;
 
 public class Compiler
 {
@@ -83,14 +85,15 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
         {
             IsSync = context.SYNC() != null,
             Speaker = context.ID()?.GetText() ?? null,
-            Text = context.text.Text.Trim('"')
+            RawText = context.text.Text.Trim('"'),
         };
+        // TODO
+        inst.Text = inst.RawText;
         foreach (var tag in context._tags)
         {
             inst.Tags.Add(tag.Text[1..]);
         }
         return inst;
-        // TODO inner call cmd
     }
 
     public override IIRInstruction VisitMenu_stmt([NotNull] DSParser.Menu_stmtContext context)
@@ -132,6 +135,7 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
     {
         var inst = new IR_Call
         {
+            IsSync = context.SYNC() != null,
             FunctionName = context.func_name.Text
         };
         var args = context._args ?? throw new ArgumentException("Call arguments cannot be null.");
@@ -367,177 +371,3 @@ public class ExpressionBuilder : DSParserBaseVisitor<DSExpression>
         }
     }
 }
-
-/* public class ExpressionBuilder : DSParserBaseVisitor<Expression>
-{
-    public override Expression VisitExpression(DSParser.ExpressionContext context)
-    {
-        if (context.expr_logical_and().Length > 1)
-        {
-            Expression result = Visit(context.expr_logical_and(0));
-            for (int i = 1; i < context.expr_logical_and().Length; i++)
-            {
-                result = Expression.OrElse(result, Visit(context.expr_logical_and(i)));
-            }
-            return result;
-        }
-        return Visit(context.expr_logical_and(0));
-    }
-
-    public override Expression VisitExpr_logical_and(DSParser.Expr_logical_andContext context)
-    {
-        if (context.expr_equality().Length > 1)
-        {
-            Expression result = Visit(context.expr_equality(0));
-            for (int i = 1; i < context.expr_equality().Length; i++)
-            {
-                result = Expression.AndAlso(result, Visit(context.expr_equality(i)));
-            }
-            return result;
-        }
-        return Visit(context.expr_equality(0));
-    }
-
-    public override Expression VisitExpr_equality(DSParser.Expr_equalityContext context)
-    {
-        if (context.expr_comparison().Length > 1)
-        {
-            Expression result = Visit(context.expr_comparison(0));
-            for (int i = 1; i < context.expr_comparison().Length; i++)
-            {
-                var op = context.GetChild(i * 2 - 1).GetText(); // Get the operator between comparisons
-                var nextExpr = Visit(context.expr_comparison(i));
-                result = op switch
-                {
-                    "==" => Expression.Equal(result, nextExpr),
-                    "!=" => Expression.NotEqual(result, nextExpr),
-                    _ => throw new NotSupportedException($"unsupport symbol: {op}")
-                };
-            }
-            return result;
-        }
-        return Visit(context.expr_comparison(0));
-    }
-
-    public override Expression VisitExpr_comparison(DSParser.Expr_comparisonContext context)
-    {
-        if (context.expr_term().Length > 1)
-        {
-            Expression result = Visit(context.expr_term(0));
-            for (int i = 1; i < context.expr_term().Length; i++)
-            {
-                var op = context.GetChild(i * 2 - 1).GetText(); // Get the operator between terms
-                var nextExpr = Visit(context.expr_term(i));
-                result = op switch
-                {
-                    "<" => Expression.LessThan(result, nextExpr),
-                    ">" => Expression.GreaterThan(result, nextExpr),
-                    "<=" => Expression.LessThanOrEqual(result, nextExpr),
-                    ">=" => Expression.GreaterThanOrEqual(result, nextExpr),
-                    _ => throw new NotSupportedException($"unsupport symbol: {op}")
-                };
-            }
-            return result;
-        }
-        return Visit(context.expr_term(0));
-    }
-
-    public override Expression VisitExpr_term([NotNull] DSParser.Expr_termContext context)
-    {
-        if (context.expr_factor().Length > 1)
-        {
-            Expression result = Visit(context.expr_factor(0));
-            for (int i = 1; i < context.expr_factor().Length; i++)
-            {
-                var op = context.GetChild(i * 2 - 1).GetText(); // Get the operator between factors
-                var nextExpr = Visit(context.expr_factor(i));
-                result = op switch
-                {
-                    "+" => Expression.Add(result, nextExpr),
-                    "-" => Expression.Subtract(result, nextExpr),
-                    _ => throw new NotSupportedException($"unsupport symbol: {op}");
-                };
-            }
-            return result;
-        }
-        return Visit(context.expr_factor(0));
-    }
-
-    public override Expression VisitExpr_factor([NotNull] DSParser.Expr_factorContext context)
-    {
-        if (context.expr_unary().Length > 1)
-        {
-            Expression result = Visit(context.expr_unary(0));
-            for (int i = 1; i < context.expr_unary().Length; i++)
-            {
-                var op = context.GetChild(i * 2 - 1).GetText(); // Get the operator between unary expressions
-                var nextExpr = Visit(context.expr_unary(i));
-                result = op switch
-                {
-                    "*" => Expression.Multiply(result, nextExpr),
-                    "/" => Expression.Divide(result, nextExpr),
-                    "%" => Expression.Modulo(result, nextExpr),
-                    _ => throw new NotSupportedException($"unsupport symbol: {op}")
-                };
-            }
-            return result;
-        }
-        return Visit(context.expr_unary(0));
-    }
-
-    public override Expression VisitExpr_unary([NotNull] DSParser.Expr_unaryContext context)
-    {
-        var op = context.PLUS() ?? context.MINUS() ?? context.EXCLAMATION();
-        if (op != null)
-        {
-            var operand = Visit(context.expr_primary());
-            return op.Symbol.Type switch
-            {
-                DSParser.PLUS => operand, // Unary plus, no change
-                DSParser.MINUS => Expression.Negate(operand), // Unary minus
-                DSParser.EXCLAMATION => Expression.Not(operand), // Logical NOT
-                _ => throw new NotSupportedException($"unsupport unary operator: {op.GetText()}")
-            };
-        }
-        return Visit(context.expr_primary());
-    }
-
-    public override Expression VisitExpr_primary(DSParser.Expr_primaryContext context)
-    {
-        if (context.VARIABLE() != null)
-        {
-            var varName = context.VARIABLE().GetText();
-            var interParam = Expression.Parameter(typeof(Interpreter), "interpreter");
-            return Expression.Call(
-                interParam,
-                typeof(Interpreter).GetMethod("GetVariableValue"),
-                Expression.Constant(varName[1..])
-            );
-        }
-        else if (context.NUMBER() != null)
-        {
-            var numText = context.NUMBER().GetText();
-            if (numText.Contains('.'))
-            {
-                return Expression.Constant(float.Parse(numText));
-            }
-            return Expression.Constant(int.Parse(numText));
-        }
-        else if (context.BOOL() != null)
-        {
-            return Expression.Constant(bool.Parse(context.BOOL().GetText()));
-        }
-        else if (context.STRING() != null)
-        {
-            return Expression.Constant(context.STRING().GetText().Trim('"'));
-        }
-        else if (context.LPAR() != null)
-        {
-            return Visit(context.expression());
-        }
-        else
-        {
-            throw new NotSupportedException($"unsupport expr: {context.GetText()}");
-        }
-    }
-} */

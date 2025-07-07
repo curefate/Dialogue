@@ -13,7 +13,7 @@ namespace Assets.Scripts.DSP.Core
     {
         // Events
         public Action<IR_Dialogue> OnDialogue;
-        public Action<IR_Menu> OnMenu;
+        public Func<IR_Menu, int> OnMenu;
 
         #region Runtime
         public readonly List<InstructionBlock> LabelBlocks = new(); //TODO dic?

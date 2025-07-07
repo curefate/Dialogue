@@ -90,6 +90,8 @@ tokens {
 // ====================== expr =========================
 LPAR         : '('; // OPEN_PAREN
 RPAR         : ')'; // CLOSE_PAREN
+LBRACE       : '{'; // OPEN_BRACE
+RBRACE       : '}'; // CLOSE_BRACE
 EXCLAMATION  : '!';
 PLUS         : '+';
 MINUS        : '-';
@@ -122,8 +124,7 @@ WHILE  : 'while';
 JUMP   : 'jump' | '->';
 TOUR   : 'tour' | '-><';
 LABEL  : 'label' | '~';
-SYNC   : 'sync';
-// IMPORT : 'import';
+SYNC   : 'sync' | '|';
 // MATCH  : 'match';
 // CASE   : 'case';
 
