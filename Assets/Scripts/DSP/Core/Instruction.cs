@@ -3,7 +3,6 @@ using System;
 using System.Linq;
 using Assets.Scripts.DSP.Core;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 
 public class InstructionBlock
 {
@@ -87,10 +86,10 @@ public class IR_Tour : IIRInstruction
 public class IR_Call : IIRInstruction
 {
     public string FunctionName { get; set; }
-    public List<Expression> Arguments { get; set; } = new List<Expression>();
+    public List<DSExpression> Arguments { get; set; } = new List<DSExpression>();
     public void Execute(Interpreter interpreter)
     {
-        var args = Arguments.Select(arg => interpreter.EvaluateExpression(arg).Value).ToArray();
+        var args = Arguments.Select(arg => arg.Evaluate(interpreter)).ToArray();
         interpreter.Invoke(FunctionName, args);
     }
 }
@@ -99,15 +98,15 @@ public class IR_Set : IIRInstruction
 {
     public string VariableName { get; set; }
     public string Symbol { get; set; } // Could be '=', '+=', '-=', etc.
-    public Expression Value { get; set; }
+    public DSExpression Value { get; set; }
     public void Execute(Interpreter interpreter)
     {
-        var evaluatedValue = interpreter.EvaluateExpression(Value);
+        var evaluatedValue = Value.Evaluate(interpreter);
         switch (Symbol)
         {
             case "=":
                 interpreter.SetVariable(VariableName[1..], evaluatedValue);
-                break;
+                return;
             // TODO ADD +=, -=, etc.
             default:
                 throw new NotSupportedException($"Symbol '{Symbol}' is not supported.");
@@ -117,17 +116,17 @@ public class IR_Set : IIRInstruction
 
 public class IR_If : IIRInstruction
 {
-    public Expression Condition { get; set; }
+    public DSExpression Condition { get; set; }
     public List<IIRInstruction> TrueBranch { get; private set; } = new List<IIRInstruction>();
     public List<IIRInstruction> FalseBranch { get; private set; } = new List<IIRInstruction>();
     public void Execute(Interpreter interpreter)
     {
-        var conditionResult = interpreter.EvaluateExpression(Condition);
-        if (conditionResult == null || conditionResult.Type != typeof(bool))
+        var conditionResult = Condition.Evaluate(interpreter);
+        if (conditionResult == null || conditionResult is not bool)
         {
             throw new InvalidOperationException("Condition must evaluate to a boolean value.");
         }
-        if ((bool)conditionResult.Value)
+        if ((bool)conditionResult)
         {
             for (int i = TrueBranch.Count - 1; i >= 0; i--)
             {

@@ -15,169 +15,6 @@ namespace Assets.Scripts.DSP.Core
         public Action<IR_Dialogue> OnDialogue;
         public Action<IR_Menu> OnMenu;
 
-        #region Expression Evaluation
-        public TypedValue EvaluateExpression(Expression expression)
-        {
-            // TODO stricter type checking and error handling
-            switch (expression)
-            {
-                case ConstantExpression constantExpr:
-                    // 处理变量名和常量
-                    var typedVar = constantExpr.Value as TypedValue;
-                    if (typedVar.Type == typeof(object) && typedVar.Value is string strValue && strValue.StartsWith("$"))
-                    {
-                        return GetVariable(strValue[1..]);
-                    }
-                    return typedVar;
-
-                case BinaryExpression binaryExpr:
-                    var left = EvaluateExpression(binaryExpr.Left);
-                    var right = EvaluateExpression(binaryExpr.Right);
-
-                    // 处理不同类型运算
-                    switch (binaryExpr.NodeType)
-                    {
-                        case ExpressionType.Equal:
-                            return new TypedValue(Equals(left.Value, right.Value), typeof(bool));
-                        case ExpressionType.NotEqual:
-                            return new TypedValue(!Equals(left.Value, right.Value), typeof(bool));
-                        case ExpressionType.AndAlso:
-                            return new TypedValue(Convert.ToBoolean(left.Value) && Convert.ToBoolean(right.Value), typeof(bool));
-                        case ExpressionType.OrElse:
-                            return new TypedValue(Convert.ToBoolean(left.Value) || Convert.ToBoolean(right.Value), typeof(bool));
-                        case ExpressionType.GreaterThan:
-                            if (left.Type == typeof(string) && right.Type == typeof(string))
-                            {
-                                return new TypedValue(string.Compare((string)left.Value, (string)right.Value) > 0, typeof(bool));
-                            }
-                            else if (left.Type == typeof(float) || right.Type == typeof(float))
-                            {
-                                return new TypedValue(Convert.ToSingle(left.Value) > Convert.ToSingle(right.Value), typeof(bool));
-                            }
-                            else
-                            {
-                                return new TypedValue(Convert.ToInt32(left.Value) > Convert.ToInt32(right.Value), typeof(bool));
-                            }
-                        case ExpressionType.GreaterThanOrEqual:
-                            if (left.Type == typeof(string) && right.Type == typeof(string))
-                            {
-                                return new TypedValue(string.Compare((string)left.Value, (string)right.Value) >= 0, typeof(bool));
-                            }
-                            else if (left.Type == typeof(float) || right.Type == typeof(float))
-                            {
-                                return new TypedValue(Convert.ToSingle(left.Value) >= Convert.ToSingle(right.Value), typeof(bool));
-                            }
-                            else
-                            {
-                                return new TypedValue(Convert.ToInt32(left.Value) >= Convert.ToInt32(right.Value), typeof(bool));
-                            }
-                        case ExpressionType.LessThan:
-                            if (left.Type == typeof(string) && right.Type == typeof(string))
-                            {
-                                return new TypedValue(string.Compare((string)left.Value, (string)right.Value) < 0, typeof(bool));
-                            }
-                            else if (left.Type == typeof(float) || right.Type == typeof(float))
-                            {
-                                return new TypedValue(Convert.ToSingle(left.Value) < Convert.ToSingle(right.Value), typeof(bool));
-                            }
-                            else
-                            {
-                                return new TypedValue(Convert.ToInt32(left.Value) < Convert.ToInt32(right.Value), typeof(bool));
-                            }
-                        case ExpressionType.LessThanOrEqual:
-                            if (left.Type == typeof(string) && right.Type == typeof(string))
-                            {
-                                return new TypedValue(string.Compare((string)left.Value, (string)right.Value) <= 0, typeof(bool));
-                            }
-                            else if (left.Type == typeof(float) || right.Type == typeof(float))
-                            {
-                                return new TypedValue(Convert.ToSingle(left.Value) <= Convert.ToSingle(right.Value), typeof(bool));
-                            }
-                            else
-                            {
-                                return new TypedValue(Convert.ToInt32(left.Value) <= Convert.ToInt32(right.Value), typeof(bool));
-                            }
-                        case ExpressionType.Add:
-                            if (left.Type == typeof(string) && right.Type == typeof(string))
-                            {
-                                return new TypedValue((string)left.Value + (string)right.Value, typeof(string));
-                            }
-                            else if (left.Type == typeof(float) || right.Type == typeof(float))
-                            {
-                                return new TypedValue(Convert.ToSingle(left.Value) + Convert.ToSingle(right.Value), typeof(float));
-                            }
-                            else
-                            {
-                                return new TypedValue(Convert.ToInt32(left.Value) + Convert.ToInt32(right.Value), typeof(int));
-                            }
-                        case ExpressionType.Subtract:
-                            if (left.Type == typeof(float) || right.Type == typeof(float))
-                            {
-                                return new TypedValue(Convert.ToSingle(left.Value) - Convert.ToSingle(right.Value), typeof(float));
-                            }
-                            else
-                            {
-                                return new TypedValue(Convert.ToInt32(left.Value) - Convert.ToInt32(right.Value), typeof(int));
-                            }
-                        case ExpressionType.Multiply:
-                            if (left.Type == typeof(float) || right.Type == typeof(float))
-                            {
-                                return new TypedValue(Convert.ToSingle(left.Value) * Convert.ToSingle(right.Value), typeof(float));
-                            }
-                            else
-                            {
-                                return new TypedValue(Convert.ToInt32(left.Value) * Convert.ToInt32(right.Value), typeof(int));
-                            }
-                        case ExpressionType.Divide:
-                            if (left.Type == typeof(float) || right.Type == typeof(float))
-                            {
-                                return new TypedValue(Convert.ToSingle(left.Value) / Convert.ToSingle(right.Value), typeof(float));
-                            }
-                            else
-                            {
-                                return new TypedValue(Convert.ToInt32(left.Value) / Convert.ToInt32(right.Value), typeof(int));
-                            }
-                        case ExpressionType.Modulo:
-                            if (left.Type == typeof(float) || right.Type == typeof(float))
-                            {
-                                return new TypedValue(Convert.ToSingle(left.Value) % Convert.ToSingle(right.Value), typeof(float));
-                            }
-                            else
-                            {
-                                return new TypedValue(Convert.ToInt32(left.Value) % Convert.ToInt32(right.Value), typeof(int));
-                            }
-                        // TODO more operators such pow, etc.
-                        default:
-                            throw new NotSupportedException($"Unsupported binary operation: {binaryExpr.NodeType}");
-                    }
-                    ;
-
-                case UnaryExpression unaryExpr:
-                    var operand = EvaluateExpression(unaryExpr.Operand);
-                    switch (unaryExpr.NodeType)
-                    {
-                        case ExpressionType.Negate:
-                            if (operand.Type == typeof(float))
-                            {
-                                return new TypedValue(-Convert.ToSingle(operand.Value), typeof(float));
-                            }
-                            else
-                            {
-                                return new TypedValue(-Convert.ToInt32(operand.Value), typeof(int));
-                            }
-                        case ExpressionType.Not:
-                            return new TypedValue(!Convert.ToBoolean(operand.Value), typeof(bool));
-                        default:
-                            throw new NotSupportedException($"Unsupported unary operation: {unaryExpr.NodeType}");
-                    }
-                    ;
-
-                default:
-                    throw new NotSupportedException($"Unsupport expresstion type: {expression.GetType().Name}");
-            }
-        }
-        #endregion
-
         #region Runtime
         public readonly List<InstructionBlock> LabelBlocks = new(); //TODO dic?
         public readonly LinkedList<IIRInstruction> RunningQueue = new();
@@ -218,7 +55,7 @@ namespace Assets.Scripts.DSP.Core
         #endregion
 
         #region Variable Registration
-        private readonly Dictionary<string, TypedValue> _variableDict = new();
+        private readonly Dictionary<string, TypedVariable> _variableDict = new();
         public bool ContainsVariable(string name) => _variableDict.ContainsKey(name);
         public void SetVariable(string name, object value)
         {
@@ -228,9 +65,9 @@ namespace Assets.Scripts.DSP.Core
                 return;
             }
             var type = value.GetType();
-            if (type == typeof(TypedValue))
+            if (type == typeof(TypedVariable))
             {
-                var typedValue = (TypedValue)value;
+                var typedValue = (TypedVariable)value;
                 type = typedValue.Type;
                 value = typedValue.Value;
             }
@@ -247,14 +84,14 @@ namespace Assets.Scripts.DSP.Core
                     Debug.LogError($"Variable '{name}' already exists with a different type '{_variableDict[name].Type.Name}'. Cannot change type.");
                     return;
                 }
-                _variableDict[name] = new TypedValue(value, type);
+                _variableDict[name] = new TypedVariable(value, type);
             }
             else
             {
-                _variableDict.Add(name, new TypedValue(value, type));
+                _variableDict.Add(name, new TypedVariable(value, type));
             }
         }
-        public TypedValue GetVariable(string name)
+        public TypedVariable GetVariable(string name)
         {
             if (_variableDict.TryGetValue(name, out var variable))
             {
@@ -262,6 +99,29 @@ namespace Assets.Scripts.DSP.Core
             }
             Debug.LogError($"Variable '{name}' not found.");
             return null;
+        }
+        public object GetVariableValue(string name)
+        {
+            if (_variableDict.TryGetValue(name, out var variable))
+            {
+                return variable.Value;
+            }
+            Debug.LogError($"Variable '{name}' not found.");
+            return null;
+        }
+        public T GetVariableValue<T>(string name)
+        {
+            if (_variableDict.TryGetValue(name, out var variable))
+            {
+                if (variable.Type is T && variable.Value is T value)
+                {
+                    return value;
+                }
+                Debug.LogError($"Variable '{name}' is not of type '{typeof(T).Name}'.");
+                return default;
+            }
+            Debug.LogError($"Variable '{name}' not found.");
+            return default;
         }
         #endregion
 
@@ -511,17 +371,19 @@ namespace Assets.Scripts.DSP.Core
         # endregion
     }
 
-    public class TypedValue
+    public class TypedVariable
     {
         public object Value { get; }
         public Type Type { get; }
 
-        public TypedValue(object value, Type type)
+        public TypedVariable(object value)
         {
-            if (type != typeof(string) && type != typeof(int) && type != typeof(float) && type != typeof(bool) && type != typeof(object))
-            {
-                throw new ArgumentException($"Unsupported variable type '{type.Name}'. Only string, int, float, and bool are allowed.", nameof(type));
-            }
+            Value = value ?? throw new ArgumentNullException(nameof(value), "Value cannot be null.");
+            Type = value.GetType();
+        }
+
+        public TypedVariable(object value, Type type)
+        {
             Value = value ?? throw new ArgumentNullException(nameof(value), "Value cannot be null.");
             Type = type;
         }
