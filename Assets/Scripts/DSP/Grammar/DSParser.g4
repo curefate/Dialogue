@@ -27,10 +27,6 @@ dialogue_stmt
     : SYNC? speaker=ID? text=STRING tags+=TAG* NEWLINE
     ;
 
-embedded_call
-    : LBRACE SYNC? CALL func_name=ID LPAR (args+=expression (COMMA args+=expression)*)? RPAR RBRACE
-    ;
-
 // ====================== menu ==========================
 menu_stmt
     : options+=menu_item+
@@ -100,6 +96,15 @@ expr_primary
     | BOOL
     | STRING
     | LPAR expression RPAR
+    | embedded_call
+    ;
+
+embedded_call
+    : LBRACE SYNC? CALL func_name=ID LPAR (args+=expression (COMMA args+=expression)*)? RPAR RBRACE
+    ;
+
+embedded_variable
+    : LBRACE VARIABLE RBRACE
     ;
 
 block

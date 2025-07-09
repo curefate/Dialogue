@@ -127,36 +127,55 @@ namespace Assets.Scripts.DSP.Core
 
         #region Function Registration
         private readonly Dictionary<string, Delegate> _functionDict = new();
-        /*
         public void AddFunction<TResult>(string funcName, Func<TResult> func) => _functionDict[funcName] = func;
         public void AddFunction<T0, TResult>(string funcName, Func<T0, TResult> func) => _functionDict[funcName] = func;
         public void AddFunction<T0, T1, TResult>(string funcName, Func<T0, T1, TResult> func) => _functionDict[funcName] = func;
         public void AddFunction<T0, T1, T2, TResult>(string funcName, Func<T0, T1, T2, TResult> func) => _functionDict[funcName] = func;
         public void AddFunction<T0, T1, T2, T3, TResult>(string funcName, Func<T0, T1, T2, T3, TResult> func) => _functionDict[funcName] = func;
         public void AddFunction<T0, T1, T2, T3, T4, TResult>(string funcName, Func<T0, T1, T2, T3, T4, TResult> func) => _functionDict[funcName] = func;
-        */
         public void AddFunction(string funcName, Action action) => _functionDict[funcName] = action;
         public void AddFunction<T0>(string funcName, Action<T0> action) => _functionDict[funcName] = action;
         public void AddFunction<T0, T1>(string funcName, Action<T0, T1> action) => _functionDict[funcName] = action;
         public void AddFunction<T0, T1, T2>(string funcName, Action<T0, T1, T2> action) => _functionDict[funcName] = action;
         public void AddFunction<T0, T1, T2, T3>(string funcName, Action<T0, T1, T2, T3> action) => _functionDict[funcName] = action;
         public void AddFunction<T0, T1, T2, T3, T4>(string funcName, Action<T0, T1, T2, T3, T4> action) => _functionDict[funcName] = action;
+        public Delegate GetDelegate(string funcName)
+        {
+            if (_functionDict.TryGetValue(funcName, out var func))
+            {
+                return func;
+            }
+            Debug.LogError($"Function '{funcName}' not found.");
+            throw new KeyNotFoundException($"Function '{funcName}' not found.");
+        }
         public dynamic Invoke(string funcName, params object[] args)
         {
             if (_functionDict.TryGetValue(funcName, out var func))
             {
                 try
                 {
+                    if (args == null || args.Length == 0)
+                    {
+                        if (func is Action action)
+                        {
+                            action();
+                            return null;
+                        }
+                        else if (func is Delegate del && del.Method.GetParameters().Length == 0)
+                        {
+                            return del.DynamicInvoke();
+                        }
+                    }
                     return func.DynamicInvoke(args);
                 }
                 catch (Exception ex)
                 {
                     Debug.LogError($"Error invoking function '{funcName}': {ex.Message}");
-                    return null;
+                    throw new InvalidOperationException($"Error invoking function '{funcName}': {ex.Message}", ex);
                 }
             }
             Debug.LogError($"Function '{funcName}' not found.");
-            return null;
+            throw new KeyNotFoundException($"Function '{funcName}' not found.");
         }
         public TResult Invoke<TResult>(string funcName)
         {

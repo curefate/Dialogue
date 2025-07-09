@@ -344,6 +344,23 @@ public class ExpressionBuilder : DSParserBaseVisitor<DSExpression>
             var varName = context.VARIABLE().GetText();
             return DSExpression.Variable(varName[1..]); // Remove the '$' prefix
         }
+        else if (context.embedded_call() != null)
+        {
+            var callContext = context.embedded_call();
+            if (callContext._args.Count > 0)
+            {
+                var args = new List<DSExpression>();
+                foreach (var arg in callContext._args)
+                {
+                    args.Add(Visit(arg));
+                }
+                return DSExpression.Call(callContext.func_name.Text, args.ToArray());
+            }
+            else
+            {
+                return DSExpression.Call(callContext.func_name.Text, null);
+            }
+        }
         else if (context.NUMBER() != null)
         {
             var numText = context.NUMBER().GetText();

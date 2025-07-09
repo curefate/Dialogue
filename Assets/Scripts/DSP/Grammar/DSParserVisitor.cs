@@ -56,12 +56,6 @@ public interface IDSParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitDialogue_stmt([NotNull] DSParser.Dialogue_stmtContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.embedded_call"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitEmbedded_call([NotNull] DSParser.Embedded_callContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="DSParser.menu_stmt"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -151,6 +145,18 @@ public interface IDSParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitExpr_primary([NotNull] DSParser.Expr_primaryContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.embedded_call"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitEmbedded_call([NotNull] DSParser.Embedded_callContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.embedded_variable"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitEmbedded_variable([NotNull] DSParser.Embedded_variableContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="DSParser.block"/>.
 	/// </summary>

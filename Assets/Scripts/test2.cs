@@ -22,6 +22,7 @@ public class test2 : MonoBehaviour
             interpreter.AddFunction<int, int>("Test2", Test2);
             interpreter.AddFunction<string, string>("Test3", Test3);
             interpreter.AddFunction<bool>("Test4", Test4);
+            interpreter.AddFunction<int, int, int>("TestAdd", TestAdd);
         }
         compiler ??= new Compiler();
     }
@@ -44,6 +45,11 @@ public class test2 : MonoBehaviour
     public void Test4(bool a)
     {
         Debug.Log($"Test4 function called with parameter: {a}");
+    }
+
+    public int TestAdd(int a, int b)
+    {
+        return a + b;
     }
 
     void Start()

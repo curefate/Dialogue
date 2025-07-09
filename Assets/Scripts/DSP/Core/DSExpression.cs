@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Assets.Scripts.DSP.Core;
 using UnityEngine;
 
@@ -37,6 +39,17 @@ public class DSExpression
             throw new ArgumentException("Variable name cannot be null or empty.", nameof(variableName));
         }
         return new DSExpression(new VariableNode(variableName));
+    }
+
+    public static DSExpression Call(string functionName, params DSExpression[] arguments)
+    {
+        if (string.IsNullOrWhiteSpace(functionName))
+        {
+            throw new ArgumentException("Function name cannot be null or empty.", nameof(functionName));
+        }
+
+        var argNodes = arguments?.Select(arg => arg?._root).ToList() ?? new List<DSExpressionNode>();
+        return new DSExpression(new CallNode(functionName, argNodes));
     }
 
     public static DSExpression Negate(DSExpression expression)
@@ -214,7 +227,46 @@ public class VariableNode : DSExpressionNode
     }
 }
 
-// TODO call
+public class CallNode : DSExpressionNode
+{
+    public string FunctionName { get; private set; }
+    public List<DSExpressionNode> Arguments { get; private set; }
+
+    public CallNode(string functionName, List<DSExpressionNode> arguments)
+    {
+        FunctionName = functionName ?? throw new ArgumentNullException(nameof(functionName), "Function name cannot be null.");
+        Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments), "Arguments cannot be null.");
+    }
+
+    public override string ToString()
+    {
+        var args = string.Join(", ", Arguments.Select(arg => arg.ToString()));
+        return $"{FunctionName}({args})";
+    }
+
+    public override object Evaluate(Interpreter interpreter)
+    {
+        if (interpreter == null)
+        {
+            throw new ArgumentNullException(nameof(interpreter), "Interpreter cannot be null.");
+        }
+        var argValues = new List<object>();
+        foreach (var arg in Arguments)
+        {
+            argValues.Add(arg.Evaluate(interpreter));
+        }
+        try
+        {
+            Type = interpreter.GetDelegate(FunctionName)?.Method.ReturnType ?? typeof(void);
+            var result = interpreter.Invoke(FunctionName, argValues.ToArray());
+            return result;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Error calling function '{FunctionName}': {ex.Message}", ex);
+        }
+    }
+}
 
 public class UnaryOperationNode : DSExpressionNode
 {
