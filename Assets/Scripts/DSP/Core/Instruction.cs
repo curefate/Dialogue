@@ -30,10 +30,8 @@ public class IR_Dialogue : IIRInstruction
 {
     public bool IsSync { get; set; }
     public string Speaker { get; set; }
-    public string Text { get; set; }
-    public string RawText { get; set; }
+    public DSExpression Text { get; set; }
     public List<string> Tags { get; private set; } = new List<string>();
-    public List<IR_Call> EmbeddedCalls { get; private set; } = new List<IR_Call>();
     public void Execute(Interpreter interpreter)
     {
         // TODO inner exprs
@@ -43,7 +41,7 @@ public class IR_Dialogue : IIRInstruction
 
 public class IR_Menu : IIRInstruction
 {
-    public List<string> MenuOptions { get; set; } = new List<string>();
+    public List<DSExpression> MenuOptions { get; set; } = new List<DSExpression>();
     public List<List<IIRInstruction>> MenuActions { get; set; } = new List<List<IIRInstruction>>();
     public void Execute(Interpreter interpreter)
     {

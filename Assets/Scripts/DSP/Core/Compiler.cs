@@ -85,10 +85,8 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
         {
             IsSync = context.SYNC() != null,
             Speaker = context.ID()?.GetText() ?? null,
-            RawText = context.text.Text.Trim('"'),
+            Text = _expressionBuilder.Visit(context.text),
         };
-        // TODO
-        inst.Text = inst.RawText;
         foreach (var tag in context._tags)
         {
             inst.Tags.Add(tag.Text[1..]);
@@ -102,9 +100,8 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
         var options = context._options ?? throw new ArgumentException("Menu options cannot be null.");
         foreach (var option in options)
         {
-            var text = option.text.Text;
+            inst.MenuOptions.Add(_expressionBuilder.Visit(option.text));
             var block = option.block() ?? throw new ArgumentException("Menu option block cannot be null.");
-            inst.MenuOptions.Add(text);
             var actions = new List<IIRInstruction>();
             foreach (var stmt in block.statement())
             {
@@ -344,23 +341,6 @@ public class ExpressionBuilder : DSParserBaseVisitor<DSExpression>
             var varName = context.VARIABLE().GetText();
             return DSExpression.Variable(varName[1..]); // Remove the '$' prefix
         }
-        else if (context.embedded_call() != null)
-        {
-            var callContext = context.embedded_call();
-            if (callContext._args.Count > 0)
-            {
-                var args = new List<DSExpression>();
-                foreach (var arg in callContext._args)
-                {
-                    args.Add(Visit(arg));
-                }
-                return DSExpression.Call(callContext.func_name.Text, args.ToArray());
-            }
-            else
-            {
-                return DSExpression.Call(callContext.func_name.Text, null);
-            }
-        }
         else if (context.NUMBER() != null)
         {
             var numText = context.NUMBER().GetText();
@@ -374,17 +354,69 @@ public class ExpressionBuilder : DSParserBaseVisitor<DSExpression>
         {
             return DSExpression.Constant(bool.Parse(context.BOOL().GetText()));
         }
-        else if (context.STRING() != null)
+        else if (context.fstring() != null)
         {
-            return DSExpression.Constant(context.STRING().GetText().Trim('"'));
+            return Visit(context.fstring());
         }
         else if (context.LPAR() != null)
         {
             return Visit(context.expression());
         }
+        else if (context.embedded_call() != null)
+        {
+            return Visit(context.embedded_call());
+        }
         else
         {
             throw new NotSupportedException($"Unsupported expression: {context.GetText()}");
         }
+    }
+
+    public override DSExpression VisitEmbedded_call([NotNull] DSParser.Embedded_callContext context)
+    {
+        if (context._args.Count > 0)
+        {
+            var args = new List<DSExpression>();
+            foreach (var arg in context._args)
+            {
+                args.Add(Visit(arg));
+            }
+            return DSExpression.Call(context.func_name.Text, args.ToArray());
+        }
+        else
+        {
+            return DSExpression.Call(context.func_name.Text, null);
+        }
+    }
+
+    public override DSExpression VisitFstring([NotNull] DSParser.FstringContext context)
+    {
+        var fragments = new List<string>();
+        var embed = new List<DSExpression>();
+        foreach (var child in context.children)
+        {
+            if (child is DSParser.String_fragmentContext stringFragment)
+            {
+                fragments.Add(stringFragment.GetText());
+            }
+            else if (child is DSParser.Embedded_exprContext embeddedExpr)
+            {
+                if (embeddedExpr.embedded_call() != null)
+                {
+                    embed.Add(Visit(embeddedExpr.embedded_call()));
+                }
+                else if (embeddedExpr.embedded_variable() != null)
+                {
+                    var varName = embeddedExpr.embedded_variable().VARIABLE().GetText();
+                    embed.Add(DSExpression.Variable(varName[1..]));
+                }
+                else
+                {
+                    throw new NotSupportedException($"Unsupported embedded expression: {embeddedExpr.GetText()}");
+                }
+                fragments.Add(FStringNode.EmbedSign);
+            }
+        }
+        return DSExpression.FString(fragments, embed);
     }
 }

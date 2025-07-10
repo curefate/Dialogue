@@ -16,7 +16,7 @@ public class test2 : MonoBehaviour
             interpreter = gameObject.AddComponent<Interpreter>();
             interpreter.OnDialogue += (dialogue) =>
             {
-                Debug.Log($"{dialogue.Speaker ?? "null"}({dialogue.IsSync}): {dialogue.Text} ({string.Join(", ", dialogue.Tags)}) \n{dialogue.RawText}");
+                Debug.Log($"{dialogue.Speaker ?? "null"}({dialogue.IsSync}): {(string)dialogue.Text.Evaluate(interpreter)} ({string.Join(", ", dialogue.Tags)})");
             };
             interpreter.AddFunction("Test", Test);
             interpreter.AddFunction<int, int>("Test2", Test2);

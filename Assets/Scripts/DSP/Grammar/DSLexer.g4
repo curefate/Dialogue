@@ -9,7 +9,8 @@ using System.Collections.Generic;
 }
 
 tokens { 
-    INDENT, DEDENT, STRING, NL
+    INDENT, DEDENT, NL,
+    STRING_START, STRING_FRAGMENT, STRING_ESCAPE, STRING_END
 }
 
 @lexer::members {
@@ -136,7 +137,7 @@ NUMBER       : MINUS? (INTEGER | FLOAT);
 ID           : ALPHABET CHAR*;
 TAG          : AT CHAR+;
 VARIABLE     : '$' ID;
-STRING_START : '"' -> pushMode(STRING_MODE), more;
+STRING_START : '"' -> pushMode(STRING_MODE);
 
 // ===================== fragment ======================
 fragment INTEGER        : DIGIT | (NON_ZERO_DIGIT DIGIT+);
@@ -157,10 +158,24 @@ NEWLINE       : '\r'? '\n'      { HandleNewline(); };
 
 // ===================== mode ==========================
 mode STRING_MODE;
-STRING_CONTENT : ~["\\\r\n]+      -> more;  // 匹配非引号、非转义字符
-STRING_ESCAPE  : '\\' [btnfr"'\\] -> more;  // 处理转义字符，如 \n, \"
-STRING_END     : '"'              -> popMode, type(STRING);  // 遇到闭合引号，退出模式并生成STRING Token
-STRING_NEWLINE : ('\r'? '\n')     -> more;  // 处理字符串内的换行（跨行支持）
+EMBED_START       : LBRACE -> pushMode(EMBED_EXPR_MODE), type(LBRACE);
+STRING_ESCAPE     : '\\' [btnfr'"\\] | '{{' | '}}';
+STRING_FRAGMENT   : ~["\\\r\n{]+;
+STRING_END        : '"' -> popMode;
+STRING_NEWLINE    : ('\r'? '\n') -> more;
+
+mode EMBED_EXPR_MODE;
+EMBED_END         : RBRACE -> popMode, type(RBRACE);
+EMBED_SYNC        : SYNC -> type(SYNC);
+EMBED_CALL        : CALL -> type(CALL);
+EMBED_VAR         : VARIABLE -> type(VARIABLE);
+EMBED_WS          : WS -> channel(HIDDEN);
+EMBED_LPAR        : LPAR -> type(LPAR);
+EMBED_RPAR        : RPAR -> type(RPAR);
+EMBED_COMMA       : COMMA -> type(COMMA);
+EMBED_ID          : ID -> type(ID);
+EMBED_NUMBER      : NUMBER -> type(NUMBER);
+EMBED_BOOL        : BOOL -> type(BOOL);
 
 // ===================== backup ========================
 // SEMI             : ';';

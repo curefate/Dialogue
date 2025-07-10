@@ -24,7 +24,7 @@ statement
 
 // ====================== dialogue ======================
 dialogue_stmt
-    : SYNC? speaker=ID? text=STRING tags+=TAG* NEWLINE
+    : SYNC? speaker=ID? text=fstring tags+=TAG* NEWLINE
     ;
 
 // ====================== menu ==========================
@@ -33,7 +33,7 @@ menu_stmt
     ;
 
 menu_item
-    : text=STRING COLON NEWLINE block
+    : text=fstring COLON NEWLINE block
     ;
 
 // ====================== jump ==========================
@@ -62,6 +62,13 @@ if_stmt
     ;
 
 // ====================== others ========================
+fstring
+    : STRING_START (frag+=string_fragment | embed+=embedded_expr)* STRING_END
+    ;
+
+string_fragment
+    : STRING_FRAGMENT | STRING_ESCAPE;
+
 expression
     : expr_logical_and (OR expr_logical_and)*
     ;
@@ -94,9 +101,13 @@ expr_primary
     : VARIABLE
     | NUMBER
     | BOOL
-    | STRING
+    | fstring
     | LPAR expression RPAR
     | embedded_call
+    ;
+
+embedded_expr
+    : embedded_call | embedded_variable
     ;
 
 embedded_call

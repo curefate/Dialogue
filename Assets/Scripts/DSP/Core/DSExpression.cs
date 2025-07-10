@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Assets.Scripts.DSP.Core;
 using UnityEngine;
 
@@ -50,6 +51,14 @@ public class DSExpression
 
         var argNodes = arguments?.Select(arg => arg?._root).ToList() ?? new List<DSExpressionNode>();
         return new DSExpression(new CallNode(functionName, argNodes));
+    }
+
+    public static DSExpression FString(List<string> fragments, List<DSExpression> embed)
+    {
+        if (fragments == null) throw new ArgumentNullException(nameof(fragments), "Fragments cannot be null.");
+        if (embed == null) throw new ArgumentNullException(nameof(embed), "Embed expressions cannot be null.");
+        var embedNodes = embed.Select(e => e?._root).ToList();
+        return new DSExpression(new FStringNode(fragments, embedNodes));
     }
 
     public static DSExpression Negate(DSExpression expression)
@@ -207,6 +216,7 @@ public class VariableNode : DSExpressionNode
     public VariableNode(string variableName)
     {
         VariableName = variableName;
+        Type = typeof(void);
     }
 
     public override string ToString()
@@ -235,7 +245,8 @@ public class CallNode : DSExpressionNode
     public CallNode(string functionName, List<DSExpressionNode> arguments)
     {
         FunctionName = functionName ?? throw new ArgumentNullException(nameof(functionName), "Function name cannot be null.");
-        Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments), "Arguments cannot be null.");
+        Arguments = arguments;
+        Type = typeof(void);
     }
 
     public override string ToString()
@@ -268,6 +279,68 @@ public class CallNode : DSExpressionNode
     }
 }
 
+public class FStringNode : DSExpressionNode
+{
+    public static readonly string EmbedSign = "{_0_}";
+
+    public List<string> Fragments { get; private set; }
+    public List<DSExpressionNode> EmbedExpr { get; private set; }
+
+    public FStringNode(List<string> fragments, List<DSExpressionNode> embedExprs)
+    {
+        Fragments = fragments ?? throw new ArgumentNullException(nameof(fragments), "Fragments cannot be null.");
+        EmbedExpr = embedExprs ?? throw new ArgumentNullException(nameof(embedExprs), "Embed cannot be null.");
+        Type = typeof(void);
+    }
+
+    public override string ToString()
+    {
+        var embedStr = string.Join("", EmbedExpr.Select(e => e.ToString()));
+        return $"\"{string.Join("", Fragments)}{embedStr}\"";
+    }
+
+    public override object Evaluate(Interpreter interpreter)
+    {
+        if (interpreter == null)
+        {
+            throw new ArgumentNullException(nameof(interpreter), "Interpreter cannot be null.");
+        }
+
+        var finalStr = new StringBuilder();
+        int embedIndex = 0;
+        foreach (var fragment in Fragments)
+        {
+            if (fragment == EmbedSign)
+            {
+                if (embedIndex < EmbedExpr.Count)
+                {
+                    var embedValue = EmbedExpr[embedIndex].Evaluate(interpreter);
+                    if (embedValue is string embedString)
+                    {
+                        finalStr.Append(embedString);
+                    }
+                    embedIndex++;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Not enough embedded expressions provided for FString.");
+                }
+            }
+            else
+            {
+                // TODO ESCAPE
+                finalStr.Append(fragment);
+            }
+        }
+        if (embedIndex < EmbedExpr.Count)
+        {
+            throw new InvalidOperationException("Too many embedded expressions provided for FString.");
+        }
+        Type = typeof(string);
+        return finalStr.ToString();
+    }
+}
+
 public class UnaryOperationNode : DSExpressionNode
 {
     public UnaryOperator Operator { get; private set; }
@@ -277,6 +350,7 @@ public class UnaryOperationNode : DSExpressionNode
     {
         Operator = operatorSymbol;
         Operand = operand;
+        Type = typeof(void);
     }
 
     public override string ToString()
@@ -336,6 +410,7 @@ public class BinaryOperationNode : DSExpressionNode
         Operator = operatorSymbol;
         Left = leftOperand;
         Right = rightOperand;
+        Type = typeof(void);
     }
 
     public override string ToString()
