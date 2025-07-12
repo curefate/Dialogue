@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 tokens { 
     INDENT, DEDENT, NL,
-    STRING_START, STRING_FRAGMENT, STRING_ESCAPE, STRING_END
+    STRING_START, STRING_CONTEXT, STRING_ESCAPE, STRING_END
 }
 
 @lexer::members {
@@ -160,22 +160,43 @@ NEWLINE       : '\r'? '\n'      { HandleNewline(); };
 mode STRING_MODE;
 EMBED_START       : LBRACE -> pushMode(EMBED_EXPR_MODE), type(LBRACE);
 STRING_ESCAPE     : '\\' [btnfr'"\\] | '{{' | '}}';
-STRING_FRAGMENT   : ~["\\\r\n{]+;
+STRING_CONTEXT   : ~["\\\r\n{]+;
 STRING_END        : '"' -> popMode;
 STRING_NEWLINE    : ('\r'? '\n') -> more;
 
 mode EMBED_EXPR_MODE;
-EMBED_END         : RBRACE -> popMode, type(RBRACE);
-EMBED_SYNC        : SYNC -> type(SYNC);
-EMBED_CALL        : CALL -> type(CALL);
-EMBED_VAR         : VARIABLE -> type(VARIABLE);
-EMBED_WS          : WS -> channel(HIDDEN);
-EMBED_LPAR        : LPAR -> type(LPAR);
-EMBED_RPAR        : RPAR -> type(RPAR);
-EMBED_COMMA       : COMMA -> type(COMMA);
-EMBED_ID          : ID -> type(ID);
-EMBED_NUMBER      : NUMBER -> type(NUMBER);
-EMBED_BOOL        : BOOL -> type(BOOL);
+EMBED_END          : RBRACE -> popMode, type(RBRACE);
+EMBED_SYNC         : SYNC -> type(SYNC);
+EMBED_CALL         : CALL -> type(CALL);
+EMBED_VAR          : VARIABLE -> type(VARIABLE);
+EMBED_WS           : WS -> channel(HIDDEN);
+EMBED_LPAR         : LPAR -> type(LPAR);
+EMBED_RPAR         : RPAR -> type(RPAR);
+EMBED_COMMA        : COMMA -> type(COMMA);
+EMBED_ID           : ID -> type(ID);
+EMBED_NUMBER       : NUMBER -> type(NUMBER);
+EMBED_BOOL         : BOOL -> type(BOOL);
+EMBED_EXCLAMATION  : EXCLAMATION -> type(EXCLAMATION);
+EMBED_PLUS         : PLUS -> type(PLUS);
+EMBED_MINUS        : MINUS -> type(MINUS);
+EMBED_STAR         : STAR -> type(STAR);
+EMBED_SLASH        : SLASH -> type(SLASH);
+EMBED_LESS         : LESS -> type(LESS);
+EMBED_GREATER      : GREATER -> type(GREATER);
+// EMBED_EQUAL        : EQUAL -> type(EQUAL);
+EMBED_PERCENT      : PERCENT -> type(PERCENT);
+EMBED_EQEQUAL      : EQEQUAL -> type(EQEQUAL);
+EMBED_NOTEQUAL     : NOTEQUAL -> type(NOTEQUAL);
+EMBED_LESSEQUAL    : LESSEQUAL -> type(LESSEQUAL);
+EMBED_GREATEREQUAL : GREATEREQUAL -> type(GREATEREQUAL);
+// EMBED_PLUSEQUAL    : PLUSEQUAL -> type(PLUSEQUAL);
+// EMBED_MINEQUAL     : MINEQUAL -> type(MINEQUAL);
+// EMBED_STAREQUAL    : STAREQUAL -> type(STAREQUAL);
+// EMBED_SLASHEQUAL   : SLASHEQUAL -> type(SLASHEQUAL);
+// EMBED_PERCENTEQUAL : PERCENTEQUAL -> 
+EMBED_AND          : AND -> type(AND);
+EMBED_OR           : OR -> type(OR);
+EMBED_STRING_START : '"' -> pushMode(STRING_MODE), type(STRING_START);
 
 // ===================== backup ========================
 // SEMI             : ';';

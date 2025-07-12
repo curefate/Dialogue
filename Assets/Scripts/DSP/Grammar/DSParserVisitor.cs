@@ -98,18 +98,6 @@ public interface IDSParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitIf_stmt([NotNull] DSParser.If_stmtContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.fstring"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitFstring([NotNull] DSParser.FstringContext context);
-	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.string_fragment"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitString_fragment([NotNull] DSParser.String_fragmentContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="DSParser.expression"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -170,15 +158,21 @@ public interface IDSParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitEmbedded_call([NotNull] DSParser.Embedded_callContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.embedded_variable"/>.
-	/// </summary>
-	/// <param name="context">The parse tree.</param>
-	/// <return>The visitor result.</return>
-	Result VisitEmbedded_variable([NotNull] DSParser.Embedded_variableContext context);
-	/// <summary>
 	/// Visit a parse tree produced by <see cref="DSParser.block"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitBlock([NotNull] DSParser.BlockContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.fstring"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFstring([NotNull] DSParser.FstringContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.string_fragment"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitString_fragment([NotNull] DSParser.String_fragmentContext context);
 }

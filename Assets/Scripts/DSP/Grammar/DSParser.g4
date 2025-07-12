@@ -62,13 +62,6 @@ if_stmt
     ;
 
 // ====================== others ========================
-fstring
-    : STRING_START (frag+=string_fragment | embed+=embedded_expr)* STRING_END
-    ;
-
-string_fragment
-    : STRING_FRAGMENT | STRING_ESCAPE;
-
 expression
     : expr_logical_and (OR expr_logical_and)*
     ;
@@ -107,32 +100,21 @@ expr_primary
     ;
 
 embedded_expr
-    : embedded_call | embedded_variable
+    : embedded_call
+    | LBRACE expression RBRACE
     ;
 
 embedded_call
     : LBRACE SYNC? CALL func_name=ID LPAR (args+=expression (COMMA args+=expression)*)? RPAR RBRACE
     ;
 
-embedded_variable
-    : LBRACE VARIABLE RBRACE
-    ;
-
 block
     : INDENT+ statement+ DEDENT+
     ;
 
-// ====================== backup ========================
-/*
-arg_pos
-    : expression | STRING | BOOL | NUMBER | VARIABLE
+fstring
+    : STRING_START (frag+=string_fragment | embed+=embedded_expr)* STRING_END
     ;
 
-arg_key
-    : key=ID EQUAL value=(expression | STRING | BOOL | NUMBER | VARIABLE)
-    ;
-
-argument
-    : expression | STRING | BOOL | NUMBER | VARIABLE
-    ;
-*/
+string_fragment
+    : STRING_CONTEXT | STRING_ESCAPE;

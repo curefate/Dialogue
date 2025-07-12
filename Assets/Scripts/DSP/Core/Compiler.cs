@@ -405,10 +405,9 @@ public class ExpressionBuilder : DSParserBaseVisitor<DSExpression>
                 {
                     embed.Add(Visit(embeddedExpr.embedded_call()));
                 }
-                else if (embeddedExpr.embedded_variable() != null)
+                else if (embeddedExpr.expression() != null)
                 {
-                    var varName = embeddedExpr.embedded_variable().VARIABLE().GetText();
-                    embed.Add(DSExpression.Variable(varName[1..]));
+                    embed.Add(Visit(embeddedExpr.expression()));
                 }
                 else
                 {

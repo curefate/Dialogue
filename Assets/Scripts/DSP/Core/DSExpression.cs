@@ -319,6 +319,14 @@ public class FStringNode : DSExpressionNode
                     {
                         finalStr.Append(embedString);
                     }
+                    else if (Convert.ToString(embedValue) is string embedConverted)
+                    {
+                        finalStr.Append(embedConverted);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Embedded expression must can be evaluated to a string, but got {embedValue.GetType()}.");
+                    }
                     embedIndex++;
                 }
                 else
