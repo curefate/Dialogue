@@ -1,11 +1,6 @@
 using UnityEngine;
 using System;
-using Antlr4.Runtime.Misc;
 using System.Collections.Generic;
-using UnityEditor.Rendering.Canvas.ShaderGraph;
-using Mono.Cecil.Cil;
-using NUnit.Framework.Internal;
-using System.Linq.Expressions;
 
 namespace Assets.Scripts.DSP.Core
 {
@@ -17,7 +12,7 @@ namespace Assets.Scripts.DSP.Core
 
         #region Runtime
         public readonly List<InstructionBlock> LabelBlocks = new(); //TODO dic?
-        public readonly LinkedList<IIRInstruction> RunningQueue = new();
+        public readonly LinkedList<IRInstruction> RunningQueue = new();
 
         public void Run(string labelName = "start")
         {
@@ -33,7 +28,6 @@ namespace Assets.Scripts.DSP.Core
             }
             else
             {
-                Debug.LogError($"Label '{labelName}' not found.");
                 throw new KeyNotFoundException($"Label '{labelName}' not found in the interpreter's label blocks.");
             }
         }
@@ -48,7 +42,6 @@ namespace Assets.Scripts.DSP.Core
             }
             else
             {
-                Debug.LogWarning("No instructions to execute.");
                 throw new InvalidOperationException("No instructions left in the stack to execute.");
             }
         }
@@ -61,8 +54,7 @@ namespace Assets.Scripts.DSP.Core
         {
             if (value == null)
             {
-                Debug.LogError($"Cannot set variable '{name}' to null.");
-                return;
+                throw new ArgumentNullException(nameof(value), "Value cannot be null.");
             }
             var type = value.GetType();
             if (type == typeof(TypedVariable))
@@ -73,16 +65,14 @@ namespace Assets.Scripts.DSP.Core
             }
             if (type != typeof(string) && type != typeof(int) && type != typeof(float) && type != typeof(bool))
             {
-                Debug.LogError($"Unsupported variable type '{type.Name}' for variable '{name}'. Only string, int, float, and bool are allowed.");
-                return;
+                throw new ArgumentException($"Unsupported type '{type.Name}' for variable '{name}'. Supported types are string, int, float, and bool.", nameof(value));
             }
             if (_variableDict.ContainsKey(name))
             {
                 // Check if the type matches the existing variable
                 if (_variableDict[name].Type != type)
                 {
-                    Debug.LogError($"Variable '{name}' already exists with a different type '{_variableDict[name].Type.Name}'. Cannot change type.");
-                    return;
+                    throw new InvalidOperationException($"Variable '{name}' already exists with type '{_variableDict[name].Type.Name}', cannot assign value of type '{type.Name}'. Supported types are string, int, float, and bool.");
                 }
                 _variableDict[name] = new TypedVariable(value, type);
             }
@@ -97,8 +87,7 @@ namespace Assets.Scripts.DSP.Core
             {
                 return variable;
             }
-            Debug.LogError($"Variable '{name}' not found.");
-            return null;
+            throw new KeyNotFoundException($"Variable '{name}' not found in the interpreter's variable dictionary.");
         }
         public object GetVariableValue(string name)
         {
@@ -106,8 +95,7 @@ namespace Assets.Scripts.DSP.Core
             {
                 return variable.Value;
             }
-            Debug.LogError($"Variable '{name}' not found.");
-            return null;
+            throw new KeyNotFoundException($"Variable '{name}' not found in the interpreter's variable dictionary.");
         }
         public T GetVariableValue<T>(string name)
         {
@@ -117,11 +105,9 @@ namespace Assets.Scripts.DSP.Core
                 {
                     return value;
                 }
-                Debug.LogError($"Variable '{name}' is not of type '{typeof(T).Name}'.");
-                return default;
+                throw new InvalidCastException($"Variable '{name}' is of type '{variable.Type.Name}', cannot cast to '{typeof(T).Name}'. Supported types are string, int, float, and bool.");
             }
-            Debug.LogError($"Variable '{name}' not found.");
-            return default;
+            throw new KeyNotFoundException($"Variable '{name}' not found in the interpreter's variable dictionary.");
         }
         #endregion
 
@@ -145,7 +131,6 @@ namespace Assets.Scripts.DSP.Core
             {
                 return func;
             }
-            Debug.LogError($"Function '{funcName}' not found.");
             throw new KeyNotFoundException($"Function '{funcName}' not found.");
         }
         public dynamic Invoke(string funcName, params object[] args)
@@ -170,12 +155,10 @@ namespace Assets.Scripts.DSP.Core
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error invoking function '{funcName}': {ex.Message}");
                     throw new InvalidOperationException($"Error invoking function '{funcName}': {ex.Message}", ex);
                 }
             }
-            Debug.LogError($"Function '{funcName}' not found.");
-            throw new KeyNotFoundException($"Function '{funcName}' not found.");
+            throw new KeyNotFoundException($"Function '{funcName}' not found or has incorrect signature.");
         }
         public TResult Invoke<TResult>(string funcName)
         {
@@ -187,12 +170,10 @@ namespace Assets.Scripts.DSP.Core
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error invoking function '{funcName}': {ex.Message}");
-                    return default;
+                    throw new InvalidOperationException($"Error invoking function '{funcName}': {ex.Message}", ex);
                 }
             }
-            Debug.LogError($"Function '{funcName}' not found or has incorrect signature.");
-            return default;
+            throw new KeyNotFoundException($"Function '{funcName}' not found or has incorrect signature.");
         }
         public TResult Invoke<T0, TResult>(string funcName, T0 arg0)
         {
@@ -204,12 +185,10 @@ namespace Assets.Scripts.DSP.Core
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error invoking function '{funcName}': {ex.Message}");
-                    return default;
+                    throw new InvalidOperationException($"Error invoking function '{funcName}': {ex.Message}", ex);
                 }
             }
-            Debug.LogError($"Function '{funcName}' not found or has incorrect signature.");
-            return default;
+            throw new KeyNotFoundException($"Function '{funcName}' not found or has incorrect signature.");
         }
         public TResult Invoke<T0, T1, TResult>(string funcName, T0 arg0, T1 arg1)
         {
@@ -221,12 +200,10 @@ namespace Assets.Scripts.DSP.Core
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error invoking function '{funcName}': {ex.Message}");
-                    return default;
+                    throw new InvalidOperationException($"Error invoking function '{funcName}': {ex.Message}", ex);
                 }
             }
-            Debug.LogError($"Function '{funcName}' not found or has incorrect signature.");
-            return default;
+            throw new KeyNotFoundException($"Function '{funcName}' not found or has incorrect signature.");
         }
         public TResult Invoke<T0, T1, T2, TResult>(string funcName, T0 arg0, T1 arg1, T2 arg2)
         {
@@ -238,12 +215,10 @@ namespace Assets.Scripts.DSP.Core
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error invoking function '{funcName}': {ex.Message}");
-                    return default;
+                    throw new InvalidOperationException($"Error invoking function '{funcName}': {ex.Message}", ex);
                 }
             }
-            Debug.LogError($"Function '{funcName}' not found or has incorrect signature.");
-            return default;
+            throw new KeyNotFoundException($"Function '{funcName}' not found or has incorrect signature.");
         }
         public TResult Invoke<T0, T1, T2, T3, TResult>(string funcName, T0 arg0, T1 arg1, T2 arg2, T3 arg3)
         {
@@ -255,12 +230,10 @@ namespace Assets.Scripts.DSP.Core
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error invoking function '{funcName}': {ex.Message}");
-                    return default;
+                    throw new InvalidOperationException($"Error invoking function '{funcName}': {ex.Message}", ex);
                 }
             }
-            Debug.LogError($"Function '{funcName}' not found or has incorrect signature.");
-            return default;
+            throw new KeyNotFoundException($"Function '{funcName}' not found or has incorrect signature.");
         }
         public TResult Invoke<T0, T1, T2, T3, T4, TResult>(string funcName, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
         {
@@ -272,12 +245,10 @@ namespace Assets.Scripts.DSP.Core
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error invoking function '{funcName}': {ex.Message}");
-                    return default;
+                    throw new InvalidOperationException($"Error invoking function '{funcName}': {ex.Message}", ex);
                 }
             }
-            Debug.LogError($"Function '{funcName}' not found or has incorrect signature.");
-            return default;
+            throw new KeyNotFoundException($"Function '{funcName}' not found or has incorrect signature.");
         }
         public void Invoke(string funcName)
         {
@@ -289,12 +260,12 @@ namespace Assets.Scripts.DSP.Core
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error invoking function '{funcName}': {ex.Message}");
+                    throw new InvalidOperationException($"Error invoking function '{funcName}': {ex.Message}", ex);
                 }
             }
             else
             {
-                Debug.LogError($"Function '{funcName}' not found or has incorrect signature.");
+                throw new KeyNotFoundException($"Function '{funcName}' not found or has incorrect signature.");
             }
         }
         public void Invoke<T0>(string funcName, T0 arg0)
@@ -307,12 +278,12 @@ namespace Assets.Scripts.DSP.Core
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error invoking function '{funcName}': {ex.Message}");
+                    throw new InvalidOperationException($"Error invoking function '{funcName}': {ex.Message}", ex);
                 }
             }
             else
             {
-                Debug.LogError($"Function '{funcName}' not found or has incorrect signature.");
+                throw new KeyNotFoundException($"Function '{funcName}' not found or has incorrect signature.");
             }
         }
         public void Invoke<T0, T1>(string funcName, T0 arg0, T1 arg1)
@@ -325,12 +296,12 @@ namespace Assets.Scripts.DSP.Core
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error invoking function '{funcName}': {ex.Message}");
+                    throw new InvalidOperationException($"Error invoking function '{funcName}': {ex.Message}", ex);
                 }
             }
             else
             {
-                Debug.LogError($"Function '{funcName}' not found or has incorrect signature.");
+                throw new KeyNotFoundException($"Function '{funcName}' not found or has incorrect signature.");
             }
         }
         public void Invoke<T0, T1, T2>(string funcName, T0 arg0, T1 arg1, T2 arg2)
@@ -343,12 +314,12 @@ namespace Assets.Scripts.DSP.Core
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error invoking function '{funcName}': {ex.Message}");
+                    throw new InvalidOperationException($"Error invoking function '{funcName}': {ex.Message}", ex);
                 }
             }
             else
             {
-                Debug.LogError($"Function '{funcName}' not found or has incorrect signature.");
+                throw new KeyNotFoundException($"Function '{funcName}' not found or has incorrect signature.");
             }
         }
         public void Invoke<T0, T1, T2, T3>(string funcName, T0 arg0, T1 arg1, T2 arg2, T3 arg3)
@@ -361,12 +332,12 @@ namespace Assets.Scripts.DSP.Core
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error invoking function '{funcName}': {ex.Message}");
+                    throw new InvalidOperationException($"Error invoking function '{funcName}': {ex.Message}", ex);
                 }
             }
             else
             {
-                Debug.LogError($"Function '{funcName}' not found or has incorrect signature.");
+                throw new KeyNotFoundException($"Function '{funcName}' not found or has incorrect signature.");
             }
         }
         public void Invoke<T0, T1, T2, T3, T4>(string funcName, T0 arg0, T1 arg1, T2 arg2, T3 arg3, T4 arg4)
@@ -379,12 +350,12 @@ namespace Assets.Scripts.DSP.Core
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"Error invoking function '{funcName}': {ex.Message}");
+                    throw new InvalidOperationException($"Error invoking function '{funcName}': {ex.Message}", ex);
                 }
             }
             else
             {
-                Debug.LogError($"Function '{funcName}' not found or has incorrect signature.");
+                throw new KeyNotFoundException($"Function '{funcName}' not found or has incorrect signature.");
             }
         }
         # endregion

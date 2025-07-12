@@ -1,15 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
-using Assets.Scripts.DSP.Core;
-using Unity.VisualScripting;
-using UnityEngine.Rendering;
-using UnityEngine;
 using System.Linq;
-using System.Text;
-using Antlr4.Runtime.Tree;
 
 public class Compiler
 {
@@ -26,10 +19,7 @@ public class Compiler
         var labels = new List<InstructionBlock>();
         foreach (var label_block in tree.label_block())
         {
-            var new_label = new InstructionBlock
-            {
-                LabelName = label_block.label.Text
-            };
+            var new_label = new InstructionBlock(label_block.label.Text, parser.InputStream.SourceName);
             foreach (var stmt in label_block.statement())
             {
                 var instruction = _instructionBuilder.Visit(stmt);
@@ -51,41 +41,19 @@ public class Compiler
     }
 }
 
-public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
+public class InstructionBuilder : DSParserBaseVisitor<IRInstruction>
 {
-    public List<InstructionBlock> LabelBlocks { get; } = new List<InstructionBlock>();
     private readonly ExpressionBuilder _expressionBuilder = new();
 
-    public override IIRInstruction VisitProgram([NotNull] DSParser.ProgramContext context)
-    {
-        LabelBlocks.Clear();
-        return base.VisitProgram(context);
-    }
-
-    public override IIRInstruction VisitLabel_block([NotNull] DSParser.Label_blockContext context)
-    {
-        var labelName = context.label.Text;
-        var statements = context.statement();
-        var label_block = new InstructionBlock { LabelName = labelName };
-        foreach (var stmt in statements)
-        {
-            var instruction = Visit(stmt);
-            if (instruction != null)
-            {
-                label_block.Instructions.Add(instruction);
-            }
-        }
-        LabelBlocks.Add(label_block);
-        return null;
-    }
-
-    public override IIRInstruction VisitDialogue_stmt([NotNull] DSParser.Dialogue_stmtContext context)
+    public override IRInstruction VisitDialogue_stmt([NotNull] DSParser.Dialogue_stmtContext context)
     {
         var inst = new IR_Dialogue
         {
+            Line = context.Start.Line,
+            File = context.Start.InputStream.SourceName,
             IsSync = context.SYNC() != null,
             Speaker = context.ID()?.GetText() ?? null,
-            Text = _expressionBuilder.Visit(context.text),
+            Text = _expressionBuilder.Visit(context.text).Root as FStringNode ?? throw new ArgumentException("Dialogue text cannot be null."),
         };
         foreach (var tag in context._tags)
         {
@@ -94,15 +62,19 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
         return inst;
     }
 
-    public override IIRInstruction VisitMenu_stmt([NotNull] DSParser.Menu_stmtContext context)
+    public override IRInstruction VisitMenu_stmt([NotNull] DSParser.Menu_stmtContext context)
     {
-        var inst = new IR_Menu();
+        var inst = new IR_Menu()
+        {
+            Line = context.Start.Line,
+            File = context.Start.InputStream.SourceName,
+        };
         var options = context._options ?? throw new ArgumentException("Menu options cannot be null.");
         foreach (var option in options)
         {
-            inst.MenuOptions.Add(_expressionBuilder.Visit(option.text));
+            inst.MenuOptions.Add(_expressionBuilder.Visit(option.text).Root as FStringNode ?? throw new ArgumentException("Menu option text cannot be null."));
             var block = option.block() ?? throw new ArgumentException("Menu option block cannot be null.");
-            var actions = new List<IIRInstruction>();
+            var actions = new List<IRInstruction>();
             foreach (var stmt in block.statement())
             {
                 var instruction = Visit(stmt);
@@ -116,22 +88,34 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
         return inst;
     }
 
-    public override IIRInstruction VisitJump_stmt([NotNull] DSParser.Jump_stmtContext context)
+    public override IRInstruction VisitJump_stmt([NotNull] DSParser.Jump_stmtContext context)
     {
-        var inst = new IR_Jump { TargetLabel = context.label.Text };
+        var inst = new IR_Jump
+        {
+            Line = context.Start.Line,
+            File = context.Start.InputStream.SourceName,
+            TargetLabel = context.label.Text
+        };
         return inst;
     }
 
-    public override IIRInstruction VisitTour_stmt([NotNull] DSParser.Tour_stmtContext context)
+    public override IRInstruction VisitTour_stmt([NotNull] DSParser.Tour_stmtContext context)
     {
-        var inst = new IR_Tour { TargetLabel = context.label.Text };
+        var inst = new IR_Tour
+        {
+            Line = context.Start.Line,
+            File = context.Start.InputStream.SourceName,
+            TargetLabel = context.label.Text
+        };
         return inst;
     }
 
-    public override IIRInstruction VisitCall_stmt([NotNull] DSParser.Call_stmtContext context)
+    public override IRInstruction VisitCall_stmt([NotNull] DSParser.Call_stmtContext context)
     {
         var inst = new IR_Call
         {
+            Line = context.Start.Line,
+            File = context.Start.InputStream.SourceName,
             IsSync = context.SYNC() != null,
             FunctionName = context.func_name.Text
         };
@@ -148,10 +132,12 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
         return inst;
     }
 
-    public override IIRInstruction VisitSet_stmt([NotNull] DSParser.Set_stmtContext context)
+    public override IRInstruction VisitSet_stmt([NotNull] DSParser.Set_stmtContext context)
     {
         var inst = new IR_Set
         {
+            Line = context.Start.Line,
+            File = context.Start.InputStream.SourceName,
             VariableName = context.VARIABLE().GetText(),
             Symbol = context.eq.Text,
             Value = _expressionBuilder.Visit(context.value),
@@ -159,9 +145,13 @@ public class InstructionBuilder : DSParserBaseVisitor<IIRInstruction>
         return inst;
     }
 
-    public override IIRInstruction VisitIf_stmt([NotNull] DSParser.If_stmtContext context)
+    public override IRInstruction VisitIf_stmt([NotNull] DSParser.If_stmtContext context)
     {
-        var inst = new IR_If();
+        var inst = new IR_If()
+        {
+            Line = context.Start.Line,
+            File = context.Start.InputStream.SourceName,
+        };
         var current_inst = inst;
         for (int i = 0; i < context._conditions.Count; i++)
         {
@@ -397,7 +387,53 @@ public class ExpressionBuilder : DSParserBaseVisitor<DSExpression>
         {
             if (child is DSParser.String_fragmentContext stringFragment)
             {
-                fragments.Add(stringFragment.GetText());
+                if (stringFragment.STRING_CONTEXT() != null)
+                {
+                    fragments.Add(stringFragment.GetText());
+                }
+                else if (stringFragment.STRING_ESCAPE() != null)
+                {
+                    switch (stringFragment.GetText())
+                    {
+                        case "\\b":
+                            fragments.Add("\b");
+                            break;
+                        case "\\t":
+                            fragments.Add("\t");
+                            break;
+                        case "\\n":
+                            fragments.Add("\n");
+                            break;
+                        case "\\f":
+                            fragments.Add("\f");
+                            break;
+                        case "\\r":
+                            fragments.Add("\r");
+                            break;
+                        case "\\'":
+                            fragments.Add("'");
+                            break;
+                        case "\\\"":
+                            fragments.Add("\"");
+                            break;
+                        case "\\\\":
+                            fragments.Add("\\");
+                            break;
+                        case "{{":
+                            fragments.Add("{");
+                            break;
+                        case "}}":
+                            fragments.Add("}");
+                            break;
+                        default:
+                            throw new NotSupportedException($"Unsupported string escape: {stringFragment.GetText()}");
+                    }
+
+                }
+                else
+                {
+                    throw new NotSupportedException($"Unsupported string fragment: {stringFragment.GetText()}");
+                }
             }
             else if (child is DSParser.Embedded_exprContext embeddedExpr)
             {

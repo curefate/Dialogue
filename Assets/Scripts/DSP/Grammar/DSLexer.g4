@@ -160,7 +160,7 @@ NEWLINE       : '\r'? '\n'      { HandleNewline(); };
 mode STRING_MODE;
 EMBED_START       : LBRACE -> pushMode(EMBED_EXPR_MODE), type(LBRACE);
 STRING_ESCAPE     : '\\' [btnfr'"\\] | '{{' | '}}';
-STRING_CONTEXT   : ~["\\\r\n{]+;
+STRING_CONTEXT    : ~["\\\r\n{}]+;
 STRING_END        : '"' -> popMode;
 STRING_NEWLINE    : ('\r'? '\n') -> more;
 

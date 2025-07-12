@@ -1,4 +1,3 @@
-using UnityEngine;
 using System;
 using System.Linq;
 using Assets.Scripts.DSP.Core;
@@ -6,8 +5,14 @@ using System.Collections.Generic;
 
 public class InstructionBlock
 {
-    public string LabelName { get; set; }
-    public List<IIRInstruction> Instructions { get; private set; } = new List<IIRInstruction>();
+    public string LabelName { get; private set; }
+    public string FileName { get; private set; }
+    public List<IRInstruction> Instructions { get; private set; } = new List<IRInstruction>();
+    public InstructionBlock(string labelName, string fileName)
+    {
+        LabelName = labelName;
+        FileName = fileName;
+    }
     public void Run(Interpreter interpreter)
     {
         foreach (var instruction in Instructions)
@@ -17,43 +22,57 @@ public class InstructionBlock
     }
 }
 
-public interface IIRInstruction
+public abstract class IRInstruction
 {
+    public int Line { get; set; }
+    public string File { get; set; }
+
     /// <summary>
     /// Executes the instruction.
     /// </summary>
     /// <param name="interpreter">The interpreter instance.</param>
-    void Execute(Interpreter interpreter);
+    public abstract void Execute(Interpreter interpreter);
 }
 
-public class IR_Dialogue : IIRInstruction
+public class IR_Dialogue : IRInstruction
 {
     public bool IsSync { get; set; }
     public string Speaker { get; set; }
-    public DSExpression Text { get; set; }
+    public FStringNode Text { get; set; }
     public List<string> Tags { get; private set; } = new List<string>();
-    public void Execute(Interpreter interpreter)
+    public override void Execute(Interpreter interpreter)
     {
-        // TODO inner exprs
         interpreter.OnDialogue?.Invoke(this);
     }
 }
 
-public class IR_Menu : IIRInstruction
+public class IR_Menu : IRInstruction
 {
-    public List<DSExpression> MenuOptions { get; set; } = new List<DSExpression>();
-    public List<List<IIRInstruction>> MenuActions { get; set; } = new List<List<IIRInstruction>>();
-    public void Execute(Interpreter interpreter)
+    public List<FStringNode> MenuOptions { get; set; } = new List<FStringNode>();
+    public List<List<IRInstruction>> MenuActions { get; set; } = new List<List<IRInstruction>>();
+    public override void Execute(Interpreter interpreter)
     {
-        interpreter.OnMenu?.Invoke(this);
-        // TODO
+        var choice = interpreter.OnMenu?.Invoke(this);
+        if (choice.HasValue && choice.Value >= 0 && choice.Value < MenuActions.Count)
+        {
+            var selectedActions = MenuActions[choice.Value];
+            for (int i = selectedActions.Count - 1; i >= 0; i--)
+            {
+                var instruction = selectedActions[i];
+                interpreter.RunningQueue.AddFirst(instruction);
+            }
+        }
+        else
+        {
+            throw new InvalidOperationException($"Invalid menu choice.[Ln {Line},Fl {File}]");
+        }
     }
 }
 
-public class IR_Jump : IIRInstruction
+public class IR_Jump : IRInstruction
 {
     public string TargetLabel { get; set; }
-    public void Execute(Interpreter interpreter)
+    public override void Execute(Interpreter interpreter)
     {
         interpreter.RunningQueue.Clear();
         var labelBlock = interpreter.LabelBlocks.FirstOrDefault(l => l.LabelName == TargetLabel);
@@ -67,10 +86,10 @@ public class IR_Jump : IIRInstruction
     }
 }
 
-public class IR_Tour : IIRInstruction
+public class IR_Tour : IRInstruction
 {
     public string TargetLabel { get; set; }
-    public void Execute(Interpreter interpreter)
+    public override void Execute(Interpreter interpreter)
     {
         var block = interpreter.LabelBlocks.FirstOrDefault(l => l.LabelName == TargetLabel);
         if (block != null)
@@ -84,24 +103,24 @@ public class IR_Tour : IIRInstruction
     }
 }
 
-public class IR_Call : IIRInstruction
+public class IR_Call : IRInstruction
 {
     public bool IsSync { get; set; }
     public string FunctionName { get; set; }
     public List<DSExpression> Arguments { get; set; } = new List<DSExpression>();
-    public void Execute(Interpreter interpreter)
+    public override void Execute(Interpreter interpreter)
     {
         var args = Arguments.Select(arg => arg.Evaluate(interpreter)).ToArray();
         interpreter.Invoke(FunctionName, args);
     }
 }
 
-public class IR_Set : IIRInstruction
+public class IR_Set : IRInstruction
 {
     public string VariableName { get; set; }
     public string Symbol { get; set; } // Could be '=', '+=', '-=', etc.
     public DSExpression Value { get; set; }
-    public void Execute(Interpreter interpreter)
+    public override void Execute(Interpreter interpreter)
     {
         var evaluatedValue = Value.Evaluate(interpreter);
         switch (Symbol)
@@ -111,22 +130,22 @@ public class IR_Set : IIRInstruction
                 return;
             // TODO ADD +=, -=, etc.
             default:
-                throw new NotSupportedException($"Symbol '{Symbol}' is not supported.");
+                throw new NotSupportedException($"Symbol '{Symbol}' is not supported.[Ln {Line},Fl {File}]");
         }
     }
 }
 
-public class IR_If : IIRInstruction
+public class IR_If : IRInstruction
 {
     public DSExpression Condition { get; set; }
-    public List<IIRInstruction> TrueBranch { get; private set; } = new List<IIRInstruction>();
-    public List<IIRInstruction> FalseBranch { get; private set; } = new List<IIRInstruction>();
-    public void Execute(Interpreter interpreter)
+    public List<IRInstruction> TrueBranch { get; private set; } = new List<IRInstruction>();
+    public List<IRInstruction> FalseBranch { get; private set; } = new List<IRInstruction>();
+    public override void Execute(Interpreter interpreter)
     {
         var conditionResult = Condition.Evaluate(interpreter);
         if (conditionResult == null || conditionResult is not bool)
         {
-            throw new InvalidOperationException("Condition must evaluate to a boolean value.");
+            throw new InvalidOperationException($"Condition must evaluate to a boolean value.[Ln {Line},Fl {File}]");
         }
         if ((bool)conditionResult)
         {

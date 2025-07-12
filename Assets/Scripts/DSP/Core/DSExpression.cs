@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Assets.Scripts.DSP.Core;
-using UnityEngine;
 
 public class DSExpression
 {
     private DSExpressionNode _root;
+
+    public DSExpressionNode Root => _root;
 
     public DSExpression(DSExpressionNode root)
     {
@@ -336,7 +337,6 @@ public class FStringNode : DSExpressionNode
             }
             else
             {
-                // TODO ESCAPE
                 finalStr.Append(fragment);
             }
         }
