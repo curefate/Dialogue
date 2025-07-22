@@ -1,43 +1,63 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
-using System.Linq;
 
 public class Compiler
 {
     private readonly InstructionBuilder _instructionBuilder = new();
 
-    public List<InstructionBlock> Compile(string input)
+    public List<LabelBlock> CompileRawText(string input)
     {
-        input = PreProcess(input);
         var inputStream = new AntlrInputStream(input);
         var lexer = new DSLexer(inputStream);
         var tokens = new CommonTokenStream(lexer);
         var parser = new DSParser(tokens);
         var tree = parser.program();
-        var labels = new List<InstructionBlock>();
-        foreach (var label_block in tree.label_block())
+        var labelBlocks = new List<LabelBlock>();
+        foreach (var lb in tree.label_block())
         {
-            var new_label = new InstructionBlock(label_block.label.Text, parser.InputStream.SourceName);
-            foreach (var stmt in label_block.statement())
+            var newLabelBlock = new LabelBlock(lb.label.Text, parser.InputStream.SourceName);
+            foreach (var stmt in lb.statement())
             {
                 var instruction = _instructionBuilder.Visit(stmt);
                 if (instruction != null)
                 {
-                    new_label.Instructions.Add(instruction);
+                    newLabelBlock.Instructions.Add(instruction);
                 }
             }
-            labels.Add(new_label);
+            labelBlocks.Add(newLabelBlock);
         }
-        return labels;
+        return labelBlocks;
     }
 
-    private string PreProcess(string scriptContent)
+    public List<LabelBlock> Compile(string filePath)
     {
-        string ret = scriptContent.Replace("\t", "    ");
-        ret.Concat("\n");
-        return ret;
+        if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
+        {
+            throw new ArgumentException($"File not found: {filePath}");
+        }
+        var fileStream = new AntlrFileStream(filePath);
+        var lexer = new DSLexer(fileStream);
+        var tokens = new CommonTokenStream(lexer);
+        var parser = new DSParser(tokens);
+        var tree = parser.program();
+        var labelBlocks = new List<LabelBlock>();
+        foreach (var lb in tree.label_block())
+        {
+            var newLabelBlock = new LabelBlock(lb.label.Text, parser.InputStream.SourceName);
+            foreach (var stmt in lb.statement())
+            {
+                var instruction = _instructionBuilder.Visit(stmt);
+                if (instruction != null)
+                {
+                    newLabelBlock.Instructions.Add(instruction);
+                }
+            }
+            labelBlocks.Add(newLabelBlock);
+        }
+        return labelBlocks;
     }
 }
 
@@ -49,8 +69,8 @@ public class InstructionBuilder : DSParserBaseVisitor<IRInstruction>
     {
         var inst = new IR_Dialogue
         {
-            Line = context.Start.Line,
-            File = context.Start.InputStream.SourceName,
+            LineNum = context.Start.Line,
+            FilePath = context.Start.InputStream.SourceName,
             IsSync = context.SYNC() != null,
             Speaker = context.ID()?.GetText() ?? null,
             Text = _expressionBuilder.Visit(context.text).Root as FStringNode ?? throw new ArgumentException("Dialogue text cannot be null."),
@@ -66,8 +86,8 @@ public class InstructionBuilder : DSParserBaseVisitor<IRInstruction>
     {
         var inst = new IR_Menu()
         {
-            Line = context.Start.Line,
-            File = context.Start.InputStream.SourceName,
+            LineNum = context.Start.Line,
+            FilePath = context.Start.InputStream.SourceName,
         };
         var options = context._options ?? throw new ArgumentException("Menu options cannot be null.");
         foreach (var option in options)
@@ -92,8 +112,8 @@ public class InstructionBuilder : DSParserBaseVisitor<IRInstruction>
     {
         var inst = new IR_Jump
         {
-            Line = context.Start.Line,
-            File = context.Start.InputStream.SourceName,
+            LineNum = context.Start.Line,
+            FilePath = context.Start.InputStream.SourceName,
             TargetLabel = context.label.Text
         };
         return inst;
@@ -103,8 +123,8 @@ public class InstructionBuilder : DSParserBaseVisitor<IRInstruction>
     {
         var inst = new IR_Tour
         {
-            Line = context.Start.Line,
-            File = context.Start.InputStream.SourceName,
+            LineNum = context.Start.Line,
+            FilePath = context.Start.InputStream.SourceName,
             TargetLabel = context.label.Text
         };
         return inst;
@@ -114,8 +134,8 @@ public class InstructionBuilder : DSParserBaseVisitor<IRInstruction>
     {
         var inst = new IR_Call
         {
-            Line = context.Start.Line,
-            File = context.Start.InputStream.SourceName,
+            LineNum = context.Start.Line,
+            FilePath = context.Start.InputStream.SourceName,
             IsSync = context.SYNC() != null,
             FunctionName = context.func_name.Text
         };
@@ -136,8 +156,8 @@ public class InstructionBuilder : DSParserBaseVisitor<IRInstruction>
     {
         var inst = new IR_Set
         {
-            Line = context.Start.Line,
-            File = context.Start.InputStream.SourceName,
+            LineNum = context.Start.Line,
+            FilePath = context.Start.InputStream.SourceName,
             VariableName = context.VARIABLE().GetText(),
             Symbol = context.eq.Text,
             Value = _expressionBuilder.Visit(context.value),
@@ -149,8 +169,8 @@ public class InstructionBuilder : DSParserBaseVisitor<IRInstruction>
     {
         var inst = new IR_If()
         {
-            Line = context.Start.Line,
-            File = context.Start.InputStream.SourceName,
+            LineNum = context.Start.Line,
+            FilePath = context.Start.InputStream.SourceName,
         };
         var current_inst = inst;
         for (int i = 0; i < context._conditions.Count; i++)

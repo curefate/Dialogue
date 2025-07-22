@@ -10,13 +10,60 @@ namespace Assets.Scripts.DSP.Core
         public Action<IR_Dialogue> OnDialogue;
         public Func<IR_Menu, int> OnMenu;
 
+        public void Reset()
+        {
+            _variableDict.Clear();
+            _functionDict.Clear();
+            LabelDict.Clear();
+            RunningQueue.Clear();
+        }
+
         #region Runtime
-        public readonly List<InstructionBlock> LabelBlocks = new(); //TODO dic?
+        private readonly Dictionary<string, LabelBlock> LabelDict = new();
         public readonly LinkedList<IRInstruction> RunningQueue = new();
+
+        public void ClearLabels()
+        {
+            LabelDict.Clear();
+        }
+
+        public void Load(LabelBlock block)
+        {
+            if (block == null)
+            {
+                throw new ArgumentNullException(nameof(block), "Label block cannot be null.");
+            }
+            if (LabelDict.ContainsKey(block.LabelName))
+            {
+                throw new InvalidOperationException($"Label '{block.LabelName}' already exists in the interpreter's label dictionary.");
+            }
+            LabelDict[block.LabelName] = block;
+        }
+
+        public void Load(List<LabelBlock> blocks)
+        {
+            if (blocks == null || blocks.Count == 0)
+            {
+                throw new ArgumentException("Label blocks cannot be null or empty.", nameof(blocks));
+            }
+            foreach (var block in blocks)
+            {
+                Load(block);
+            }
+        }
+
+        public LabelBlock GetLabelBlock(string labelName)
+        {
+            if (LabelDict.TryGetValue(labelName, out var block))
+            {
+                return block;
+            }
+            throw new KeyNotFoundException($"Label '{labelName}' not found in the interpreter's label blocks.");
+        }
 
         public void Run(string labelName = "start")
         {
-            var block = LabelBlocks.Find(l => l.LabelName == labelName);
+            var block = LabelDict[labelName];
             if (block != null)
             {
                 RunningQueue.Clear();
@@ -24,15 +71,18 @@ namespace Assets.Scripts.DSP.Core
                 {
                     RunningQueue.AddLast(instruction);
                 }
-                Next();
             }
             else
             {
                 throw new KeyNotFoundException($"Label '{labelName}' not found in the interpreter's label blocks.");
             }
+            while (RunningQueue.Count > 0)
+            {
+                Next();
+            }
         }
 
-        public void Next()
+        private void Next()
         {
             if (RunningQueue.Count > 0)
             {
@@ -81,7 +131,7 @@ namespace Assets.Scripts.DSP.Core
                 _variableDict.Add(name, new TypedVariable(value, type));
             }
         }
-        public TypedVariable GetVariable(string name)
+        public TypedVariable GetTypedVariable(string name)
         {
             if (_variableDict.TryGetValue(name, out var variable))
             {
@@ -106,6 +156,14 @@ namespace Assets.Scripts.DSP.Core
                     return value;
                 }
                 throw new InvalidCastException($"Variable '{name}' is of type '{variable.Type.Name}', cannot cast to '{typeof(T).Name}'. Supported types are string, int, float, and bool.");
+            }
+            throw new KeyNotFoundException($"Variable '{name}' not found in the interpreter's variable dictionary.");
+        }
+        public Type GetVariableType(string name)
+        {
+            if (_variableDict.TryGetValue(name, out var variable))
+            {
+                return variable.Type;
             }
             throw new KeyNotFoundException($"Variable '{name}' not found in the interpreter's variable dictionary.");
         }

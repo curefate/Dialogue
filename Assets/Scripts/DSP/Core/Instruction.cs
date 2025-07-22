@@ -3,12 +3,12 @@ using System.Linq;
 using Assets.Scripts.DSP.Core;
 using System.Collections.Generic;
 
-public class InstructionBlock
+public class LabelBlock
 {
     public string LabelName { get; private set; }
     public string FileName { get; private set; }
     public List<IRInstruction> Instructions { get; private set; } = new List<IRInstruction>();
-    public InstructionBlock(string labelName, string fileName)
+    public LabelBlock(string labelName, string fileName)
     {
         LabelName = labelName;
         FileName = fileName;
@@ -24,8 +24,8 @@ public class InstructionBlock
 
 public abstract class IRInstruction
 {
-    public int Line { get; set; }
-    public string File { get; set; }
+    public int LineNum { get; set; }
+    public string FilePath { get; set; }
 
     /// <summary>
     /// Executes the instruction.
@@ -64,7 +64,7 @@ public class IR_Menu : IRInstruction
         }
         else
         {
-            throw new InvalidOperationException($"Invalid menu choice.[Ln {Line},Fl {File}]");
+            throw new InvalidOperationException($"Invalid menu choice.[Ln {LineNum},Fp {FilePath}]");
         }
     }
 }
@@ -75,13 +75,17 @@ public class IR_Jump : IRInstruction
     public override void Execute(Interpreter interpreter)
     {
         interpreter.RunningQueue.Clear();
-        var labelBlock = interpreter.LabelBlocks.FirstOrDefault(l => l.LabelName == TargetLabel);
+        var labelBlock = interpreter.GetLabelBlock(TargetLabel);
         if (labelBlock != null)
         {
             foreach (var instruction in labelBlock.Instructions)
             {
                 interpreter.RunningQueue.AddLast(instruction);
             }
+        }
+        else
+        {
+            throw new KeyNotFoundException($"Label '{TargetLabel}' not found.[Ln {LineNum},Fp {FilePath}]");
         }
     }
 }
@@ -91,7 +95,7 @@ public class IR_Tour : IRInstruction
     public string TargetLabel { get; set; }
     public override void Execute(Interpreter interpreter)
     {
-        var block = interpreter.LabelBlocks.FirstOrDefault(l => l.LabelName == TargetLabel);
+        var block = interpreter.GetLabelBlock(TargetLabel);
         if (block != null)
         {
             for (int i = block.Instructions.Count - 1; i >= 0; i--)
@@ -99,6 +103,10 @@ public class IR_Tour : IRInstruction
                 var instruction = block.Instructions[i];
                 interpreter.RunningQueue.AddFirst(instruction);
             }
+        }
+        else
+        {
+            throw new KeyNotFoundException($"Label '{TargetLabel}' not found.[Ln {LineNum},Fp {FilePath}]");
         }
     }
 }
@@ -130,7 +138,7 @@ public class IR_Set : IRInstruction
                 return;
             // TODO ADD +=, -=, etc.
             default:
-                throw new NotSupportedException($"Symbol '{Symbol}' is not supported.[Ln {Line},Fl {File}]");
+                throw new NotSupportedException($"Symbol '{Symbol}' is not supported.[Ln {LineNum},Fp {FilePath}]");
         }
     }
 }
@@ -145,7 +153,7 @@ public class IR_If : IRInstruction
         var conditionResult = Condition.Evaluate(interpreter);
         if (conditionResult == null || conditionResult is not bool)
         {
-            throw new InvalidOperationException($"Condition must evaluate to a boolean value.[Ln {Line},Fl {File}]");
+            throw new InvalidOperationException($"Condition must evaluate to a boolean value.[Ln {LineNum},Fp {FilePath}]");
         }
         if ((bool)conditionResult)
         {

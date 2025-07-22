@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class test2 : MonoBehaviour
 {
-    public TextAsset dialogueFile;
     public Interpreter interpreter;
     public Compiler compiler;
 
@@ -54,24 +53,8 @@ public class test2 : MonoBehaviour
 
     void Start()
     {
-        if (dialogueFile == null)
-        {
-            Debug.LogError("Dialogue file is not assigned.");
-            return;
-        }
-
-        var labels = compiler.Compile(dialogueFile.text);
-        foreach (var label in labels)
-        {
-            interpreter.LabelBlocks.Add(label);
-            Debug.Log($"Label({label.Instructions.Count}): {label.LabelName}");
-        }
+        interpreter.Load(compiler.Compile("Assets\\Resources\\test2.txt"));
         Debug.Log("=======================================================");
-
         interpreter.Run();
-        while (interpreter.RunningQueue.Count > 0)
-        {
-            interpreter.Next();
-        }
     }
 }

@@ -67,6 +67,14 @@ tokens {
 
         if (InputStream.LA(1) == Eof)
 		{
+            if (token.Type != NEWLINE && _tokenList.Count == 0)
+			{
+				var newlineToken = new CommonToken(NEWLINE, "\n");
+				_tokenList.Add(newlineToken);
+				_pre_token = token;
+				return token;
+			}
+
 			while (_indentStack.Count > 0)
 			{
 				var tokenDedent = new CommonToken(DEDENT, "DEDENT");
