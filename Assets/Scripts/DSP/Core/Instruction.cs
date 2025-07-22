@@ -75,15 +75,15 @@ public class IR_Jump : IRInstruction
     public override void Execute(Interpreter interpreter)
     {
         interpreter.RunningQueue.Clear();
-        var labelBlock = interpreter.GetLabelBlock(TargetLabel);
-        if (labelBlock != null)
+        try
         {
+            var labelBlock = interpreter.GetLabelBlock(TargetLabel);
             foreach (var instruction in labelBlock.Instructions)
             {
                 interpreter.RunningQueue.AddLast(instruction);
             }
         }
-        else
+        catch (KeyNotFoundException)
         {
             throw new KeyNotFoundException($"Label '{TargetLabel}' not found.[Ln {LineNum},Fp {FilePath}]");
         }
@@ -95,16 +95,16 @@ public class IR_Tour : IRInstruction
     public string TargetLabel { get; set; }
     public override void Execute(Interpreter interpreter)
     {
-        var block = interpreter.GetLabelBlock(TargetLabel);
-        if (block != null)
+        try
         {
+            var block = interpreter.GetLabelBlock(TargetLabel);
             for (int i = block.Instructions.Count - 1; i >= 0; i--)
             {
                 var instruction = block.Instructions[i];
                 interpreter.RunningQueue.AddFirst(instruction);
             }
         }
-        else
+        catch (KeyNotFoundException)
         {
             throw new KeyNotFoundException($"Label '{TargetLabel}' not found.[Ln {LineNum},Fp {FilePath}]");
         }

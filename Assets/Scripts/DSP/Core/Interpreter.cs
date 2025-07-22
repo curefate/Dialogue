@@ -58,7 +58,7 @@ namespace Assets.Scripts.DSP.Core
             {
                 return block;
             }
-            throw new KeyNotFoundException($"Label '{labelName}' not found in the interpreter's label blocks.");
+            throw new KeyNotFoundException($"Label '{labelName}' not found.");
         }
 
         public void Run(string labelName = "start")
