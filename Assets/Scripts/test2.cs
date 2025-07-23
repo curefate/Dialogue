@@ -1,5 +1,3 @@
-using System.Linq;
-using Antlr4.Runtime;
 using Assets.Scripts.DSP.Core;
 using UnityEngine;
 
@@ -12,7 +10,7 @@ public class test2 : MonoBehaviour
     {
         if (interpreter == null)
         {
-            interpreter = gameObject.AddComponent<Interpreter>();
+            interpreter ??= new Interpreter();
             interpreter.OnDialogue += (dialogue) =>
             {
                 Debug.Log($"{dialogue.Speaker ?? "null"}({dialogue.IsSync}): {(string)dialogue.Text.Evaluate(interpreter)} ({string.Join(", ", dialogue.Tags)})");

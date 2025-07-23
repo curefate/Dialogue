@@ -1,10 +1,9 @@
-using UnityEngine;
 using System;
 using System.Collections.Generic;
 
 namespace Assets.Scripts.DSP.Core
 {
-    public class Interpreter : MonoBehaviour
+    public class Interpreter
     {
         // Events
         public Action<IR_Dialogue> OnDialogue;
