@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -22,10 +21,15 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     public Color OriginColor = Color.white;
     public Color SelectedColor = Color.yellow;
     public bool CanHighLight = false;
+    public bool SubOnTop = false;
 
-    public readonly List<ChatBubble> _subBubbles = new();
-    public int OptionNumber { get; set; } = -1;
-    public bool Done { get; private set; } = false;
+    public List<ChatBubble> SubBubbles = new();
+
+    public bool IsAllPushed { get; private set; } = false;
+    [HideInInspector]
+    public int OptionNumber = -1;
+    [HideInInspector]
+    public ChatBubble ParentBubble;
 
 
 
@@ -65,17 +69,29 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         }
 
         // Arange position of sub bubbles
-        if (_subBubbles.Count > 0)
+        if (SubBubbles.Count > 0)
         {
             float offsetY = 0f;
-            foreach (var sub in _subBubbles)
+            foreach (var sub in SubBubbles)
             {
-                sub.transform.localPosition = new Vector3(
+                if (!SubOnTop)
+                {
+                    sub.transform.localPosition = new Vector3(
                     transform.localPosition.x + bubbleImage.rectTransform.sizeDelta.x / 2 + sub.bubbleImage.rectTransform.sizeDelta.x / 2,
                     transform.localPosition.y + offsetY,
                     transform.localPosition.z
-                );
-                offsetY -= sub.bubbleImage.rectTransform.sizeDelta.y * 1.2f; // Adjust the spacing as needed
+                    );
+                    offsetY -= sub.bubbleImage.rectTransform.sizeDelta.y * 1.2f;
+                }
+                else
+                {
+                    sub.transform.localPosition = new Vector3(
+                    transform.localPosition.x + bubbleImage.rectTransform.sizeDelta.x / 2 - sub.bubbleImage.rectTransform.sizeDelta.x / 2,
+                    transform.localPosition.y + offsetY,
+                    transform.localPosition.z
+                    );
+                    offsetY += sub.bubbleImage.rectTransform.sizeDelta.y * 1.2f;
+                }
             }
         }
 
@@ -108,13 +124,13 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
 
     private IEnumerator PushTextCoroutine(string text)
     {
-        Done = false;
+        IsAllPushed = false;
         foreach (char c in text)
         {
             bubbleText.text += c;
             yield return new WaitForSeconds(0.05f); // Adjust the delay as needed
         }
-        Done = true;
+        IsAllPushed = true;
     }
 
     public void FadeOut(float duration = 0.5f)
@@ -169,19 +185,6 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
             _color = OriginColor;
         }
     }
-
-    /* private Vector2 WorldToCanvasPosition(Vector3 worldPosition)
-    {
-        Vector2 screenPosition = Camera.main.WorldToScreenPoint(worldPosition);
-        Vector2 localPoint;
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            GetComponent<RectTransform>(),
-            screenPosition,
-            null, // 对于Overlay模式，相机参数为null
-            out localPoint);
-
-        return localPoint;
-    } */
 
     private Vector2 WorldToCanvasPosition(Vector3 worldPosition)
     {

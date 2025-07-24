@@ -347,6 +347,11 @@ public class FStringNode : DSExpressionNode
         Type = typeof(string);
         return finalStr.ToString();
     }
+
+    public string GetText(Interpreter interpreter)
+    {
+        return Evaluate(interpreter) as string ?? throw new InvalidOperationException("FString evaluation did not return a string.");
+    }
 }
 
 public class UnaryOperationNode : DSExpressionNode

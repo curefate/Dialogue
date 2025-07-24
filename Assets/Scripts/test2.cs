@@ -11,10 +11,10 @@ public class test2 : MonoBehaviour
         if (interpreter == null)
         {
             interpreter ??= new Interpreter();
-            interpreter.OnDialogue += (dialogue) =>
+            /* interpreter.OnDialogue += (dialogue) =>
             {
-                Debug.Log($"{dialogue.Speaker ?? "null"}({dialogue.IsSync}): {(string)dialogue.Text.Evaluate(interpreter)} ({string.Join(", ", dialogue.Tags)})");
-            };
+                Debug.Log($"{dialogue.SpeakerName ?? "null"}({dialogue.IsSync}): {(string)dialogue.TextNode.Evaluate(interpreter)} ({string.Join(", ", dialogue.Tags)})");
+            }; */
             interpreter.AddFunction("Test", Test);
             interpreter.AddFunction<int, int>("Test2", Test2);
             interpreter.AddFunction<string, string>("Test3", Test3);

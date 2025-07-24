@@ -6,8 +6,8 @@ namespace Assets.Scripts.DS.Core
     public class Interpreter
     {
         // Events
-        public Action<IR_Dialogue> OnDialogue;
-        public Func<IR_Menu, int> OnMenu;
+        public Action<Interpreter, IR_Dialogue> OnDialogue;
+        public Func<Interpreter, IR_Menu, int> OnMenu;
 
         public void Reset()
         {
@@ -18,7 +18,7 @@ namespace Assets.Scripts.DS.Core
         }
 
         #region Runtime
-        private readonly Dictionary<string, LabelBlock> _labelDict = new();
+        protected readonly Dictionary<string, LabelBlock> _labelDict = new();
         public readonly LinkedList<IRInstruction> RunningQueue = new();
         public bool IsRunning => RunningQueue.Count > 0;
 
@@ -82,7 +82,7 @@ namespace Assets.Scripts.DS.Core
             }
         }
 
-        private void Next()
+        protected void Next()
         {
             if (RunningQueue.Count > 0)
             {
@@ -98,7 +98,7 @@ namespace Assets.Scripts.DS.Core
         #endregion
 
         #region Variable Registration
-        private readonly Dictionary<string, TypedVariable> _variableDict = new();
+        protected readonly Dictionary<string, TypedVariable> _variableDict = new();
         public bool ContainsVariable(string name) => _variableDict.ContainsKey(name);
         public void SetVariable(string name, object value)
         {
@@ -170,7 +170,7 @@ namespace Assets.Scripts.DS.Core
         #endregion
 
         #region Function Registration
-        private readonly Dictionary<string, Delegate> _functionDict = new();
+        protected readonly Dictionary<string, Delegate> _functionDict = new();
         public void AddFunction<TResult>(string funcName, Func<TResult> func) => _functionDict[funcName] = func;
         public void AddFunction<T0, TResult>(string funcName, Func<T0, TResult> func) => _functionDict[funcName] = func;
         public void AddFunction<T0, T1, TResult>(string funcName, Func<T0, T1, TResult> func) => _functionDict[funcName] = func;

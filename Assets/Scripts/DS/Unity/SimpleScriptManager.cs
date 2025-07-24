@@ -2,12 +2,15 @@ using UnityEngine;
 using Assets.Scripts.DS.Core;
 using System.Collections.Generic;
 
-public class DSManager : MonoBehaviour
+public class SimpleScriptManager : MonoBehaviour
 {
     public Interpreter Interpreter;
     public Compiler Compiler;
+    [ContextMenuItem("Run", "Run")]
+    public string StartFrom = "start";
     [SerializeField]
     private List<string> ScriptFilePaths;
+
 
     void Awake()
     {
@@ -37,8 +40,8 @@ public class DSManager : MonoBehaviour
         Interpreter.Load(script);
         ScriptFilePaths.Add(filePath);
     }
-
-    public void Run(string label = "start")
+    
+    public void Run()
     {
         if (Interpreter.IsRunning)
         {
@@ -46,6 +49,6 @@ public class DSManager : MonoBehaviour
             return;
         }
 
-        Interpreter.Run(label);
+        Interpreter.Run(StartFrom);
     }
 }

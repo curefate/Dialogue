@@ -37,25 +37,25 @@ public abstract class IRInstruction
 public class IR_Dialogue : IRInstruction
 {
     public bool IsSync { get; set; }
-    public string Speaker { get; set; }
-    public FStringNode Text { get; set; }
+    public string SpeakerName { get; set; }
+    public FStringNode TextNode { get; set; }
     public List<string> Tags { get; private set; } = new List<string>();
     public override void Execute(Interpreter interpreter)
     {
-        interpreter.OnDialogue?.Invoke(this);
+        interpreter.OnDialogue?.Invoke(interpreter, this);
     }
 }
 
 public class IR_Menu : IRInstruction
 {
-    public List<FStringNode> MenuOptions { get; set; } = new List<FStringNode>();
-    public List<List<IRInstruction>> MenuActions { get; set; } = new List<List<IRInstruction>>();
+    public List<FStringNode> OptionTextNodes { get; set; } = new List<FStringNode>();
+    public List<List<IRInstruction>> Blocks { get; set; } = new List<List<IRInstruction>>();
     public override void Execute(Interpreter interpreter)
     {
-        var choice = interpreter.OnMenu?.Invoke(this);
-        if (choice.HasValue && choice.Value >= 0 && choice.Value < MenuActions.Count)
+        var choice = interpreter.OnMenu?.Invoke(interpreter, this);
+        if (choice.HasValue && choice.Value >= 0 && choice.Value < Blocks.Count)
         {
-            var selectedActions = MenuActions[choice.Value];
+            var selectedActions = Blocks[choice.Value];
             for (int i = selectedActions.Count - 1; i >= 0; i--)
             {
                 var instruction = selectedActions[i];

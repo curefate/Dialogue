@@ -72,8 +72,8 @@ public class InstructionBuilder : DSParserBaseVisitor<IRInstruction>
             LineNum = context.Start.Line,
             FilePath = context.Start.InputStream.SourceName,
             IsSync = context.SYNC() != null,
-            Speaker = context.ID()?.GetText() ?? null,
-            Text = _expressionBuilder.Visit(context.text).Root as FStringNode ?? throw new ArgumentException("Dialogue text cannot be null."),
+            SpeakerName = context.ID()?.GetText() ?? null,
+            TextNode = _expressionBuilder.Visit(context.text).Root as FStringNode ?? throw new ArgumentException("Dialogue text cannot be null."),
         };
         foreach (var tag in context._tags)
         {
@@ -92,7 +92,7 @@ public class InstructionBuilder : DSParserBaseVisitor<IRInstruction>
         var options = context._options ?? throw new ArgumentException("Menu options cannot be null.");
         foreach (var option in options)
         {
-            inst.MenuOptions.Add(_expressionBuilder.Visit(option.text).Root as FStringNode ?? throw new ArgumentException("Menu option text cannot be null."));
+            inst.OptionTextNodes.Add(_expressionBuilder.Visit(option.text).Root as FStringNode ?? throw new ArgumentException("Menu option text cannot be null."));
             var block = option.block() ?? throw new ArgumentException("Menu option block cannot be null.");
             var actions = new List<IRInstruction>();
             foreach (var stmt in block.statement())
@@ -103,7 +103,7 @@ public class InstructionBuilder : DSParserBaseVisitor<IRInstruction>
                     actions.Add(instruction);
                 }
             }
-            inst.MenuActions.Add(actions);
+            inst.Blocks.Add(actions);
         }
         return inst;
     }
