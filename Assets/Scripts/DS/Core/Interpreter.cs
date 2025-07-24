@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Assets.Scripts.DSP.Core
+namespace Assets.Scripts.DS.Core
 {
     public class Interpreter
     {
@@ -13,17 +13,18 @@ namespace Assets.Scripts.DSP.Core
         {
             _variableDict.Clear();
             _functionDict.Clear();
-            LabelDict.Clear();
+            _labelDict.Clear();
             RunningQueue.Clear();
         }
 
         #region Runtime
-        private readonly Dictionary<string, LabelBlock> LabelDict = new();
+        private readonly Dictionary<string, LabelBlock> _labelDict = new();
         public readonly LinkedList<IRInstruction> RunningQueue = new();
+        public bool IsRunning => RunningQueue.Count > 0;
 
         public void ClearLabels()
         {
-            LabelDict.Clear();
+            _labelDict.Clear();
         }
 
         public void Load(LabelBlock block)
@@ -32,11 +33,11 @@ namespace Assets.Scripts.DSP.Core
             {
                 throw new ArgumentNullException(nameof(block), "Label block cannot be null.");
             }
-            if (LabelDict.ContainsKey(block.LabelName))
+            if (_labelDict.ContainsKey(block.LabelName))
             {
                 throw new InvalidOperationException($"Label '{block.LabelName}' already exists in the interpreter's label dictionary.");
             }
-            LabelDict[block.LabelName] = block;
+            _labelDict[block.LabelName] = block;
         }
 
         public void Load(List<LabelBlock> blocks)
@@ -53,7 +54,7 @@ namespace Assets.Scripts.DSP.Core
 
         public LabelBlock GetLabelBlock(string labelName)
         {
-            if (LabelDict.TryGetValue(labelName, out var block))
+            if (_labelDict.TryGetValue(labelName, out var block))
             {
                 return block;
             }
@@ -62,7 +63,7 @@ namespace Assets.Scripts.DSP.Core
 
         public void Run(string labelName = "start")
         {
-            var block = LabelDict[labelName];
+            var block = _labelDict[labelName];
             if (block != null)
             {
                 RunningQueue.Clear();

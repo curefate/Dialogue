@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using Assets.Scripts.DSP.Core;
+using Assets.Scripts.DS.Core;
 using System.Collections.Generic;
 
 public class LabelBlock

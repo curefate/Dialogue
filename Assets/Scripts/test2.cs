@@ -1,4 +1,4 @@
-using Assets.Scripts.DSP.Core;
+using Assets.Scripts.DS.Core;
 using UnityEngine;
 
 public class test2 : MonoBehaviour
