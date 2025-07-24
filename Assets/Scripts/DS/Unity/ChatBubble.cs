@@ -18,6 +18,7 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     public int MaxHorizontalPadding = 300;
     public int MinHorizontalPadding = 100;
     public int MaxVerticalPadding = 300;
+    public int MinVerticalPadding = 100;
     public Color OriginColor = Color.white;
     public Color SelectedColor = Color.yellow;
     public bool CanHighLight = false;
@@ -33,7 +34,7 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
 
 
 
-    void Start()
+    void Awake()
     {
         if (bubbleImage == null)
         {
@@ -57,10 +58,10 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         // Calculate the size of the bubble
         Vector2 bubbleSize = new(
             Mathf.Max(Mathf.Min(textSize.x, MaxHorizontalPadding), MinHorizontalPadding),
-            Mathf.Min(textSize.y * lineCount, MaxVerticalPadding)
+            Mathf.Max(Mathf.Min(textSize.y * lineCount, MaxVerticalPadding), MinVerticalPadding)
         );
-        bubbleImage.rectTransform.sizeDelta = Vector2.Lerp(bubbleImage.rectTransform.sizeDelta, bubbleSize * 1.2f, Time.deltaTime * 10);
-        bubbleText.rectTransform.sizeDelta = Vector2.Lerp(bubbleText.rectTransform.sizeDelta, bubbleSize, Time.deltaTime * 10);
+        bubbleImage.rectTransform.sizeDelta = Vector2.Lerp(bubbleImage.rectTransform.sizeDelta, bubbleSize * 1.1f, Time.deltaTime * 15);
+        bubbleText.rectTransform.sizeDelta = Vector2.Lerp(bubbleText.rectTransform.sizeDelta, bubbleSize, Time.deltaTime * 15);
 
         // HighLight
         if (CanHighLight)
@@ -77,20 +78,20 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
                 if (!SubOnTop)
                 {
                     sub.transform.localPosition = new Vector3(
-                    transform.localPosition.x + bubbleImage.rectTransform.sizeDelta.x / 2 + sub.bubbleImage.rectTransform.sizeDelta.x / 2,
-                    transform.localPosition.y + offsetY,
+                    transform.localPosition.x + bubbleImage.rectTransform.sizeDelta.x / 2 - sub.bubbleImage.rectTransform.sizeDelta.x / 2,
+                    transform.localPosition.y - bubbleImage.rectTransform.sizeDelta.y / 2 - sub.bubbleImage.rectTransform.sizeDelta.y / 2 + offsetY,
                     transform.localPosition.z
                     );
-                    offsetY -= sub.bubbleImage.rectTransform.sizeDelta.y * 1.2f;
+                    offsetY -= sub.bubbleImage.rectTransform.sizeDelta.y * 1.1f;
                 }
                 else
                 {
                     sub.transform.localPosition = new Vector3(
                     transform.localPosition.x + bubbleImage.rectTransform.sizeDelta.x / 2 - sub.bubbleImage.rectTransform.sizeDelta.x / 2,
-                    transform.localPosition.y + offsetY,
+                    transform.localPosition.y + bubbleImage.rectTransform.sizeDelta.y / 2 + sub.bubbleImage.rectTransform.sizeDelta.y / 2 + offsetY,
                     transform.localPosition.z
                     );
-                    offsetY += sub.bubbleImage.rectTransform.sizeDelta.y * 1.2f;
+                    offsetY += sub.bubbleImage.rectTransform.sizeDelta.y * 1.1f;
                 }
             }
         }
@@ -146,7 +147,7 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         Color originalColor = bubbleImage.color;
         while (elapsed < duration)
         {
-            float alpha = Mathf.Lerp(originalColor.a, 0f, elapsed / duration);
+            float alpha = Mathf.Lerp(originalColor.a, 0f, elapsed / duration) < .01f ? 0f : Mathf.Lerp(originalColor.a, 0f, elapsed / duration);
             bubbleImage.color = new Color(originalColor.r, originalColor.g, originalColor.b, alpha);
             bubbleText.color = new Color(bubbleText.color.r, bubbleText.color.g, bubbleText.color.b, alpha);
             elapsed += Time.deltaTime;
@@ -165,8 +166,7 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     {
         if (eventData.button == PointerEventData.InputButton.Left)
         {
-            // Handle left click
-            Debug.Log("Click");
+            ParentBubble.OptionNumber = OptionNumber;
         }
     }
 

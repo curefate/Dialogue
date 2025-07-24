@@ -15,7 +15,6 @@ public class BubblePusher : MonoBehaviour
 
     public bool ClickToNext = true;
     public GameObject OptionBubblePrefab;
-    public ChatBubble NameBubble;
     public ChatBubble NarrationBubble;
     public ChatBubble DialogueBubble;
 
@@ -27,10 +26,6 @@ public class BubblePusher : MonoBehaviour
         if (OptionBubblePrefab == null)
         {
             Debug.LogError("OptionBubblePrefab is not assigned in BubblePusher.");
-        }
-        if (NameBubble == null)
-        {
-            Debug.LogError("NameBubble is not assigned in BubblePusher.");
         }
         if (NarrationBubble == null)
         {
@@ -58,13 +53,11 @@ public class BubblePusher : MonoBehaviour
         _isClicked = false;
         if (dialogue.SpeakerName != null)
         {
-            NameBubble.Clear();
             DialogueBubble.Clear();
             _currentBubbleType = BubbleType.Dialogue;
             NarrationBubble.FadeOut();
-            NameBubble.SetText(dialogue.SpeakerName);
-            NameBubble.ShowIn();
             DialogueBubble.ShowIn();
+            DialogueBubble.SetText(dialogue.SpeakerName + ":\n\t");
             DialogueBubble.PushText(dialogue.TextNode.GetText(interpreter));
             while (!DialogueBubble.IsAllPushed)
             {
@@ -74,7 +67,6 @@ public class BubblePusher : MonoBehaviour
         {
             NarrationBubble.Clear();
             _currentBubbleType = BubbleType.Narration;
-            NameBubble.FadeOut();
             DialogueBubble.FadeOut();
             NarrationBubble.ShowIn();
             NarrationBubble.PushText(dialogue.TextNode.GetText(interpreter));
@@ -89,13 +81,11 @@ public class BubblePusher : MonoBehaviour
             {
             }
             NarrationBubble.FadeOut();
-            NameBubble.FadeOut();
             DialogueBubble.FadeOut();
         }
         else
         {
             DialogueBubble.FadeOut();
-            NameBubble.FadeOut();
             NarrationBubble.FadeOut();
         }
     }
