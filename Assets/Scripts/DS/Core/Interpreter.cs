@@ -8,23 +8,9 @@ public class Interpreter
     public Action<Interpreter, IR_Dialogue> OnDialogue;
     public Func<Interpreter, IR_Menu, int> OnMenu;
 
-    public void Reset()
-    {
-        _variableDict.Clear();
-        _functionDict.Clear();
-        _labelDict.Clear();
-        RunningQueue.Clear();
-    }
-
     #region Runtime
     protected readonly Dictionary<string, LabelBlock> _labelDict = new();
     public readonly LinkedList<IRInstruction> RunningQueue = new();
-    public bool IsRunning => RunningQueue.Count > 0;
-
-    public void ClearLabels()
-    {
-        _labelDict.Clear();
-    }
 
     public void Load(LabelBlock block)
     {
@@ -97,74 +83,46 @@ public class Interpreter
     #endregion
 
     #region Variable Registration
-    protected readonly Dictionary<string, TypedVariable> _variableDict = new();
-    public bool ContainsVariable(string name) => _variableDict.ContainsKey(name);
-    public void SetVariable(string name, object value)
+    protected readonly Dictionary<string, TypedVar> _variableDict = new();
+    public bool ContainsVar(string varName) => _variableDict.ContainsKey(varName);
+    public void SetVar(string varName, object value)
     {
         if (value == null)
         {
             throw new ArgumentNullException(nameof(value), "Value cannot be null.");
         }
         var type = value.GetType();
-        if (type == typeof(TypedVariable))
+        if (type == typeof(TypedVar))
         {
-            var typedValue = (TypedVariable)value;
+            var typedValue = (TypedVar)value;
             type = typedValue.Type;
             value = typedValue.Value;
         }
         if (type != typeof(string) && type != typeof(int) && type != typeof(float) && type != typeof(bool))
         {
-            throw new ArgumentException($"Unsupported type '{type.Name}' for variable '{name}'. Supported types are string, int, float, and bool.", nameof(value));
+            throw new ArgumentException($"Unsupported type '{type.Name}' for variable '{varName}'. Supported types are string, int, float, and bool.", nameof(value));
         }
-        if (_variableDict.ContainsKey(name))
+        if (_variableDict.ContainsKey(varName))
         {
             // Check if the type matches the existing variable
-            if (_variableDict[name].Type != type)
+            if (_variableDict[varName].Type != type)
             {
-                throw new InvalidOperationException($"Variable '{name}' already exists with type '{_variableDict[name].Type.Name}', cannot assign value of type '{type.Name}'. Supported types are string, int, float, and bool.");
+                throw new InvalidOperationException($"Variable '{varName}' already exists with type '{_variableDict[varName].Type.Name}', cannot assign value of type '{type.Name}'. Supported types are string, int, float, and bool.");
             }
-            _variableDict[name] = new TypedVariable(value, type);
+            _variableDict[varName] = new TypedVar(value, type);
         }
         else
         {
-            _variableDict.Add(name, new TypedVariable(value, type));
+            _variableDict.Add(varName, new TypedVar(value, type));
         }
     }
-    public TypedVariable GetTypedVariable(string name)
+    public TypedVar GetTypedVar(string varName)
     {
-        if (_variableDict.TryGetValue(name, out var variable))
+        if (_variableDict.TryGetValue(varName, out var variable))
         {
             return variable;
         }
-        throw new KeyNotFoundException($"Variable '{name}' not found in the interpreter's variable dictionary.");
-    }
-    public object GetVariableValue(string name)
-    {
-        if (_variableDict.TryGetValue(name, out var variable))
-        {
-            return variable.Value;
-        }
-        throw new KeyNotFoundException($"Variable '{name}' not found in the interpreter's variable dictionary.");
-    }
-    public T GetVariableValue<T>(string name)
-    {
-        if (_variableDict.TryGetValue(name, out var variable))
-        {
-            if (variable.Type is T && variable.Value is T value)
-            {
-                return value;
-            }
-            throw new InvalidCastException($"Variable '{name}' is of type '{variable.Type.Name}', cannot cast to '{typeof(T).Name}'. Supported types are string, int, float, and bool.");
-        }
-        throw new KeyNotFoundException($"Variable '{name}' not found in the interpreter's variable dictionary.");
-    }
-    public Type GetVariableType(string name)
-    {
-        if (_variableDict.TryGetValue(name, out var variable))
-        {
-            return variable.Type;
-        }
-        throw new KeyNotFoundException($"Variable '{name}' not found in the interpreter's variable dictionary.");
+        throw new KeyNotFoundException($"Variable '{varName}' not found in the interpreter's variable dictionary.");
     }
     #endregion
 
@@ -418,18 +376,18 @@ public class Interpreter
     #endregion
 }
 
-public class TypedVariable
+public class TypedVar
 {
     public object Value { get; }
     public Type Type { get; }
 
-    public TypedVariable(object value)
+    public TypedVar(object value)
     {
         Value = value ?? throw new ArgumentNullException(nameof(value), "Value cannot be null.");
         Type = value.GetType();
     }
 
-    public TypedVariable(object value, Type type)
+    public TypedVar(object value, Type type)
     {
         Value = value ?? throw new ArgumentNullException(nameof(value), "Value cannot be null.");
         Type = type;

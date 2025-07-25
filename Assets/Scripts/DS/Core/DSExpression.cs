@@ -231,7 +231,7 @@ public class VariableNode : DSExpressionNode
             throw new ArgumentNullException(nameof(interpreter), "Interpreter cannot be null.");
         }
 
-        var value = interpreter.GetTypedVariable(VariableName) ?? throw new InvalidOperationException($"Variable '{VariableName}' is not defined.");
+        var value = interpreter.GetTypedVar(VariableName) ?? throw new InvalidOperationException($"Variable '{VariableName}' is not defined.");
         Type = value.Type;
         return value.Value;
     }

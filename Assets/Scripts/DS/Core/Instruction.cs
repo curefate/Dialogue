@@ -133,7 +133,7 @@ public class IR_Set : IRInstruction
         switch (Symbol)
         {
             case "=":
-                interpreter.SetVariable(VariableName[1..], evaluatedValue);
+                interpreter.SetVar(VariableName[1..], evaluatedValue);
                 return;
             // TODO ADD +=, -=, etc.
             default:
