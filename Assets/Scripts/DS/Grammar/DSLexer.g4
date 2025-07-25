@@ -133,7 +133,6 @@ WHILE  : 'while';
 JUMP   : 'jump' | '->';
 TOUR   : 'tour' | '-><';
 LABEL  : 'label' | '~';
-SYNC   : 'sync' | '|';
 // MATCH  : 'match';
 // CASE   : 'case';
 
@@ -174,7 +173,6 @@ STRING_NEWLINE    : ('\r'? '\n') -> more;
 
 mode EMBED_EXPR_MODE;
 EMBED_END          : RBRACE -> popMode, type(RBRACE);
-EMBED_SYNC         : SYNC -> type(SYNC);
 EMBED_CALL         : CALL -> type(CALL);
 EMBED_VAR          : VARIABLE -> type(VARIABLE);
 EMBED_WS           : WS -> channel(HIDDEN);

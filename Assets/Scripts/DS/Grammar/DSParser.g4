@@ -24,7 +24,7 @@ statement
 
 // ====================== dialogue ======================
 dialogue_stmt
-    : SYNC? speaker=ID? text=fstring tags+=TAG* NEWLINE
+    : speaker=ID? text=fstring tags+=TAG* NEWLINE
     ;
 
 // ====================== menu ==========================
@@ -48,7 +48,7 @@ tour_stmt
 
 // ====================== call ==========================
 call_stmt
-    : SYNC? CALL func_name=ID LPAR (args+=expression (COMMA args+=expression)*)? RPAR NEWLINE
+    : CALL func_name=ID LPAR (args+=expression (COMMA args+=expression)*)? RPAR NEWLINE
     ;
 
 // ====================== set ===========================
@@ -105,7 +105,7 @@ embedded_expr
     ;
 
 embedded_call
-    : LBRACE SYNC? CALL func_name=ID LPAR (args+=expression (COMMA args+=expression)*)? RPAR RBRACE
+    : LBRACE CALL func_name=ID LPAR (args+=expression (COMMA args+=expression)*)? RPAR RBRACE
     ;
 
 block

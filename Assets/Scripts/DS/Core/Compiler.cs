@@ -71,7 +71,6 @@ public class InstructionBuilder : DSParserBaseVisitor<IRInstruction>
         {
             LineNum = context.Start.Line,
             FilePath = context.Start.InputStream.SourceName,
-            IsSync = context.SYNC() != null,
             SpeakerName = context.ID()?.GetText() ?? null,
             TextNode = _expressionBuilder.Visit(context.text).Root as FStringNode ?? throw new ArgumentException("Dialogue text cannot be null."),
         };
@@ -136,7 +135,6 @@ public class InstructionBuilder : DSParserBaseVisitor<IRInstruction>
         {
             LineNum = context.Start.Line,
             FilePath = context.Start.InputStream.SourceName,
-            IsSync = context.SYNC() != null,
             FunctionName = context.func_name.Text
         };
         var args = context._args ?? throw new ArgumentException("Call arguments cannot be null.");

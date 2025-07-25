@@ -12,13 +12,6 @@ public class LabelBlock
         LabelName = labelName;
         FileName = fileName;
     }
-    public void Run(Interpreter interpreter)
-    {
-        foreach (var instruction in Instructions)
-        {
-            instruction.Execute(interpreter);
-        }
-    }
 }
 
 public abstract class IRInstruction
@@ -35,7 +28,6 @@ public abstract class IRInstruction
 
 public class IR_Dialogue : IRInstruction
 {
-    public bool IsSync { get; set; }
     public string SpeakerName { get; set; }
     public FStringNode TextNode { get; set; }
     public List<string> Tags { get; private set; } = new List<string>();
@@ -112,7 +104,6 @@ public class IR_Tour : IRInstruction
 
 public class IR_Call : IRInstruction
 {
-    public bool IsSync { get; set; }
     public string FunctionName { get; set; }
     public List<DSExpression> Arguments { get; set; } = new List<DSExpression>();
     public override void Execute(Interpreter interpreter)
