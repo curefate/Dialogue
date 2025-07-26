@@ -71,7 +71,7 @@ public class InstructionBuilder : DSParserBaseVisitor<IRInstruction>
         {
             LineNum = context.Start.Line,
             FilePath = context.Start.InputStream.SourceName,
-            SpeakerName = context.ID()?.GetText() ?? null,
+            SpeakerName = context.ID()?.GetText() ?? string.Empty,
             TextNode = _expressionBuilder.Visit(context.text).Root as FStringNode ?? throw new ArgumentException("Dialogue text cannot be null."),
         };
         foreach (var tag in context._tags)
@@ -169,6 +169,7 @@ public class InstructionBuilder : DSParserBaseVisitor<IRInstruction>
         {
             LineNum = context.Start.Line,
             FilePath = context.Start.InputStream.SourceName,
+            Condition = _expressionBuilder.Visit(context._conditions[0]),
         };
         var current_inst = inst;
         for (int i = 0; i < context._conditions.Count; i++)
@@ -177,11 +178,15 @@ public class InstructionBuilder : DSParserBaseVisitor<IRInstruction>
             var block = context._blocks[i];
             if (i != 0)
             {
-                var new_inst = new IR_If();
+                var new_inst = new IR_If()
+                {
+                    LineNum = condition.Start.Line,
+                    FilePath = condition.Start.InputStream.SourceName,
+                    Condition = _expressionBuilder.Visit(condition),
+                };
                 current_inst.FalseBranch.Add(new_inst);
                 current_inst = new_inst;
             }
-            current_inst.Condition = _expressionBuilder.Visit(condition);
             foreach (var stmt in block.statement())
             {
                 var instruction = Visit(stmt);
@@ -393,7 +398,7 @@ public class ExpressionBuilder : DSParserBaseVisitor<DSExpression>
         }
         else
         {
-            return DSExpression.Call(context.func_name.Text, null);
+            return DSExpression.Call(context.func_name.Text);
         }
     }
 

@@ -5,8 +5,8 @@ using System.Collections.Generic;
 public class Interpreter
 {
     // Events
-    public Action<Interpreter, IR_Dialogue> OnDialogue;
-    public Func<Interpreter, IR_Menu, int> OnMenu;
+    public Action<Interpreter, IR_Dialogue>? OnDialogue;
+    public Func<Interpreter, IR_Menu, int>? OnMenu;
 
     #region Runtime
     protected readonly Dictionary<string, LabelBlock> _labelDict = new();
@@ -71,7 +71,7 @@ public class Interpreter
     {
         if (RunningQueue.Count > 0)
         {
-            var instruction = RunningQueue.First.Value;
+            var instruction = RunningQueue.First?.Value ?? throw new InvalidOperationException("No instructions available in the queue.");
             RunningQueue.RemoveFirst();
             instruction.Execute(this);
         }
@@ -148,7 +148,7 @@ public class Interpreter
         }
         throw new KeyNotFoundException($"Function '{funcName}' not found.");
     }
-    public dynamic Invoke(string funcName, params object[] args)
+    public dynamic? Invoke(string funcName, params object[] args)
     {
         if (_functionDict.TryGetValue(funcName, out var func))
         {

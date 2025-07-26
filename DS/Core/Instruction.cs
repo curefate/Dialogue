@@ -6,7 +6,7 @@ public class LabelBlock
 {
     public string LabelName { get; private set; }
     public string FileName { get; private set; }
-    public List<IRInstruction> Instructions { get; private set; } = new List<IRInstruction>();
+    public List<IRInstruction> Instructions { get; private set; } = [];
     public LabelBlock(string labelName, string fileName)
     {
         LabelName = labelName;
@@ -16,8 +16,8 @@ public class LabelBlock
 
 public abstract class IRInstruction
 {
-    public int LineNum { get; set; }
-    public string FilePath { get; set; }
+    public required int LineNum { get; init; }
+    public required string FilePath { get; init; }
 
     /// <summary>
     /// Executes the instruction.
@@ -28,9 +28,9 @@ public abstract class IRInstruction
 
 public class IR_Dialogue : IRInstruction
 {
-    public string SpeakerName { get; set; }
-    public FStringNode TextNode { get; set; }
-    public List<string> Tags { get; private set; } = new List<string>();
+    public required string SpeakerName { get; init; }
+    public required FStringNode TextNode { get; init; }
+    public List<string> Tags { get; private set; } = [];
     public override void Execute(Interpreter interpreter)
     {
         interpreter.OnDialogue?.Invoke(interpreter, this);
@@ -39,8 +39,8 @@ public class IR_Dialogue : IRInstruction
 
 public class IR_Menu : IRInstruction
 {
-    public List<FStringNode> OptionTextNodes { get; set; } = new List<FStringNode>();
-    public List<List<IRInstruction>> Blocks { get; set; } = new List<List<IRInstruction>>();
+    public List<FStringNode> OptionTextNodes { get; private set; } = [];
+    public List<List<IRInstruction>> Blocks { get; private set; } = [];
     public override void Execute(Interpreter interpreter)
     {
         var choice = interpreter.OnMenu?.Invoke(interpreter, this);
@@ -62,7 +62,7 @@ public class IR_Menu : IRInstruction
 
 public class IR_Jump : IRInstruction
 {
-    public string TargetLabel { get; set; }
+    public required string TargetLabel { get; init; }
     public override void Execute(Interpreter interpreter)
     {
         interpreter.RunningQueue.Clear();
@@ -83,7 +83,7 @@ public class IR_Jump : IRInstruction
 
 public class IR_Tour : IRInstruction
 {
-    public string TargetLabel { get; set; }
+    public required string TargetLabel { get; init; }
     public override void Execute(Interpreter interpreter)
     {
         try
@@ -104,8 +104,8 @@ public class IR_Tour : IRInstruction
 
 public class IR_Call : IRInstruction
 {
-    public string FunctionName { get; set; }
-    public List<DSExpression> Arguments { get; set; } = new List<DSExpression>();
+    public required string FunctionName { get; init; }
+    public List<DSExpression> Arguments { get; private set; } = [];
     public override void Execute(Interpreter interpreter)
     {
         var args = Arguments.Select(arg => arg.Evaluate(interpreter)).ToArray();
@@ -115,9 +115,9 @@ public class IR_Call : IRInstruction
 
 public class IR_Set : IRInstruction
 {
-    public string VariableName { get; set; }
-    public string Symbol { get; set; } // Could be '=', '+=', '-=', etc.
-    public DSExpression Value { get; set; }
+    public required string VariableName { get; init; }
+    public required string Symbol { get; init; } // Could be '=', '+=', '-=', etc.
+    public required DSExpression Value { get; init; }
     public override void Execute(Interpreter interpreter)
     {
         var evaluatedValue = Value.Evaluate(interpreter);
@@ -135,7 +135,7 @@ public class IR_Set : IRInstruction
 
 public class IR_If : IRInstruction
 {
-    public DSExpression Condition { get; set; }
+    public required DSExpression Condition { get; init; }
     public List<IRInstruction> TrueBranch { get; private set; } = new List<IRInstruction>();
     public List<IRInstruction> FalseBranch { get; private set; } = new List<IRInstruction>();
     public override void Execute(Interpreter interpreter)
