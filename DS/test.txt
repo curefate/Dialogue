@@ -7,8 +7,11 @@ jump A
 label A:
 "Here is label A We are going to define some variables."
 $a = 10
+"a is {$a}"
 $b = $a * 2 - 3
+"b is {$b}"
 $boolean = $a > $b
+"a > b is {$boolean}"
 $hello = "Hello"
 "Let's tour to next label and check these variables!"
 tour B

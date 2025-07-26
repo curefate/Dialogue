@@ -16,13 +16,13 @@ public class DSExpression
         _root = root ?? throw new ArgumentNullException(nameof(root), "Root node cannot be null.");
     }
 
-    public object Evaluate(Interpreter interpreter)
+    public object Evaluate(RuntimeEnv runtime)
     {
-        if (interpreter == null)
+        if (runtime == null)
         {
-            throw new ArgumentNullException(nameof(interpreter), "Interpreter cannot be null.");
+            throw new ArgumentNullException(nameof(runtime), "Runtime Environment cannot be null.");
         }
-        return _root.Evaluate(interpreter);
+        return _root.Evaluate(runtime);
     }
 
     public override string ToString()
@@ -172,7 +172,7 @@ public abstract class DSExpressionNode
 {
     public Type Type { get; protected set; } = typeof(void);
     public abstract override string ToString();
-    public abstract object Evaluate(Interpreter interpreter);
+    public abstract object Evaluate(RuntimeEnv runtime);
 }
 
 public class ConstantNode : DSExpressionNode
@@ -206,7 +206,7 @@ public class ConstantNode : DSExpressionNode
         };
     }
 
-    public override object Evaluate(Interpreter? interpreter = null)
+    public override object Evaluate(RuntimeEnv? runtime = null)
     {
         return Value;
     }
@@ -226,14 +226,14 @@ public class VariableNode : DSExpressionNode
         return $"${VariableName}";
     }
 
-    public override object Evaluate(Interpreter interpreter)
+    public override object Evaluate(RuntimeEnv runtime)
     {
-        if (interpreter == null)
+        if (runtime == null)
         {
-            throw new ArgumentNullException(nameof(interpreter), "Interpreter cannot be null.");
+            throw new ArgumentNullException(nameof(runtime), "Runtime Environment cannot be null.");
         }
 
-        var value = interpreter.GetTypedVar(VariableName) ?? throw new InvalidOperationException($"Variable '{VariableName}' is not defined.");
+        var value = runtime.Variables.Get(VariableName) ?? throw new InvalidOperationException($"Variable '{VariableName}' is not defined.");
         Type = value.Type;
         return value.Value;
     }
@@ -256,21 +256,21 @@ public class CallNode : DSExpressionNode
         return $"{FunctionName}({args})";
     }
 
-    public override object Evaluate(Interpreter interpreter)
+    public override object Evaluate(RuntimeEnv runtime)
     {
-        if (interpreter == null)
+        if (runtime == null)
         {
-            throw new ArgumentNullException(nameof(interpreter), "Interpreter cannot be null.");
+            throw new ArgumentNullException(nameof(runtime), "Interpreter cannot be null.");
         }
         var argValues = new List<object>();
         foreach (var arg in Arguments)
         {
-            argValues.Add(arg.Evaluate(interpreter));
+            argValues.Add(arg.Evaluate(runtime));
         }
         try
         {
-            Type = interpreter.GetDelegate(FunctionName)?.Method.ReturnType ?? typeof(void);
-            var result = interpreter.Invoke(FunctionName, [.. argValues]);
+            Type = runtime.Functions.GetDelegate(FunctionName)?.Method.ReturnType ?? typeof(void);
+            var result = runtime.Functions.Invoke(FunctionName, [.. argValues]);
             return result;
         }
         catch (Exception ex)
@@ -299,11 +299,11 @@ public class FStringNode : DSExpressionNode
         return $"\"{string.Join("", Fragments)}{embedStr}\"";
     }
 
-    public override object Evaluate(Interpreter interpreter)
+    public override object Evaluate(RuntimeEnv runtime)
     {
-        if (interpreter == null)
+        if (runtime == null)
         {
-            throw new ArgumentNullException(nameof(interpreter), "Interpreter cannot be null.");
+            throw new ArgumentNullException(nameof(runtime), "Runtime Environment cannot be null.");
         }
 
         var finalStr = new StringBuilder();
@@ -314,7 +314,7 @@ public class FStringNode : DSExpressionNode
             {
                 if (embedIndex < EmbedExpr.Count)
                 {
-                    var embedValue = EmbedExpr[embedIndex].Evaluate(interpreter);
+                    var embedValue = EmbedExpr[embedIndex].Evaluate(runtime);
                     if (embedValue is string embedString)
                     {
                         finalStr.Append(embedString);
@@ -347,9 +347,9 @@ public class FStringNode : DSExpressionNode
         return finalStr.ToString();
     }
 
-    public string GetText(Interpreter interpreter)
+    public string GetText(RuntimeEnv runtime)
     {
-        return Evaluate(interpreter) as string ?? throw new InvalidOperationException("FString evaluation did not return a string.");
+        return Evaluate(runtime) as string ?? throw new InvalidOperationException("FString evaluation did not return a string.");
     }
 }
 
@@ -369,9 +369,9 @@ public class UnaryOperationNode : DSExpressionNode
         return $"({Operator}{Operand})";
     }
 
-    public override object Evaluate(Interpreter interpreter)
+    public override object Evaluate(RuntimeEnv runtime)
     {
-        var operandValue = Operand.Evaluate(interpreter);
+        var operandValue = Operand.Evaluate(runtime);
         switch (Operator)
         {
             case UnaryOperator.Negate:
@@ -428,10 +428,10 @@ public class BinaryOperationNode : DSExpressionNode
         return $"({Left} {Operator} {Right})";
     }
 
-    public override object Evaluate(Interpreter interpreter)
+    public override object Evaluate(RuntimeEnv runtime)
     {
-        var leftValue = Left.Evaluate(interpreter);
-        var rightValue = Right.Evaluate(interpreter);
+        var leftValue = Left.Evaluate(runtime);
+        var rightValue = Right.Evaluate(runtime);
         switch (Operator)
         {
             case BinaryOperator.Add:
