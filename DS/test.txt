@@ -12,7 +12,7 @@ $boolean = $a > $b
 $hello = "Hello"
 "Let's tour to next label and check these variables!"
 tour B
-"Good Bye!"
+    "Good Bye!"
 
 label B:
 "Aloha~ here is label B, let's use some functions!"
