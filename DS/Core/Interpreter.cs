@@ -5,8 +5,8 @@ using System.Collections.Generic;
 public class Interpreter
 {
     // Events
-    public Action<Interpreter, IR_Dialogue>? OnDialogue;
-    public Func<Interpreter, IR_Menu, int>? OnMenu;
+    public Action<IR_Dialogue>? OnDialogue;
+    public Func<IR_Menu, int>? OnMenu;
 
     #region Runtime
     protected readonly Dictionary<string, LabelBlock> _labelDict = new();

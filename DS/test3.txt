@@ -1,0 +1,7 @@
+label start:
+$a = 10
+if 10 > 0:
+    "Yes"
+else:
+    "No"
+"Done"

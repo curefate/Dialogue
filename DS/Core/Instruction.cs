@@ -28,12 +28,13 @@ public abstract class IRInstruction
 
 public class IR_Dialogue : IRInstruction
 {
+    public bool HasSpeaker => !string.IsNullOrEmpty(SpeakerName);
     public required string SpeakerName { get; init; }
     public required FStringNode TextNode { get; init; }
     public List<string> Tags { get; private set; } = [];
     public override void Execute(Interpreter interpreter)
     {
-        interpreter.OnDialogue?.Invoke(interpreter, this);
+        interpreter.OnDialogue?.Invoke(this);
     }
 }
 
@@ -43,7 +44,7 @@ public class IR_Menu : IRInstruction
     public List<List<IRInstruction>> Blocks { get; private set; } = [];
     public override void Execute(Interpreter interpreter)
     {
-        var choice = interpreter.OnMenu?.Invoke(interpreter, this);
+        var choice = interpreter.OnMenu?.Invoke(this);
         if (choice.HasValue && choice.Value >= 0 && choice.Value < Blocks.Count)
         {
             var selectedActions = Blocks[choice.Value];

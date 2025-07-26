@@ -1,0 +1,20 @@
+label start:
+"Welcome to Dialogue Scripter!"
+DS_chann "Hi! I'm DS chann, Do you like me?"
+"Yes":
+    DS_chann "Thanks!"
+"I love you, marry me plz!":
+    DS_chann "Are you joking?"
+    tour marry
+jump end
+
+label marry:
+    "Yes":
+        DS_chann "That's not fun."
+        DS_chann "I hate you..."
+    "No":
+        DS_chann "Wow thats..."
+        DS_chann "You're a good person..."
+
+label end:
+DS_chann "Goodbye~"

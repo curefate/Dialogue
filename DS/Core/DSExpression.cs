@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 public class DSExpression
@@ -48,8 +50,8 @@ public class DSExpression
         {
             throw new ArgumentException("Function name cannot be null or empty.", nameof(functionName));
         }
-
-        var argNodes = arguments?.Select(arg => arg?._root).ToList() ?? new List<DSExpressionNode>();
+        // *Disable null arguments to prevent issues with null nodes
+        var argNodes = arguments?.Select(arg => arg?._root).Where(node => node != null).Cast<DSExpressionNode>().ToList() ?? new List<DSExpressionNode>();
         return new DSExpression(new CallNode(functionName, argNodes));
     }
 
@@ -57,7 +59,8 @@ public class DSExpression
     {
         if (fragments == null) throw new ArgumentNullException(nameof(fragments), "Fragments cannot be null.");
         if (embed == null) throw new ArgumentNullException(nameof(embed), "Embed expressions cannot be null.");
-        var embedNodes = embed.Select(e => e?._root).ToList();
+        // *Disable null arguments to prevent issues with null nodes
+        var embedNodes = embed.Select(e => e?._root).Where(node => node != null).Cast<DSExpressionNode>().ToList();
         return new DSExpression(new FStringNode(fragments, embedNodes));
     }
 
@@ -167,7 +170,7 @@ public class DSExpression
 
 public abstract class DSExpressionNode
 {
-    public Type Type { get; protected set; }
+    public Type Type { get; protected set; } = typeof(void);
     public abstract override string ToString();
     public abstract object Evaluate(Interpreter interpreter);
 }
@@ -194,16 +197,16 @@ public class ConstantNode : DSExpressionNode
     {
         return Type switch
         {
-            Type t when t == typeof(int) => Value.ToString(),
+            Type t when t == typeof(int) => $"{Value}",
             Type t when t == typeof(float) => $"{Value}f",
             Type t when t == typeof(double) => $"{Value}d",
             Type t when t == typeof(string) => $"\"{Value}\"",
-            Type t when t == typeof(bool) => Value.ToString().ToLower(),
+            Type t when t == typeof(bool) => (bool)Value ? "true" : "false",
             _ => throw new InvalidOperationException($"Unsupported constant type: {Type}")
         };
     }
 
-    public override object Evaluate(Interpreter interpreter = null)
+    public override object Evaluate(Interpreter? interpreter = null)
     {
         return Value;
     }
@@ -216,7 +219,6 @@ public class VariableNode : DSExpressionNode
     public VariableNode(string variableName)
     {
         VariableName = variableName;
-        Type = typeof(void);
     }
 
     public override string ToString()
@@ -246,7 +248,6 @@ public class CallNode : DSExpressionNode
     {
         FunctionName = functionName ?? throw new ArgumentNullException(nameof(functionName), "Function name cannot be null.");
         Arguments = arguments;
-        Type = typeof(void);
     }
 
     public override string ToString()
@@ -269,7 +270,7 @@ public class CallNode : DSExpressionNode
         try
         {
             Type = interpreter.GetDelegate(FunctionName)?.Method.ReturnType ?? typeof(void);
-            var result = interpreter.Invoke(FunctionName, argValues.ToArray());
+            var result = interpreter.Invoke(FunctionName, [.. argValues]);
             return result;
         }
         catch (Exception ex)
@@ -290,7 +291,6 @@ public class FStringNode : DSExpressionNode
     {
         Fragments = fragments ?? throw new ArgumentNullException(nameof(fragments), "Fragments cannot be null.");
         EmbedExpr = embedExprs ?? throw new ArgumentNullException(nameof(embedExprs), "Embed cannot be null.");
-        Type = typeof(void);
     }
 
     public override string ToString()
@@ -362,7 +362,6 @@ public class UnaryOperationNode : DSExpressionNode
     {
         Operator = operatorSymbol;
         Operand = operand;
-        Type = typeof(void);
     }
 
     public override string ToString()
@@ -370,7 +369,7 @@ public class UnaryOperationNode : DSExpressionNode
         return $"({Operator}{Operand})";
     }
 
-    public override object Evaluate(Interpreter interpreter = null)
+    public override object Evaluate(Interpreter interpreter)
     {
         var operandValue = Operand.Evaluate(interpreter);
         switch (Operator)
@@ -422,7 +421,6 @@ public class BinaryOperationNode : DSExpressionNode
         Operator = operatorSymbol;
         Left = leftOperand;
         Right = rightOperand;
-        Type = typeof(void);
     }
 
     public override string ToString()

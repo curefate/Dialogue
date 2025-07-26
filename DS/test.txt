@@ -1,0 +1,20 @@
+label start:
+me "Hello!" @happy
+"This is a test script!"
+speaker "1 plus 1 equals {1+1} !"
+jump A
+
+label A:
+"Here is label A We are going to define some variables."
+$a = 10
+$b = $a * 2 - 3
+$boolean = $a > $b
+$hello = "Hello"
+"Let's tour to next label and check these variables!"
+tour B
+"Good Bye!"
+
+label B:
+"Aloha~ here is label B, let's use some functions!"
+"{$hello}! Don't {"forget"} you can embed function in dialogue! Like this! {call Add($a, $b)}"
+call Print($hello)
