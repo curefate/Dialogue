@@ -131,7 +131,7 @@ namespace DS.Core
     public class Interpreter : IRExecuter
     {
         public RuntimeEnv Runtime { get; private set; } = new();
-        private readonly Compiler compiler = new();
+        protected readonly Compiler compiler = new();
 
         public override void ExecuteDialogue(IR_Dialogue instruction, RuntimeEnv runtime)
         {
@@ -174,7 +174,7 @@ namespace DS.Core
             }
         }
 
-        public void Run(string filePath, string startLabel = "start")
+        public virtual void Run(string filePath, string startLabel = "start")
         {
             var script = compiler.Compile(filePath);
             if (script == null)
