@@ -1,9 +1,8 @@
 ﻿using System;
+using DS.Console;
 
 public class Program
 {
-
-
     public static void Main(string[] args)
     {
         Tester tester = new();
@@ -12,7 +11,7 @@ public class Program
         interpreter.Runtime.Functions.AddFunction<int, int, int>("Add", tester.Add);
         interpreter.Runtime.Functions.AddFunction<string>("Print", tester.Print);
 
-        interpreter.Run(@"C:\Users\curef\Desktop\DS\DS\test3.txt");
+        interpreter.Run(@"C:\Users\curef\Desktop\DS\DS\test.txt");
     }
 }
 
