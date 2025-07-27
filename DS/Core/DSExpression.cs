@@ -8,7 +8,7 @@ namespace DS.Core
 
         public DSExpressionNode Root => _root;
 
-        public DSExpression(DSExpressionNode root)
+        internal DSExpression(DSExpressionNode root)
         {
             _root = root ?? throw new ArgumentNullException(nameof(root), "Root node cannot be null.");
         }
@@ -176,7 +176,7 @@ namespace DS.Core
     {
         public object Value { get; private set; }
 
-        public ConstantNode(object value)
+        internal ConstantNode(object value)
         {
             Value = value;
             var type = value.GetType();
@@ -213,7 +213,7 @@ namespace DS.Core
     {
         public string VariableName { get; private set; }
 
-        public VariableNode(string variableName)
+        internal VariableNode(string variableName)
         {
             VariableName = variableName;
         }
@@ -241,7 +241,7 @@ namespace DS.Core
         public string FunctionName { get; private set; }
         public List<DSExpressionNode> Arguments { get; private set; }
 
-        public CallNode(string functionName, List<DSExpressionNode> arguments)
+        internal CallNode(string functionName, List<DSExpressionNode> arguments)
         {
             FunctionName = functionName ?? throw new ArgumentNullException(nameof(functionName), "Function name cannot be null.");
             Arguments = arguments;
@@ -284,7 +284,7 @@ namespace DS.Core
         public List<string> Fragments { get; private set; }
         public List<DSExpressionNode> EmbedExpr { get; private set; }
 
-        public FStringNode(List<string> fragments, List<DSExpressionNode> embedExprs)
+        internal FStringNode(List<string> fragments, List<DSExpressionNode> embedExprs)
         {
             Fragments = fragments ?? throw new ArgumentNullException(nameof(fragments), "Fragments cannot be null.");
             EmbedExpr = embedExprs ?? throw new ArgumentNullException(nameof(embedExprs), "Embed cannot be null.");
@@ -355,7 +355,7 @@ namespace DS.Core
         public UnaryOperator Operator { get; private set; }
         public DSExpressionNode Operand { get; private set; }
 
-        public UnaryOperationNode(UnaryOperator operatorSymbol, DSExpressionNode operand)
+        internal UnaryOperationNode(UnaryOperator operatorSymbol, DSExpressionNode operand)
         {
             Operator = operatorSymbol;
             Operand = operand;
@@ -413,7 +413,7 @@ namespace DS.Core
         public DSExpressionNode Left { get; private set; }
         public DSExpressionNode Right { get; private set; }
 
-        public BinaryOperationNode(BinaryOperator operatorSymbol, DSExpressionNode leftOperand, DSExpressionNode rightOperand)
+        internal BinaryOperationNode(BinaryOperator operatorSymbol, DSExpressionNode leftOperand, DSExpressionNode rightOperand)
         {
             Operator = operatorSymbol;
             Left = leftOperand;

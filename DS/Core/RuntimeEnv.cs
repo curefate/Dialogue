@@ -146,6 +146,8 @@ namespace DS.Core
 
     public class VariableRegistry
     {
+        internal VariableRegistry() { }
+
         private readonly Dictionary<string, TypedVar> variables = [];
 
         public void Clear() => variables.Clear();
@@ -194,6 +196,7 @@ namespace DS.Core
 
     public class FunctionRegistry
     {
+        internal FunctionRegistry() { }
         private readonly Dictionary<string, Delegate> functions = [];
         public void Clear() => functions.Clear();
         public void AddFunction<TResult>(string funcName, Func<TResult> func) => functions[funcName] = func;
