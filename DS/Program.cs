@@ -1,5 +1,4 @@
-﻿using System;
-using DS.Core;
+﻿using DS.Console;
 
 public class Program
 {

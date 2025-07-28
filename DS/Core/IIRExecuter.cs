@@ -1,10 +1,8 @@
 namespace DS.Core
 {
-    using System;
-
-    public abstract class IRExecuter
+    public interface IIRExecuter
     {
-        public virtual void Execute(IRInstruction instruction, RuntimeEnv runtime)
+        void Execute(IRInstruction instruction, RuntimeEnv runtime)
         {
             switch (instruction)
             {
@@ -34,11 +32,11 @@ namespace DS.Core
             }
         }
 
-        public abstract void ExecuteDialogue(IR_Dialogue instruction, RuntimeEnv runtime);
+        void ExecuteDialogue(IR_Dialogue instruction, RuntimeEnv runtime);
 
-        public abstract void ExecuteMenu(IR_Menu instruction, RuntimeEnv runtime);
+        void ExecuteMenu(IR_Menu instruction, RuntimeEnv runtime);
 
-        public virtual void ExecuteJump(IR_Jump instruction, RuntimeEnv runtime)
+        void ExecuteJump(IR_Jump instruction, RuntimeEnv runtime)
         {
             try
             {
@@ -52,7 +50,7 @@ namespace DS.Core
             }
         }
 
-        public virtual void ExecuteTour(IR_Tour instruction, RuntimeEnv runtime)
+        void ExecuteTour(IR_Tour instruction, RuntimeEnv runtime)
         {
             try
             {
@@ -65,7 +63,7 @@ namespace DS.Core
             }
         }
 
-        public virtual void ExecuteCall(IR_Call instruction, RuntimeEnv runtime)
+        void ExecuteCall(IR_Call instruction, RuntimeEnv runtime)
         {
             try
             {
@@ -81,7 +79,8 @@ namespace DS.Core
                 throw new InvalidOperationException($"Failed to call function '{instruction.FunctionName}'. {ex.Message} [Ln {instruction.LineNum}, Fp {instruction.FilePath}]", ex);
             }
         }
-        public virtual void ExecuteSet(IR_Set instruction, RuntimeEnv runtime)
+
+        void ExecuteSet(IR_Set instruction, RuntimeEnv runtime)
         {
             try
             {
@@ -103,7 +102,8 @@ namespace DS.Core
             }
 
         }
-        public virtual void ExecuteIf(IR_If instruction, RuntimeEnv runtime)
+
+        void ExecuteIf(IR_If instruction, RuntimeEnv runtime)
         {
             try
             {
@@ -124,75 +124,6 @@ namespace DS.Core
             catch (Exception ex)
             {
                 throw new InvalidOperationException($"Failed to evaluate if condition. {ex.Message} [Ln {instruction.LineNum}, Fp {instruction.FilePath}]", ex);
-            }
-        }
-    }
-
-    public class Interpreter : IRExecuter
-    {
-        public RuntimeEnv Runtime { get; private set; } = new();
-        protected readonly Compiler compiler = new();
-
-        public override void ExecuteDialogue(IR_Dialogue instruction, RuntimeEnv runtime)
-        {
-            try
-            {
-                Console.WriteLine($"{(instruction.HasSpeaker ? instruction.SpeakerName + ": " : "")}{instruction.TextNode.Evaluate(runtime)}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error executing dialogue: {ex.Message}[Ln {instruction.LineNum}, Fp {instruction.FilePath}]");
-            }
-        }
-
-        public override void ExecuteMenu(IR_Menu instruction, RuntimeEnv runtime)
-        {
-            try
-            {
-                Console.WriteLine("=====================");
-                Console.WriteLine("Menu:");
-                int index = 0;
-                foreach (var textNode in instruction.OptionTextNodes)
-                {
-                    Console.WriteLine($"{index++}: " + textNode.Evaluate(runtime));
-                }
-                Console.Write("Select an option (0-" + (instruction.OptionTextNodes.Count - 1) + "): ");
-                var input = Console.ReadLine();
-                int choice;
-                while (string.IsNullOrEmpty(input) || !int.TryParse(input, out choice) || choice < 0 || choice >= instruction.OptionTextNodes.Count)
-                {
-                    Console.Write("Invalid choice. Please enter a number between 0 and " + (instruction.OptionTextNodes.Count - 1) + ": ");
-                    input = Console.ReadLine();
-                }
-                Console.WriteLine("=====================");
-                var selectedActions = instruction.Blocks[choice];
-                runtime.Enqueue(selectedActions, true);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error executing menu: {ex.Message}[Ln {instruction.LineNum}, Fp {instruction.FilePath}]");
-            }
-        }
-
-        public virtual void Run(string filePath, string startLabel = "start")
-        {
-            var script = compiler.Compile(filePath);
-            if (script == null)
-            {
-                Console.WriteLine("Failed to compile script.");
-                return;
-            }
-
-            Runtime.ClearLabels();
-            Runtime.ClearQueue();
-            Runtime.Read(script);
-
-            Runtime.Load(startLabel);
-
-            while (Runtime.HasNext)
-            {
-                var instruction = Runtime.Pop();
-                Execute(instruction, Runtime);
             }
         }
     }
