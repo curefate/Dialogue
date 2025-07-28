@@ -167,7 +167,7 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (eventData.button == PointerEventData.InputButton.Left)
+        if (eventData.button == PointerEventData.InputButton.Left && CanHighLight && ParentBubble != null)
         {
             ParentBubble.OptionNumber = OptionNumber;
         }
