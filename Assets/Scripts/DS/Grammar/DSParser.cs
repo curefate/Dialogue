@@ -174,15 +174,15 @@ public partial class DSParser : Parser {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode COLON() { return GetToken(DSParser.COLON, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NEWLINE() { return GetToken(DSParser.NEWLINE, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode ID() { return GetToken(DSParser.ID, 0); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode[] INDENT() { return GetTokens(DSParser.INDENT); }
-		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode INDENT(int i) {
-			return GetToken(DSParser.INDENT, i);
-		}
 		[System.Diagnostics.DebuggerNonUserCode] public StatementContext[] statement() {
 			return GetRuleContexts<StatementContext>();
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public StatementContext statement(int i) {
 			return GetRuleContext<StatementContext>(i);
+		}
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode[] INDENT() { return GetTokens(DSParser.INDENT); }
+		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode INDENT(int i) {
+			return GetToken(DSParser.INDENT, i);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode[] DEDENT() { return GetTokens(DSParser.DEDENT); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode DEDENT(int i) {
@@ -217,48 +217,48 @@ public partial class DSParser : Parser {
 			Match(COLON);
 			State = 59;
 			Match(NEWLINE);
-			State = 63;
-			ErrorHandler.Sync(this);
-			_la = TokenStream.LA(1);
-			while (_la==INDENT) {
-				{
-				{
-				State = 60;
-				Match(INDENT);
-				}
-				}
-				State = 65;
-				ErrorHandler.Sync(this);
-				_la = TokenStream.LA(1);
-			}
-			State = 67;
+			State = 73;
 			ErrorHandler.Sync(this);
 			_la = TokenStream.LA(1);
 			do {
 				{
 				{
+				State = 63;
+				ErrorHandler.Sync(this);
+				_la = TokenStream.LA(1);
+				while (_la==INDENT) {
+					{
+					{
+					State = 60;
+					Match(INDENT);
+					}
+					}
+					State = 65;
+					ErrorHandler.Sync(this);
+					_la = TokenStream.LA(1);
+				}
 				State = 66;
 				statement();
-				}
-				}
-				State = 69;
+				State = 70;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
-			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & 353544527937552L) != 0) );
-			State = 74;
-			ErrorHandler.Sync(this);
-			_la = TokenStream.LA(1);
-			while (_la==DEDENT) {
-				{
-				{
-				State = 71;
-				Match(DEDENT);
+				while (_la==DEDENT) {
+					{
+					{
+					State = 67;
+					Match(DEDENT);
+					}
+					}
+					State = 72;
+					ErrorHandler.Sync(this);
+					_la = TokenStream.LA(1);
 				}
 				}
-				State = 76;
+				}
+				State = 75;
 				ErrorHandler.Sync(this);
 				_la = TokenStream.LA(1);
-			}
+			} while ( (((_la) & ~0x3f) == 0 && ((1L << _la) & 353544527937554L) != 0) );
 			}
 		}
 		catch (RecognitionException re) {
@@ -1913,8 +1913,8 @@ public partial class DSParser : Parser {
 		7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,2,14,7,14,
 		2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,2,20,7,20,2,21,7,21,
 		2,22,7,22,2,23,7,23,1,0,5,0,50,8,0,10,0,12,0,53,9,0,1,0,1,0,1,1,1,1,1,
-		1,1,1,1,1,5,1,62,8,1,10,1,12,1,65,9,1,1,1,4,1,68,8,1,11,1,12,1,69,1,1,
-		5,1,73,8,1,10,1,12,1,76,9,1,1,2,1,2,1,2,1,2,1,2,1,2,1,2,3,2,85,8,2,1,3,
+		1,1,1,1,1,5,1,62,8,1,10,1,12,1,65,9,1,1,1,1,1,5,1,69,8,1,10,1,12,1,72,
+		9,1,4,1,74,8,1,11,1,12,1,75,1,2,1,2,1,2,1,2,1,2,1,2,1,2,3,2,85,8,2,1,3,
 		3,3,88,8,3,1,3,1,3,5,3,92,8,3,10,3,12,3,95,9,3,1,3,1,3,1,4,4,4,100,8,4,
 		11,4,12,4,101,1,5,1,5,1,5,1,5,1,5,1,6,1,6,1,6,1,6,1,7,1,7,1,7,1,7,1,8,
 		1,8,1,8,1,8,1,8,1,8,5,8,123,8,8,10,8,12,8,126,9,8,3,8,128,8,8,1,8,1,8,
@@ -1939,11 +1939,11 @@ public partial class DSParser : Parser {
 		1,0,0,0,36,221,1,0,0,0,38,228,1,0,0,0,40,230,1,0,0,0,42,248,1,0,0,0,44,
 		262,1,0,0,0,46,272,1,0,0,0,48,50,3,2,1,0,49,48,1,0,0,0,50,53,1,0,0,0,51,
 		49,1,0,0,0,51,52,1,0,0,0,52,54,1,0,0,0,53,51,1,0,0,0,54,55,5,0,0,1,55,
-		1,1,0,0,0,56,57,5,41,0,0,57,58,5,46,0,0,58,59,5,32,0,0,59,63,5,53,0,0,
+		1,1,0,0,0,56,57,5,41,0,0,57,58,5,46,0,0,58,59,5,32,0,0,59,73,5,53,0,0,
 		60,62,5,1,0,0,61,60,1,0,0,0,62,65,1,0,0,0,63,61,1,0,0,0,63,64,1,0,0,0,
-		64,67,1,0,0,0,65,63,1,0,0,0,66,68,3,4,2,0,67,66,1,0,0,0,68,69,1,0,0,0,
-		69,67,1,0,0,0,69,70,1,0,0,0,70,74,1,0,0,0,71,73,5,2,0,0,72,71,1,0,0,0,
-		73,76,1,0,0,0,74,72,1,0,0,0,74,75,1,0,0,0,75,3,1,0,0,0,76,74,1,0,0,0,77,
+		64,66,1,0,0,0,65,63,1,0,0,0,66,70,3,4,2,0,67,69,5,2,0,0,68,67,1,0,0,0,
+		69,72,1,0,0,0,70,68,1,0,0,0,70,71,1,0,0,0,71,74,1,0,0,0,72,70,1,0,0,0,
+		73,63,1,0,0,0,74,75,1,0,0,0,75,73,1,0,0,0,75,76,1,0,0,0,76,3,1,0,0,0,77,
 		85,3,6,3,0,78,85,3,8,4,0,79,85,3,12,6,0,80,85,3,14,7,0,81,85,3,16,8,0,
 		82,85,3,18,9,0,83,85,3,20,10,0,84,77,1,0,0,0,84,78,1,0,0,0,84,79,1,0,0,
 		0,84,80,1,0,0,0,84,81,1,0,0,0,84,82,1,0,0,0,84,83,1,0,0,0,85,5,1,0,0,0,
@@ -1996,7 +1996,7 @@ public partial class DSParser : Parser {
 		43,1,0,0,0,262,267,5,4,0,0,263,266,3,46,23,0,264,266,3,38,19,0,265,263,
 		1,0,0,0,265,264,1,0,0,0,266,269,1,0,0,0,267,265,1,0,0,0,267,268,1,0,0,
 		0,268,270,1,0,0,0,269,267,1,0,0,0,270,271,5,7,0,0,271,45,1,0,0,0,272,273,
-		7,6,0,0,273,47,1,0,0,0,28,51,63,69,74,84,87,93,101,124,127,150,157,164,
+		7,6,0,0,273,47,1,0,0,0,28,51,63,70,75,84,87,93,101,124,127,150,157,164,
 		172,180,188,196,204,208,221,228,239,242,250,255,260,265,267
 	};
 

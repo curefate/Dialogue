@@ -14,7 +14,6 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
 
     private Color _color = Color.white;
 
-    public GameObject FollowTarget;
     public int MaxHorizontalPadding = 300;
     public int MinHorizontalPadding = 100;
     public int MaxVerticalPadding = 300;
@@ -23,14 +22,18 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     public Color SelectedColor = Color.yellow;
     public bool CanHighLight = false;
     public bool SubOnTop = false;
-
+    public bool Hide = false;
+    public float FadeOutDuration = 0.5f;
     public List<ChatBubble> SubBubbles = new();
 
-    public bool IsAllPushed { get; private set; } = false;
+    public bool IsAllPushed => _textQueue.Count == 0;
     [HideInInspector]
     public int OptionNumber = -1;
     [HideInInspector]
     public ChatBubble ParentBubble;
+    private Queue<string> _textQueue = new();
+    private bool _isPushing = false;
+    private bool _isHided = false;
 
 
 
@@ -96,15 +99,28 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
             }
         }
 
-        // Follow target
-        if (FollowTarget != null)
+        // Push text
+        if (_textQueue.Count > 0 && !_isPushing)
         {
-            Vector2 pos = WorldToCanvasPosition(FollowTarget.transform.position);
-            GetComponent<RectTransform>().anchoredPosition = Vector2.Lerp(
-                GetComponent<RectTransform>().anchoredPosition,
-                pos,
-                Time.deltaTime * 10
-            );
+            string text = _textQueue.Dequeue();
+            StartCoroutine(PushTextCoroutine(text));
+        }
+
+        // Hide
+        if (Hide)
+        {
+            var duration = Mathf.Max(0.1f, FadeOutDuration);
+            if (!_isHided)
+            {
+                StartCoroutine(FadeCoroutine(duration));
+            }
+        }
+        else
+        {
+            _isHided = false;
+            float alpha = 1;
+            bubbleImage.color = new Color(bubbleImage.color.r, bubbleImage.color.g, bubbleImage.color.b, alpha);
+            bubbleText.color = new Color(bubbleText.color.r, bubbleText.color.g, bubbleText.color.b, alpha);
         }
     }
 
@@ -115,7 +131,7 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
 
     public void PushText(string text)
     {
-        StartCoroutine(PushTextCoroutine(text));
+        _textQueue.Enqueue(text);
     }
 
     public void SetText(string text)
@@ -125,25 +141,19 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
 
     private IEnumerator PushTextCoroutine(string text)
     {
-        IsAllPushed = false;
+        _isPushing = true;
         foreach (char c in text)
         {
             bubbleText.text += c;
             yield return new WaitForSeconds(0.05f); // Adjust the delay as needed
         }
-        IsAllPushed = true;
-    }
-
-    public void FadeOut(float duration = 0.5f)
-    {
-        duration = Mathf.Max(0.1f, duration);
-        StartCoroutine(FadeCoroutine(duration));
+        _isPushing = false;
     }
 
     private IEnumerator FadeCoroutine(float duration)
     {
+        _isHided = true;
         float elapsed = 0f;
-
         Color originalColor = bubbleImage.color;
         while (elapsed < duration)
         {
@@ -153,13 +163,6 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
             elapsed += Time.deltaTime;
             yield return null;
         }
-    }
-
-    public void ShowIn()
-    {
-        float alpha = 1;
-        bubbleImage.color = new Color(bubbleImage.color.r, bubbleImage.color.g, bubbleImage.color.b, alpha);
-        bubbleText.color = new Color(bubbleText.color.r, bubbleText.color.g, bubbleText.color.b, alpha);
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -184,27 +187,5 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         {
             _color = OriginColor;
         }
-    }
-
-    private Vector2 WorldToCanvasPosition(Vector3 worldPosition)
-    {
-        var camera = Camera.main;
-        Vector3 screenPosition = camera.WorldToScreenPoint(worldPosition);
-        var canvasRectTransform = GetComponent<RectTransform>();//
-        Vector2 canvasSize = canvasRectTransform.rect.size; // 获取Canvas的大小（宽度和高度）
-        Vector2 screenSize = new(Screen.width, Screen.height); // 获取屏幕大小
-
-        // 转换为Canvas的百分比坐标（如果Canvas设置为百分比模式）
-        Vector2 canvasPercentPosition = new Vector2(
-            (screenPosition.x / Screen.width) * canvasSize.x,
-            (screenPosition.y / Screen.height) * canvasSize.y
-        );
-
-        // 或者转换为Canvas的像素坐标（如果Canvas设置为像素模式）
-        Vector2 canvasPixelPosition = new Vector2(
-            screenPosition.x - (Screen.width - canvasSize.x) / 2,
-            screenPosition.y - (Screen.height - canvasSize.y) / 2
-        );
-        return canvasPixelPosition; // 返回像素坐标
     }
 }
