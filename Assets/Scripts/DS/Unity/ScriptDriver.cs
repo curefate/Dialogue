@@ -2,6 +2,7 @@ using UnityEngine;
 using DS.Core;
 using System;
 using System.Collections;
+using Mono.Cecil.Cil;
 
 public class ScriptDriver : MonoBehaviour, IIRExecuter
 {
@@ -16,11 +17,10 @@ public class ScriptDriver : MonoBehaviour, IIRExecuter
     public RuntimeEnv Runtime { get; private set; } = new();
     protected readonly Compiler compiler = new();
     private IIRExecuter Executer => this;
-    private WaitState waitState = WaitState.None;
     private bool _isRun = false;
     private bool _readyForNext = true;
     private float _waitingTime = 0;
-    private IR_Menu _currentMenu = null;
+    private IRInstruction _currentInst = null;
 
     void Awake()
     {
@@ -54,6 +54,10 @@ public class ScriptDriver : MonoBehaviour, IIRExecuter
                 if (Runtime.HasNext)
                 {
                     var instruction = Runtime.Pop();
+                    if (instruction is IR_Dialogue || instruction is IR_Menu)
+                    {
+                        _currentInst = instruction;
+                    }
                     Executer.Execute(instruction, Runtime);
                 }
                 else
@@ -80,7 +84,6 @@ public class ScriptDriver : MonoBehaviour, IIRExecuter
             DialogueBubble.Hide = false;
             DialogueBubble.SetText(instruction.SpeakerName + ": \n\t");
             PushFstringNodeToBubble(instruction.TextNode, DialogueBubble, runtime);
-            waitState = WaitState.WaitDialogue;
         }
         else
         {
@@ -88,19 +91,21 @@ public class ScriptDriver : MonoBehaviour, IIRExecuter
             NarratorBubble.Clear();
             NarratorBubble.Hide = false;
             PushFstringNodeToBubble(instruction.TextNode, NarratorBubble, runtime);
-            waitState = WaitState.WaitDialogue;
         }
     }
 
     private void PostDialogue()
     {
-        if (!_readyForNext && waitState == WaitState.WaitDialogue && DialogueBubble.IsAllPushed && NarratorBubble.IsAllPushed)
+        if (!_readyForNext && DialogueBubble.IsAllPushed && NarratorBubble.IsAllPushed && _currentInst is IR_Dialogue)
         {
-            if (ClickToContinue)
+            if (Runtime.HasNext && Runtime.LA(0) is IR_Menu)
+            {
+                _readyForNext = true;
+            }
+            else if (ClickToContinue)
             {
                 if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
                 {
-                    waitState = WaitState.None;
                     _readyForNext = true;
                 }
             }
@@ -109,7 +114,6 @@ public class ScriptDriver : MonoBehaviour, IIRExecuter
                 _waitingTime += Time.deltaTime;
                 if (_waitingTime > WaitingTime)
                 {
-                    waitState = WaitState.None;
                     _waitingTime = 0;
                     _readyForNext = true;
                 }
@@ -120,7 +124,6 @@ public class ScriptDriver : MonoBehaviour, IIRExecuter
     public void ExecuteMenu(IR_Menu instruction, RuntimeEnv runtime)
     {
         _readyForNext = false;
-        _currentMenu = instruction;
         ChatBubble currentBubble;
         if (!DialogueBubble.Hide)
         {
@@ -134,7 +137,7 @@ public class ScriptDriver : MonoBehaviour, IIRExecuter
         int index = 0;
         foreach (var option in instruction.OptionTextNodes)
         {
-            var optionBubble = Instantiate(OptionBubblePrefab, currentBubble.transform);
+            var optionBubble = Instantiate(OptionBubblePrefab, currentBubble.transform.parent);
             var chatBubble = optionBubble.GetComponent<ChatBubble>();
             chatBubble.Clear();
             chatBubble.SetText(Convert.ToString(option.Evaluate(runtime)));
@@ -149,16 +152,9 @@ public class ScriptDriver : MonoBehaviour, IIRExecuter
 
     public void SelectOption(int choice)
     {
-        if (_currentMenu == null)
+        if (!_readyForNext && _currentInst is IR_Menu menu)
         {
-            Debug.LogError("No current menu to select option from.");
-            return;
-        }
-
-        if (!_readyForNext)
-        {
-            Debug.Log($"Selected option {choice} from the current menu: {_currentMenu}");
-            var block = _currentMenu.Blocks[choice];
+            var block = menu.Blocks[choice];
             if (block == null)
             {
                 Debug.LogError($"No block found for choice {choice} in the current menu.");
@@ -167,14 +163,15 @@ public class ScriptDriver : MonoBehaviour, IIRExecuter
 
             foreach (var sub in DialogueBubble.SubBubbles)
             {
-                sub.Hide = true;
-                Destroy(sub.gameObject, 2f);
+                sub.gameObject.SetActive(false);
+                StartCoroutine(CorDestroy(sub.gameObject, 1f));
             }
             DialogueBubble.SubBubbles.Clear();
             foreach (var sub in NarratorBubble.SubBubbles)
             {
-                sub.Hide = true;
-                Destroy(sub.gameObject, 2f);
+                sub.gameObject.SetActive(false);
+                StartCoroutine(CorDestroy(sub.gameObject, 1f));
+
             }
             NarratorBubble.SubBubbles.Clear();
 
@@ -239,10 +236,10 @@ public class ScriptDriver : MonoBehaviour, IIRExecuter
         }
     }
 
-    private enum WaitState
+    public IEnumerator CorDestroy(GameObject obj, float delay = 1f)
     {
-        None,
-        WaitDialogue,
+        yield return new WaitForSeconds(delay);
+        Destroy(obj);
     }
 
     public int Add(int a, int b)

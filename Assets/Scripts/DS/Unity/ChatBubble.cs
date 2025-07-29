@@ -170,7 +170,7 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (eventData.button == PointerEventData.InputButton.Left && CanSelected)
+        if (eventData.button == PointerEventData.InputButton.Left && CanSelected && !Hide)
         {
             if (OptionNumber >= 0 && OnOptionSelected != null)
             {
