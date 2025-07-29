@@ -34,7 +34,7 @@ The basic dialogue scentence is looks like:
 
 ```"Hi, nice to meet you."```
 
-To add a spaeker for this statement to make it more like a conversation, just add the speaker's name above.
+To add a speaker for this statement to make it more like a conversation, just add the speaker's name above.
 
 ```Amy "Hi, nice to meet you."```
 
@@ -98,13 +98,13 @@ $bool = a > b
 $myname = "Amy"
 ```
 
-Variabels can be embed in string by using `{}`, in this case they will be convert to string automatically.
+Variables can be embed in string by using `{}`, in this case they will be convert to string automatically.
 
 ```
 Amy "My name is {$Amy}!"
 ```
 
-You can access these variabels by `RuntimeEnv.Variables.Get(string varName)`.
+You can access these variables by `RuntimeEnv.Variables.Get(string varName)`.
 
 ### Call Statement
 
@@ -124,6 +124,8 @@ $a = 10
 ```
 
 The called function must be registered in the registry, use `RuntimeEnv.Functions.AddFunction(string FuncName, Delegate delegate)` to regist.
+
+For above case, use `RuntimeEnv.Functions.AddFunction<int, int, int>("Pow", (Func<double, double>)(x => x * x))`.
 
 ### If Statement
 
