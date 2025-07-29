@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -12,7 +13,6 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     [SerializeField]
     private TextMeshProUGUI bubbleText;
 
-    private Color _color = Color.white;
 
     public int MaxHorizontalPadding = 300;
     public int MinHorizontalPadding = 100;
@@ -20,20 +20,23 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
     public int MinVerticalPadding = 100;
     public Color OriginColor = Color.white;
     public Color SelectedColor = Color.yellow;
-    public bool CanHighLight = false;
+    public bool CanSelected = false;
     public bool SubOnTop = false;
     public bool Hide = false;
     public float FadeOutDuration = 0.5f;
     public List<ChatBubble> SubBubbles = new();
 
-    public bool IsAllPushed => _textQueue.Count == 0;
+
+    public bool IsAllPushed => _textQueue.Count == 0 && !_isPushing;
     [HideInInspector]
     public int OptionNumber = -1;
     [HideInInspector]
-    public ChatBubble ParentBubble;
     private Queue<string> _textQueue = new();
     private bool _isPushing = false;
     private bool _isHided = false;
+    private Color _color = Color.white;
+    [HideInInspector]
+    public Action<int> OnOptionSelected;
 
 
 
@@ -67,7 +70,7 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         bubbleText.rectTransform.sizeDelta = Vector2.Lerp(bubbleText.rectTransform.sizeDelta, bubbleSize, Time.deltaTime * 15);
 
         // HighLight
-        if (CanHighLight)
+        if (CanSelected)
         {
             bubbleImage.color = Color.Lerp(bubbleImage.color, _color, Time.deltaTime * 10);
         }
@@ -145,7 +148,7 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
         foreach (char c in text)
         {
             bubbleText.text += c;
-            yield return new WaitForSeconds(0.05f); // Adjust the delay as needed
+            yield return new WaitForSeconds(0.03f); // Adjust the delay as needed
         }
         _isPushing = false;
     }
@@ -167,15 +170,22 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (eventData.button == PointerEventData.InputButton.Left && CanHighLight && ParentBubble != null)
+        if (eventData.button == PointerEventData.InputButton.Left && CanSelected)
         {
-            ParentBubble.OptionNumber = OptionNumber;
+            if (OptionNumber >= 0 && OnOptionSelected != null)
+            {
+                OnOptionSelected.Invoke(OptionNumber);
+            }
+            else
+            {
+                throw new InvalidOperationException("OptionNumber is not set or OnOptionSelected is null.");
+            }
         }
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (CanHighLight)
+        if (CanSelected)
         {
             _color = SelectedColor;
         }
@@ -183,7 +193,7 @@ public class ChatBubble : MonoBehaviour, IPointerClickHandler, IPointerEnterHand
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (CanHighLight)
+        if (CanSelected)
         {
             _color = OriginColor;
         }
