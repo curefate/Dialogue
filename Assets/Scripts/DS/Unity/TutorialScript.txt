@@ -23,4 +23,4 @@ label win:
 MrCube "{call SetCubeState(2)}{call Emit()}Not bad young person!"
 
 label lose:
-MrCube "HAHA!{call SetCubeState(2)} Be humble young person, the answer is {call Mult($a, $b)}"
+MrCube "HAHAHAHAHAHA!!!{call SetCubeState(2)} Be humble young person, the answer is {call Mult($a, $b)}"
