@@ -473,7 +473,7 @@ namespace DS.Core
                     }
                     else
                     {
-                        throw new NotSupportedException($"Unsupported embedded expression: {embeddedExpr.GetText()}");
+                        throw new NotSupportedException($"Unsupported embedded expression: {embeddedExpr.GetText()}[Ln {embeddedExpr.Start.Line}]");
                     }
                     fragments.Add(FStringNode.EmbedSign);
                 }

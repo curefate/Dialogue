@@ -4,7 +4,7 @@ using System;
 using System.Collections;
 using Mono.Cecil.Cil;
 
-public class ScriptDriver : MonoBehaviour, IIRExecuter
+public class TutorialDriver : MonoBehaviour, IIRExecuter
 {
     public string FilePath;
     public string StartLabel = "start";
@@ -13,6 +13,9 @@ public class ScriptDriver : MonoBehaviour, IIRExecuter
     public ChatBubble DialogueBubble;
     public ChatBubble NarratorBubble;
     public GameObject OptionBubblePrefab;
+
+    public GameObject MrCube;
+    public ParticleSystem[] particles;
 
     public RuntimeEnv Runtime { get; private set; } = new();
     protected readonly Compiler compiler = new();
@@ -38,8 +41,10 @@ public class ScriptDriver : MonoBehaviour, IIRExecuter
         {
             Debug.LogError("OptionBubblePrefab is not assigned and could not be found in the scene.");
         }
-        Runtime.Functions.AddFunction<int, int, int>("Add", Add);
-        Runtime.Functions.AddFunction<string>("Print", Print);
+        Runtime.Functions.AddFunction<int>("SetCubeState", SetCubeState);
+        Runtime.Functions.AddFunction("Emit", Emit);
+        Runtime.Functions.AddFunction<int, int, int>("Mult", Mult);
+        Runtime.Functions.AddFunction("RandInt", RandInt);
     }
 
     void Update()
@@ -82,6 +87,10 @@ public class ScriptDriver : MonoBehaviour, IIRExecuter
             NarratorBubble.Hide = true;
             DialogueBubble.Clear();
             DialogueBubble.Hide = false;
+            if (instruction.SpeakerName == "MrCube")
+            {
+                SetCubeState(1);
+            }
             DialogueBubble.SetText(instruction.SpeakerName + ": \n\t");
             PushFstringNodeToBubble(instruction.TextNode, DialogueBubble, runtime);
         }
@@ -118,6 +127,7 @@ public class ScriptDriver : MonoBehaviour, IIRExecuter
                     _readyForNext = true;
                 }
             }
+            SetCubeState(0);
         }
     }
 
@@ -242,13 +252,39 @@ public class ScriptDriver : MonoBehaviour, IIRExecuter
         Destroy(obj);
     }
 
-    public int Add(int a, int b)
+    public int Mult(int a, int b)
     {
-        return a + b;
+        return a * b;
     }
 
-    public void Print(string message)
+    public void SetCubeState(int state)
     {
-        Debug.Log(message);
+        if (MrCube != null)
+        {
+            var animator = MrCube.GetComponent<Animator>();
+            if (animator != null)
+            {
+                animator.SetInteger("state", state);
+            }
+        }
+    }
+
+    public void Emit()
+    {
+        if (particles != null)
+        {
+            foreach (var particle in particles)
+            {
+                if (particle != null)
+                {
+                    particle.Play();
+                }
+            }
+        }
+    }
+
+    public int RandInt()
+    {
+        return UnityEngine.Random.Range(-100, 100);
     }
 }

@@ -1,0 +1,26 @@
+label start:
+"Welcome to tutorial!"
+MrCube "Hello, I'm MrCube, the smartest cube in the world!"
+MrCube "..."
+MrCube "Looks like you don't believe me..."
+"Yes":
+    jump quiz
+"No":
+    MrCube "OHOHO, Goodbye kid!"
+
+label quiz:
+MrCube "Okay... You think you can be smarter than me?"
+$a = {call RandInt()}
+$b = {call RandInt()}
+$answer = $a * $b
+MrCube "How about this: {$a} * {$b} = ?\n\t Can you answer this!?"
+"{$answer}":
+    jump win
+"I don't know...":
+    jump lose
+
+label win:
+MrCube "{call SetCubeState(2)}{call Emit()}Not bad young person!"
+
+label lose:
+MrCube "HAHA!{call SetCubeState(2)} Be humble young person, the answer is {call Mult($a, $b)}"
