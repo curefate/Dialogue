@@ -2,7 +2,7 @@ namespace DS.Core
 {
     using Antlr4.Runtime;
     using Antlr4.Runtime.Misc;
-    
+
     public class Compiler
     {
         private readonly InstructionBuilder _instructionBuilder = new();
@@ -71,7 +71,8 @@ namespace DS.Core
                 LineNum = context.Start.Line,
                 FilePath = context.Start.InputStream.SourceName,
                 SpeakerName = context.ID()?.GetText() ?? string.Empty,
-                TextNode = _expressionBuilder.Visit(context.text).Root as FStringNode ?? throw new ArgumentException("Dialogue text cannot be null."),
+                TextNode = _expressionBuilder.Visit(context.text).Root as FStringNode
+    ?? throw new ArgumentException($"Dialogue text cannot be null. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]"),
             };
             foreach (var tag in context._tags)
             {
@@ -87,11 +88,14 @@ namespace DS.Core
                 LineNum = context.Start.Line,
                 FilePath = context.Start.InputStream.SourceName,
             };
-            var options = context._options ?? throw new ArgumentException("Menu options cannot be null.");
+            var options = context._options
+    ?? throw new ArgumentException($"Menu options cannot be null. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
             foreach (var option in options)
             {
-                inst.OptionTextNodes.Add(_expressionBuilder.Visit(option.text).Root as FStringNode ?? throw new ArgumentException("Menu option text cannot be null."));
-                var block = option.block() ?? throw new ArgumentException("Menu option block cannot be null.");
+                inst.OptionTextNodes.Add(_expressionBuilder.Visit(option.text).Root as FStringNode
+    ?? throw new ArgumentException($"Menu option text cannot be null. [Ln: {option.Start.Line}, Fp: {option.Start.InputStream.SourceName}]"));
+                var block = option.block()
+    ?? throw new ArgumentException($"Menu option block cannot be null. [Ln: {option.Start.Line}, Fp: {option.Start.InputStream.SourceName}]");
                 var actions = new List<IRInstruction>();
                 foreach (var stmt in block.statement())
                 {
@@ -136,14 +140,16 @@ namespace DS.Core
                 FilePath = context.Start.InputStream.SourceName,
                 FunctionName = context.func_name.Text
             };
-            var args = context._args ?? throw new ArgumentException("Call arguments cannot be null.");
+            var args = context._args
+    ?? throw new ArgumentException($"Call arguments cannot be null. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
             foreach (var arg in args)
             {
                 if (arg == null)
                 {
-                    throw new ArgumentException("Call argument expression cannot be null.");
+                    throw new ArgumentException($"Call argument expression cannot be null. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
                 }
-                var expr = _expressionBuilder.Visit(arg) ?? throw new ArgumentException("Call argument expression cannot be null.");
+                var expr = _expressionBuilder.Visit(arg)
+    ?? throw new ArgumentException($"Call argument expression cannot be null. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
                 inst.Arguments.Add(expr);
             }
             return inst;
@@ -380,7 +386,7 @@ namespace DS.Core
             }
             else
             {
-                throw new NotSupportedException($"Unsupported expression: {context.GetText()}");
+                throw new NotSupportedException($"Unsupported expression: {context.GetText()}. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
             }
         }
 
@@ -448,13 +454,13 @@ namespace DS.Core
                                 fragments.Add("}");
                                 break;
                             default:
-                                throw new NotSupportedException($"Unsupported string escape: {stringFragment.GetText()}");
+                                throw new NotSupportedException($"Unsupported string escape: {stringFragment.GetText()}. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
                         }
 
                     }
                     else
                     {
-                        throw new NotSupportedException($"Unsupported string fragment: {stringFragment.GetText()}");
+                        throw new NotSupportedException($"Unsupported string fragment: {stringFragment.GetText()}. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
                     }
                 }
                 else if (child is DSParser.Embedded_exprContext embeddedExpr)
@@ -469,7 +475,7 @@ namespace DS.Core
                     }
                     else
                     {
-                        throw new NotSupportedException($"Unsupported embedded expression: {embeddedExpr.GetText()}");
+                        throw new NotSupportedException($"Unsupported embedded expression: {embeddedExpr.GetText()}. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
                     }
                     fragments.Add(FStringNode.EmbedSign);
                 }

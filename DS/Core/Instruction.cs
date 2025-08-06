@@ -32,23 +32,6 @@ namespace DS.Core
         internal IR_Menu() { }
         public List<FStringNode> OptionTextNodes { get; private set; } = [];
         public List<List<IRInstruction>> Blocks { get; private set; } = [];
-        /* public override void Execute(Interpreter interpreter)
-        {
-            var choice = interpreter.OnMenu?.Invoke(this);
-            if (choice.HasValue && choice.Value >= 0 && choice.Value < Blocks.Count)
-            {
-                var selectedActions = Blocks[choice.Value];
-                for (int i = selectedActions.Count - 1; i >= 0; i--)
-                {
-                    var instruction = selectedActions[i];
-                    interpreter.RunningQueue.AddFirst(instruction);
-                }
-            }
-            else
-            {
-                throw new InvalidOperationException($"Invalid menu choice.[Ln {LineNum},Fp {FilePath}]");
-            }
-        } */
     }
 
     public class IR_Jump : IRInstruction

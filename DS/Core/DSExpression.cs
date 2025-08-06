@@ -264,16 +264,9 @@ namespace DS.Core
             {
                 argValues.Add(arg.Evaluate(runtime));
             }
-            try
-            {
-                Type = runtime.Functions.GetDelegate(FunctionName)?.Method.ReturnType ?? typeof(void);
-                var result = runtime.Functions.Invoke(FunctionName, [.. argValues]);
-                return result;
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error calling function '{FunctionName}': {ex.Message}", ex);
-            }
+            Type = runtime.Functions.GetDelegate(FunctionName)?.Method.ReturnType ?? typeof(void);
+            var result = runtime.Functions.Invoke(FunctionName, [.. argValues]);
+            return result ?? null!;
         }
     }
 
