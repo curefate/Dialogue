@@ -50,6 +50,12 @@ public interface IDSParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitStatement([NotNull] DSParser.StatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.import_stmt"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitImport_stmt([NotNull] DSParser.Import_stmtContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="DSParser.dialogue_stmt"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -175,4 +181,10 @@ public interface IDSParserVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitString_fragment([NotNull] DSParser.String_fragmentContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DSParser.condition"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCondition([NotNull] DSParser.ConditionContext context);
 }

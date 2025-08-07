@@ -7,10 +7,10 @@ public class Program
         Tester tester = new();
         Interpreter interpreter = new();
 
-        interpreter.Runtime.Functions.AddFunction<int, int, int>("Add", tester.Add);
-        interpreter.Runtime.Functions.AddFunction<string>("Print", tester.Print);
+        interpreter.Runtime.Functions.AddFunction<int, int, int>(tester.Add);
+        interpreter.Runtime.Functions.AddFunction<string>(tester.Print);
 
-        interpreter.Run(@"C:\Users\curef\Desktop\DS\DS\test.txt");
+        interpreter.Run(@"C:\Users\curef\Desktop\DS\DS\test4.txt", "a");
     }
 }
 

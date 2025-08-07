@@ -28,7 +28,7 @@ namespace DS.Core
                     ExecuteIf(ifInstruction, runtime);
                     break;
                 default:
-                    throw new NotSupportedException($"Unsupported instruction type: {instruction.GetType().Name}");
+                    throw new NotSupportedException($"(Runtime Error) Unsupported instruction type: {instruction.GetType().Name}");
             }
         }
 
@@ -46,7 +46,7 @@ namespace DS.Core
             }
             catch (KeyNotFoundException)
             {
-                throw new KeyNotFoundException($"Label '{instruction.TargetLabel}' not found.[Ln {instruction.LineNum}, Fp {instruction.FilePath}]");
+                throw new KeyNotFoundException($"(Runtime Error) Label '{instruction.TargetLabel}' not found.[Ln {instruction.LineNum}, Fp {instruction.FilePath}]");
             }
         }
 
@@ -59,7 +59,7 @@ namespace DS.Core
             }
             catch (KeyNotFoundException)
             {
-                throw new KeyNotFoundException($"Label '{instruction.TargetLabel}' not found.[Ln {instruction.LineNum}, Fp {instruction.FilePath}]");
+                throw new KeyNotFoundException($"(Runtime Error) Label '{instruction.TargetLabel}' not found.[Ln {instruction.LineNum}, Fp {instruction.FilePath}]");
             }
         }
 
@@ -72,11 +72,11 @@ namespace DS.Core
             }
             catch (KeyNotFoundException)
             {
-                throw new KeyNotFoundException($"Function '{instruction.FunctionName}' not found.[Ln {instruction.LineNum}, Fp {instruction.FilePath}]");
+                throw new KeyNotFoundException($"(Runtime Error) Function '{instruction.FunctionName}' not found.[Ln {instruction.LineNum}, Fp {instruction.FilePath}]");
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to call function '{instruction.FunctionName}'. {ex.Message} [Ln {instruction.LineNum}, Fp {instruction.FilePath}]", ex);
+                throw new InvalidOperationException($"(Runtime Error) Failed to call function '{instruction.FunctionName}'. {ex.Message} [Ln {instruction.LineNum}, Fp {instruction.FilePath}]", ex);
             }
         }
 
@@ -93,12 +93,12 @@ namespace DS.Core
                         return;
                     // TODO ADD +=, -=, etc.
                     default:
-                        throw new NotSupportedException($"Symbol '{symbol}' is not supported.");
+                        throw new NotSupportedException($"(Runtime Error) Symbol '{symbol}' is not supported.");
                 }
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to set variable '{instruction.VariableName}' with symbol '{instruction.Symbol}'. {ex.Message} [Ln {instruction.LineNum}, Fp {instruction.FilePath}]", ex);
+                throw new InvalidOperationException($"(Runtime Error) Failed to set variable '{instruction.VariableName}' with symbol '{instruction.Symbol}'. {ex.Message} [Ln {instruction.LineNum}, Fp {instruction.FilePath}]", ex);
             }
 
         }
@@ -110,7 +110,7 @@ namespace DS.Core
                 var conditionResult = instruction.Condition.Evaluate(runtime);
                 if (conditionResult == null || conditionResult is not bool)
                 {
-                    throw new InvalidOperationException($"Condition must evaluate to a boolean value.");
+                    throw new InvalidOperationException($"(Runtime Error) Condition must evaluate to a boolean value.");
                 }
                 if ((bool)conditionResult)
                 {
@@ -123,7 +123,7 @@ namespace DS.Core
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to evaluate if condition. {ex.Message} [Ln {instruction.LineNum}, Fp {instruction.FilePath}]", ex);
+                throw new InvalidOperationException($"(Runtime Error) Failed to evaluate if condition. {ex.Message} [Ln {instruction.LineNum}, Fp {instruction.FilePath}]", ex);
             }
         }
     }

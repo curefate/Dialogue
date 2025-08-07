@@ -1,0 +1,5 @@
+import DS/test5.txt
+
+label a:
+"这里是a"
+jump b

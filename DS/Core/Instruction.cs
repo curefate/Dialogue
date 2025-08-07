@@ -25,6 +25,11 @@ namespace DS.Core
         public required string SpeakerName { get; init; }
         public required FStringNode TextNode { get; init; }
         public List<string> Tags { get; private set; } = [];
+
+        public override string ToString()
+        {
+            return $"{(HasSpeaker ? SpeakerName + ": " : "")}{TextNode}";
+        }
     }
 
     public class IR_Menu : IRInstruction
@@ -32,18 +37,42 @@ namespace DS.Core
         internal IR_Menu() { }
         public List<FStringNode> OptionTextNodes { get; private set; } = [];
         public List<List<IRInstruction>> Blocks { get; private set; } = [];
+
+        public override string ToString()
+        {
+            System.Text.StringBuilder sb = new();
+            for (int i = 0; i < OptionTextNodes.Count; i++)
+            {
+                sb.AppendLine($"{i + 1}. {OptionTextNodes[i]}:");
+                foreach (var instr in Blocks[i])
+                {
+                    sb.AppendLine($"    {instr}");
+                }
+            }
+            return sb.ToString();
+        }
     }
 
     public class IR_Jump : IRInstruction
     {
         internal IR_Jump() { }
         public required string TargetLabel { get; init; }
+
+        public override string ToString()
+        {
+            return $"Jump to {TargetLabel}";
+        }
     }
 
     public class IR_Tour : IRInstruction
     {
         internal IR_Tour() { }
         public required string TargetLabel { get; init; }
+
+        public override string ToString()
+        {
+            return $"Tour to {TargetLabel}";
+        }
     }
 
     public class IR_Call : IRInstruction
@@ -51,6 +80,11 @@ namespace DS.Core
         internal IR_Call() { }
         public required string FunctionName { get; init; }
         public List<DSExpression> Arguments { get; private set; } = [];
+
+        public override string ToString()
+        {
+            return $"Call {FunctionName}({string.Join(", ", Arguments)})";
+        }
     }
 
     public class IR_Set : IRInstruction
@@ -59,6 +93,11 @@ namespace DS.Core
         public required string VariableName { get; init; }
         public required string Symbol { get; init; } // Could be '=', '+=', '-=', etc.
         public required DSExpression Value { get; init; }
+
+        public override string ToString()
+        {
+            return $"{VariableName} {Symbol} {Value}";
+        }
     }
 
     public class IR_If : IRInstruction
@@ -67,5 +106,24 @@ namespace DS.Core
         public required DSExpression Condition { get; init; }
         public List<IRInstruction> TrueBranch { get; private set; } = [];
         public List<IRInstruction> FalseBranch { get; private set; } = [];
+
+        public override string ToString()
+        {
+            System.Text.StringBuilder sb = new();
+            sb.AppendLine($"If ({Condition}):");
+            foreach (var instr in TrueBranch)
+            {
+                sb.AppendLine($"    {instr}");
+            }
+            if (FalseBranch.Count > 0)
+            {
+                sb.AppendLine("Else:");
+                foreach (var instr in FalseBranch)
+                {
+                    sb.AppendLine($"    {instr}");
+                }
+            }
+            return sb.ToString();
+        }
     }
 }

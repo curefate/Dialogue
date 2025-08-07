@@ -7,16 +7,21 @@ namespace DS.Core
     {
         private readonly InstructionBuilder _instructionBuilder = new();
 
-        public List<LabelBlock> CompileRawText(string input)
+        /* public Dictionary<string, LabelBlock> CompileRawText(string input)
         {
             var inputStream = new AntlrInputStream(input);
             var lexer = new DSLexer(inputStream);
             var tokens = new CommonTokenStream(lexer);
             var parser = new DSParser(tokens);
             var tree = parser.program();
-            var labelBlocks = new List<LabelBlock>();
+            var labelDict = new Dictionary<string, LabelBlock>();
             foreach (var lb in tree.label_block())
             {
+                if (labelDict.ContainsKey(lb.label.Text))
+                {
+                    throw new ArgumentException($"Duplicate label found: {lb.label.Text} in file {parser.InputStream.SourceName}");
+                }
+
                 var newLabelBlock = new LabelBlock(lb.label.Text, parser.InputStream.SourceName);
                 foreach (var stmt in lb.statement())
                 {
@@ -26,25 +31,57 @@ namespace DS.Core
                         newLabelBlock.Instructions.Add(instruction);
                     }
                 }
-                labelBlocks.Add(newLabelBlock);
-            }
-            return labelBlocks;
-        }
 
-        public List<LabelBlock> Compile(string filePath)
+                labelDict.Add(lb.label.Text, newLabelBlock);
+            }
+            return labelDict;
+        } */
+
+        public Dictionary<string, LabelBlock> Compile(string filePath)
         {
             if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
             {
                 throw new ArgumentException($"File not found: {filePath}");
             }
+
             var fileStream = new AntlrFileStream(filePath);
             var lexer = new DSLexer(fileStream);
             var tokens = new CommonTokenStream(lexer);
             var parser = new DSParser(tokens);
             var tree = parser.program();
-            var labelBlocks = new List<LabelBlock>();
+            var labelDict = new Dictionary<string, LabelBlock>();
+
+            var importedPaths = new HashSet<string>();
+            foreach (var import in tree.import_stmt())
+            {
+                var importPath = import.path.Text;
+                if (!File.Exists(importPath))
+                {
+                    throw new ArgumentException($"Import file not found: {importPath}");
+                }
+                if (importedPaths.Contains(importPath))
+                {
+                    continue;
+                }
+
+                var importedLabels = Compile(importPath);
+                foreach (var kvp in importedLabels)
+                {
+                    if (labelDict.ContainsKey(kvp.Key))
+                    {
+                        throw new ArgumentException($"Duplicate label found: {kvp.Key} in file {filePath}");
+                    }
+                    labelDict.Add(kvp.Key, kvp.Value);
+                }
+            }
+
             foreach (var lb in tree.label_block())
             {
+                if (labelDict.ContainsKey(lb.label.Text))
+                {
+                    throw new ArgumentException($"Duplicate label found: {lb.label.Text} in file {filePath}");
+                }
+
                 var newLabelBlock = new LabelBlock(lb.label.Text, parser.InputStream.SourceName);
                 foreach (var stmt in lb.statement())
                 {
@@ -54,9 +91,10 @@ namespace DS.Core
                         newLabelBlock.Instructions.Add(instruction);
                     }
                 }
-                labelBlocks.Add(newLabelBlock);
+
+                labelDict.Add(lb.label.Text, newLabelBlock);
             }
-            return labelBlocks;
+            return labelDict;
         }
     }
 
@@ -72,7 +110,7 @@ namespace DS.Core
                 FilePath = context.Start.InputStream.SourceName,
                 SpeakerName = context.ID()?.GetText() ?? string.Empty,
                 TextNode = _expressionBuilder.Visit(context.text).Root as FStringNode
-    ?? throw new ArgumentException($"Dialogue text cannot be null. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]"),
+    ?? throw new ArgumentException($"(Compilation Error) Dialogue text cannot be null. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]"),
             };
             foreach (var tag in context._tags)
             {
@@ -89,13 +127,13 @@ namespace DS.Core
                 FilePath = context.Start.InputStream.SourceName,
             };
             var options = context._options
-    ?? throw new ArgumentException($"Menu options cannot be null. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
+    ?? throw new ArgumentException($"(Compilation Error) Menu options cannot be null. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
             foreach (var option in options)
             {
                 inst.OptionTextNodes.Add(_expressionBuilder.Visit(option.text).Root as FStringNode
-    ?? throw new ArgumentException($"Menu option text cannot be null. [Ln: {option.Start.Line}, Fp: {option.Start.InputStream.SourceName}]"));
+    ?? throw new ArgumentException($"(Compilation Error) Menu option text cannot be null. [Ln: {option.Start.Line}, Fp: {option.Start.InputStream.SourceName}]"));
                 var block = option.block()
-    ?? throw new ArgumentException($"Menu option block cannot be null. [Ln: {option.Start.Line}, Fp: {option.Start.InputStream.SourceName}]");
+    ?? throw new ArgumentException($"(Compilation Error) Menu option block cannot be null. [Ln: {option.Start.Line}, Fp: {option.Start.InputStream.SourceName}]");
                 var actions = new List<IRInstruction>();
                 foreach (var stmt in block.statement())
                 {
@@ -141,15 +179,15 @@ namespace DS.Core
                 FunctionName = context.func_name.Text
             };
             var args = context._args
-    ?? throw new ArgumentException($"Call arguments cannot be null. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
+    ?? throw new ArgumentException($"(Compilation Error) Call arguments cannot be null. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
             foreach (var arg in args)
             {
                 if (arg == null)
                 {
-                    throw new ArgumentException($"Call argument expression cannot be null. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
+                    throw new ArgumentException($"(Compilation Error) Call argument expression cannot be null. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
                 }
                 var expr = _expressionBuilder.Visit(arg)
-    ?? throw new ArgumentException($"Call argument expression cannot be null. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
+    ?? throw new ArgumentException($"(Compilation Error) Call argument expression cannot be null. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
                 inst.Arguments.Add(expr);
             }
             return inst;
@@ -174,7 +212,9 @@ namespace DS.Core
             {
                 LineNum = context.Start.Line,
                 FilePath = context.Start.InputStream.SourceName,
-                Condition = _expressionBuilder.Visit(context._conditions[0]),
+                Condition = context._conditions[0].NOT() != null
+                    ? DSExpression.Not(_expressionBuilder.Visit(context._conditions[0].expression()))
+                    : _expressionBuilder.Visit(context._conditions[0].expression()),
             };
             var current_inst = inst;
             for (int i = 0; i < context._conditions.Count; i++)
@@ -187,7 +227,9 @@ namespace DS.Core
                     {
                         LineNum = condition.Start.Line,
                         FilePath = condition.Start.InputStream.SourceName,
-                        Condition = _expressionBuilder.Visit(condition),
+                        Condition = condition.NOT() != null
+                            ? DSExpression.Not(_expressionBuilder.Visit(condition.expression()))
+                            : _expressionBuilder.Visit(condition.expression()),
                     };
                     current_inst.FalseBranch.Add(new_inst);
                     current_inst = new_inst;
@@ -261,7 +303,7 @@ namespace DS.Core
                     {
                         "==" => DSExpression.Equal(result, nextExpr),
                         "!=" => DSExpression.NotEqual(result, nextExpr),
-                        _ => throw new NotSupportedException($"Unsupported operator: {op}")
+                        _ => throw new NotSupportedException($"(Compilation Error) Unsupported operator: {op}")
                     };
                 }
                 return result;
@@ -284,7 +326,7 @@ namespace DS.Core
                         ">" => DSExpression.GreaterThan(result, nextExpr),
                         "<=" => DSExpression.LessThanOrEqual(result, nextExpr),
                         ">=" => DSExpression.GreaterThanOrEqual(result, nextExpr),
-                        _ => throw new NotSupportedException($"Unsupported operator: {op}")
+                        _ => throw new NotSupportedException($"(Compilation Error) Unsupported operator: {op}")
                     };
                 }
                 return result;
@@ -305,7 +347,7 @@ namespace DS.Core
                     {
                         "+" => DSExpression.Add(result, nextExpr),
                         "-" => DSExpression.Subtract(result, nextExpr),
-                        _ => throw new NotSupportedException($"Unsupported operator: {op}")
+                        _ => throw new NotSupportedException($"(Compilation Error) Unsupported operator: {op}")
                     };
                 }
                 return result;
@@ -327,7 +369,7 @@ namespace DS.Core
                         "*" => DSExpression.Multiply(result, nextExpr),
                         "/" => DSExpression.Divide(result, nextExpr),
                         "%" => DSExpression.Modulo(result, nextExpr),
-                        _ => throw new NotSupportedException($"Unsupported operator: {op}")
+                        _ => throw new NotSupportedException($"(Compilation Error) Unsupported operator: {op}")
                     };
                 }
                 return result;
@@ -346,7 +388,7 @@ namespace DS.Core
                     "+" => operand, // Unary plus, no change
                     "-" => DSExpression.Negate(operand), // Unary minus
                     "!" => DSExpression.Not(operand), // Logical NOT
-                    _ => throw new NotSupportedException($"Unsupported unary operator: {op.GetText()}")
+                    _ => throw new NotSupportedException($"(Compilation Error) Unsupported unary operator: {op.GetText()}")
                 };
             }
             return Visit(context.expr_primary());
@@ -386,7 +428,7 @@ namespace DS.Core
             }
             else
             {
-                throw new NotSupportedException($"Unsupported expression: {context.GetText()}. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
+                throw new NotSupportedException($"(Compilation Error) Unsupported expression: {context.GetText()}. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
             }
         }
 
@@ -454,13 +496,13 @@ namespace DS.Core
                                 fragments.Add("}");
                                 break;
                             default:
-                                throw new NotSupportedException($"Unsupported string escape: {stringFragment.GetText()}. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
+                                throw new NotSupportedException($"(Compilation Error) Unsupported string escape: {stringFragment.GetText()}. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
                         }
 
                     }
                     else
                     {
-                        throw new NotSupportedException($"Unsupported string fragment: {stringFragment.GetText()}. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
+                        throw new NotSupportedException($"(Compilation Error) Unsupported string fragment: {stringFragment.GetText()}. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
                     }
                 }
                 else if (child is DSParser.Embedded_exprContext embeddedExpr)
@@ -475,7 +517,7 @@ namespace DS.Core
                     }
                     else
                     {
-                        throw new NotSupportedException($"Unsupported embedded expression: {embeddedExpr.GetText()}. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
+                        throw new NotSupportedException($"(Compilation Error) Unsupported embedded expression: {embeddedExpr.GetText()}. [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]");
                     }
                     fragments.Add(FStringNode.EmbedSign);
                 }

@@ -74,7 +74,7 @@ namespace DS.Console
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error executing instruction: {ex.Message}[Ln {instruction.LineNum}, Fp {instruction.FilePath}]");
+                    Console.WriteLine(ex.Message);
                     break; // Stop execution on error
                 }
             }

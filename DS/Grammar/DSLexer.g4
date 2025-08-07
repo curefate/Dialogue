@@ -10,7 +10,8 @@ using System.Collections.Generic;
 
 tokens { 
     INDENT, DEDENT, NL,
-    STRING_START, STRING_CONTEXT, STRING_ESCAPE, STRING_END
+    STRING_START, STRING_CONTEXT, STRING_ESCAPE, STRING_END,
+    PATH
 }
 
 @lexer::members {
@@ -97,10 +98,10 @@ tokens {
 }
 
 // ====================== expr =========================
-LPAR         : '('; // OPEN_PAREN
-RPAR         : ')'; // CLOSE_PAREN
-LBRACE       : '{'; // OPEN_BRACE
-RBRACE       : '}'; // CLOSE_BRACE
+LPAR         : '(';
+RPAR         : ')';
+LBRACE       : '{';
+RBRACE       : '}';
 EXCLAMATION  : '!';
 PLUS         : '+';
 MINUS        : '-';
@@ -127,14 +128,16 @@ COLON  : ':';
 COMMA  : ',';
 CALL   : 'call';
 IF     : 'if';
+NOT    : 'not';
 ELIF   : 'elif';
 ELSE   : 'else';
-WHILE  : 'while';
+// WHILE  : 'while';
+// MATCH  : 'match';
+// CASE   : 'case';
 JUMP   : 'jump' | '->';
 TOUR   : 'tour' | '-><';
 LABEL  : 'label' | '~';
-// MATCH  : 'match';
-// CASE   : 'case';
+IMPORT : 'import' -> pushMode(PATH_MODE);
 
 // ===================== literals ======================
 BOOL         : TRUE | FALSE;
@@ -159,7 +162,6 @@ fragment CHAR           : [a-zA-Z0-9_];
 // ===================== others ========================
 WS            : [ \t\f]         -> channel(HIDDEN);
 LINE_COMMENT  : '#' ~[\r\n]*    -> channel(HIDDEN);
-BLOCK_COMMENT : '"""' .*? '"""' -> channel(HIDDEN);
 ERROR_CHAR    : .               -> channel(HIDDEN);
 NEWLINE       : '\r'? '\n'      { HandleNewline(); };
 
@@ -189,20 +191,20 @@ EMBED_STAR         : STAR -> type(STAR);
 EMBED_SLASH        : SLASH -> type(SLASH);
 EMBED_LESS         : LESS -> type(LESS);
 EMBED_GREATER      : GREATER -> type(GREATER);
-// EMBED_EQUAL        : EQUAL -> type(EQUAL);
 EMBED_PERCENT      : PERCENT -> type(PERCENT);
 EMBED_EQEQUAL      : EQEQUAL -> type(EQEQUAL);
 EMBED_NOTEQUAL     : NOTEQUAL -> type(NOTEQUAL);
 EMBED_LESSEQUAL    : LESSEQUAL -> type(LESSEQUAL);
 EMBED_GREATEREQUAL : GREATEREQUAL -> type(GREATEREQUAL);
-// EMBED_PLUSEQUAL    : PLUSEQUAL -> type(PLUSEQUAL);
-// EMBED_MINEQUAL     : MINEQUAL -> type(MINEQUAL);
-// EMBED_STAREQUAL    : STAREQUAL -> type(STAREQUAL);
-// EMBED_SLASHEQUAL   : SLASHEQUAL -> type(SLASHEQUAL);
-// EMBED_PERCENTEQUAL : PERCENTEQUAL -> 
 EMBED_AND          : AND -> type(AND);
 EMBED_OR           : OR -> type(OR);
 EMBED_STRING_START : '"' -> pushMode(STRING_MODE), type(STRING_START);
+
+mode PATH_MODE;
+PATH_WS       : WS -> channel(HIDDEN);
+QUOTED_PATH   : '"' (~["\\] | '\\' .)* '"' -> type(PATH);
+UNQUOTED_PATH : ~[ *?<>|\t\r\n"]+ -> type(PATH);
+PATH_NEWLINE  : ('\r'? '\n') -> popMode, type(NEWLINE);
 
 // ===================== backup ========================
 // SEMI             : ';';
@@ -227,5 +229,3 @@ EMBED_STRING_START : '"' -> pushMode(STRING_MODE), type(STRING_START);
 // COLONEQUAL       : ':=';
 // LSQB             : '['; // OPEN_BRACK
 // RSQB             : ']'; // CLOSE_BRACK
-// LBRACE           : '{'; // OPEN_BRACE
-// RBRACE           : '}'; // CLOSE_BRACE

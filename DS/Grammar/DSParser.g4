@@ -5,7 +5,7 @@ options {
 }
 
 program
-    : label_block* EOF
+    : import_stmt* label_block* EOF
     ;
 
 label_block
@@ -20,6 +20,11 @@ statement
     | call_stmt
     | set_stmt
     | if_stmt
+    ;
+
+// ====================== import ========================
+import_stmt
+    : IMPORT path=PATH NEWLINE
     ;
 
 // ====================== dialogue ======================
@@ -58,7 +63,7 @@ set_stmt
 
 // ====================== if ============================
 if_stmt
-    : IF conditions+=expression COLON NEWLINE blocks+=block (ELIF conditions+=expression COLON NEWLINE blocks+=block)* (ELSE COLON NEWLINE blocks+=block)?
+    : IF conditions+=condition COLON NEWLINE blocks+=block (ELIF conditions+=condition COLON NEWLINE blocks+=block)* (ELSE COLON NEWLINE blocks+=block)?
     ;
 
 // ====================== others ========================
@@ -118,3 +123,7 @@ fstring
 
 string_fragment
     : STRING_CONTEXT | STRING_ESCAPE;
+
+condition
+    : NOT? expression
+    ;

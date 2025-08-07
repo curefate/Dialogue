@@ -23,13 +23,13 @@ namespace DS.Core
             labelHub[block.LabelName] = block;
         }
 
-        public void Read(List<LabelBlock> blocks)
+        public void Read(Dictionary<string, LabelBlock> blocks)
         {
             if (blocks == null || blocks.Count == 0)
             {
-                throw new ArgumentException("The list of LabelBlocks cannot be null or empty.", nameof(blocks));
+                throw new ArgumentException("The dictionary of LabelBlocks cannot be null or empty.", nameof(blocks));
             }
-            foreach (var block in blocks)
+            foreach (var block in blocks.Values)
             {
                 Read(block);
             }
@@ -199,18 +199,30 @@ namespace DS.Core
         internal FunctionRegistry() { }
         private readonly Dictionary<string, Delegate> functions = [];
         public void Clear() => functions.Clear();
-        public void AddFunction<TResult>(string funcName, Func<TResult> func) => functions[funcName] = func;
-        public void AddFunction<T0, TResult>(string funcName, Func<T0, TResult> func) => functions[funcName] = func;
-        public void AddFunction<T0, T1, TResult>(string funcName, Func<T0, T1, TResult> func) => functions[funcName] = func;
-        public void AddFunction<T0, T1, T2, TResult>(string funcName, Func<T0, T1, T2, TResult> func) => functions[funcName] = func;
-        public void AddFunction<T0, T1, T2, T3, TResult>(string funcName, Func<T0, T1, T2, T3, TResult> func) => functions[funcName] = func;
-        public void AddFunction<T0, T1, T2, T3, T4, TResult>(string funcName, Func<T0, T1, T2, T3, T4, TResult> func) => functions[funcName] = func;
-        public void AddFunction(string funcName, Action action) => functions[funcName] = action;
-        public void AddFunction<T0>(string funcName, Action<T0> action) => functions[funcName] = action;
-        public void AddFunction<T0, T1>(string funcName, Action<T0, T1> action) => functions[funcName] = action;
-        public void AddFunction<T0, T1, T2>(string funcName, Action<T0, T1, T2> action) => functions[funcName] = action;
-        public void AddFunction<T0, T1, T2, T3>(string funcName, Action<T0, T1, T2, T3> action) => functions[funcName] = action;
-        public void AddFunction<T0, T1, T2, T3, T4>(string funcName, Action<T0, T1, T2, T3, T4> action) => functions[funcName] = action;
+        public void AddFunction<TResult>(Func<TResult> func, string funcName = "")
+            => functions[string.IsNullOrEmpty(funcName) ? func.Method.Name : funcName] = func;
+        public void AddFunction<T0, TResult>(Func<T0, TResult> func, string funcName = "")
+            => functions[string.IsNullOrEmpty(funcName) ? func.Method.Name : funcName] = func;
+        public void AddFunction<T0, T1, TResult>(Func<T0, T1, TResult> func, string funcName = "")
+            => functions[string.IsNullOrEmpty(funcName) ? func.Method.Name : funcName] = func;
+        public void AddFunction<T0, T1, T2, TResult>(Func<T0, T1, T2, TResult> func, string funcName = "")
+            => functions[string.IsNullOrEmpty(funcName) ? func.Method.Name : funcName] = func;
+        public void AddFunction<T0, T1, T2, T3, TResult>(Func<T0, T1, T2, T3, TResult> func, string funcName = "")
+            => functions[string.IsNullOrEmpty(funcName) ? func.Method.Name : funcName] = func;
+        public void AddFunction<T0, T1, T2, T3, T4, TResult>(Func<T0, T1, T2, T3, T4, TResult> func, string funcName = "")
+            => functions[string.IsNullOrEmpty(funcName) ? func.Method.Name : funcName] = func;
+        public void AddFunction(Action action, string funcName = "")
+            => functions[string.IsNullOrEmpty(funcName) ? action.Method.Name : funcName] = action;
+        public void AddFunction<T0>(Action<T0> action, string funcName = "")
+            => functions[string.IsNullOrEmpty(funcName) ? action.Method.Name : funcName] = action;
+        public void AddFunction<T0, T1>(Action<T0, T1> action, string funcName = "")
+            => functions[string.IsNullOrEmpty(funcName) ? action.Method.Name : funcName] = action;
+        public void AddFunction<T0, T1, T2>(Action<T0, T1, T2> action, string funcName = "")
+            => functions[string.IsNullOrEmpty(funcName) ? action.Method.Name : funcName] = action;
+        public void AddFunction<T0, T1, T2, T3>(Action<T0, T1, T2, T3> action, string funcName = "")
+            => functions[string.IsNullOrEmpty(funcName) ? action.Method.Name : funcName] = action;
+        public void AddFunction<T0, T1, T2, T3, T4>(Action<T0, T1, T2, T3, T4> action, string funcName = "")
+            => functions[string.IsNullOrEmpty(funcName) ? action.Method.Name : funcName] = action;
         public Delegate GetDelegate(string funcName)
         {
             if (functions.TryGetValue(funcName, out var func))
