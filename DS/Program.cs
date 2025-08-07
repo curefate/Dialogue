@@ -10,7 +10,7 @@ public class Program
         interpreter.Runtime.Functions.AddFunction<int, int, int>(tester.Add);
         interpreter.Runtime.Functions.AddFunction<string>(tester.Print);
 
-        interpreter.Run(@"C:\Users\curef\Desktop\DS\DS\test6.txt", "a");
+        interpreter.Run(@"C:\Users\curef\Desktop\DS\DS\test4.txt", "a");
     }
 }
 

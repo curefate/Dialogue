@@ -6,43 +6,21 @@ namespace DS.Core
     public class Compiler
     {
         private readonly InstructionBuilder _instructionBuilder = new();
+        private readonly HashSet<string> _impotedFiles = [];
 
-        /* public Dictionary<string, LabelBlock> CompileRawText(string input)
+        public Dictionary<string, LabelBlock> Compile(string filePath, bool reset = true)
         {
-            var inputStream = new AntlrInputStream(input);
-            var lexer = new DSLexer(inputStream);
-            var tokens = new CommonTokenStream(lexer);
-            var parser = new DSParser(tokens);
-            var tree = parser.program();
-            var labelDict = new Dictionary<string, LabelBlock>();
-            foreach (var lb in tree.label_block())
+            if (reset)
             {
-                if (labelDict.ContainsKey(lb.label.Text))
-                {
-                    throw new ArgumentException($"Duplicate label found: {lb.label.Text} in file {parser.InputStream.SourceName}");
-                }
-
-                var newLabelBlock = new LabelBlock(lb.label.Text, parser.InputStream.SourceName);
-                foreach (var stmt in lb.statement())
-                {
-                    var instruction = _instructionBuilder.Visit(stmt);
-                    if (instruction != null)
-                    {
-                        newLabelBlock.Instructions.Add(instruction);
-                    }
-                }
-
-                labelDict.Add(lb.label.Text, newLabelBlock);
+                _impotedFiles.Clear();
             }
-            return labelDict;
-        } */
 
-        public Dictionary<string, LabelBlock> Compile(string filePath)
-        {
             if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
             {
                 throw new ArgumentException($"File not found: {filePath}");
             }
+
+            _impotedFiles.Add(Path.GetFileName(filePath));
 
             var fileStream = new AntlrFileStream(filePath);
             var lexer = new DSLexer(fileStream);
@@ -51,20 +29,27 @@ namespace DS.Core
             var tree = parser.program();
             var labelDict = new Dictionary<string, LabelBlock>();
 
-            var importedPaths = new HashSet<string>();
             foreach (var import in tree.import_stmt())
             {
                 var importPath = import.path.Text;
+                if (string.IsNullOrEmpty(importPath))
+                {
+                    throw new ArgumentException($"Import path cannot be empty in file: {filePath}");
+                }
+                if (!Path.IsPathFullyQualified(importPath))
+                {
+                    importPath = Path.Combine(Path.GetDirectoryName(filePath) ?? string.Empty, importPath);
+                }
                 if (!File.Exists(importPath))
                 {
                     throw new ArgumentException($"Import file not found: {importPath}");
                 }
-                if (importedPaths.Contains(importPath))
+                if (_impotedFiles.Contains(importPath))
                 {
                     continue;
                 }
 
-                var importedLabels = Compile(importPath);
+                var importedLabels = Compile(importPath, false);
                 foreach (var kvp in importedLabels)
                 {
                     if (labelDict.ContainsKey(kvp.Key))
@@ -94,6 +79,7 @@ namespace DS.Core
 
                 labelDict.Add(lb.label.Text, newLabelBlock);
             }
+
             return labelDict;
         }
     }
