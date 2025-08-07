@@ -37,14 +37,14 @@ public partial class DSLexer : Lexer {
 	protected static PredictionContextCache sharedContextCache = new PredictionContextCache();
 	public const int
 		INDENT=1, DEDENT=2, NL=3, STRING_START=4, STRING_CONTEXT=5, STRING_ESCAPE=6, 
-		STRING_END=7, PATH=8, LABEL_NAME=9, LPAR=10, RPAR=11, LBRACE=12, RBRACE=13, 
-		EXCLAMATION=14, PLUS=15, MINUS=16, STAR=17, SLASH=18, LESS=19, GREATER=20, 
-		EQUAL=21, PERCENT=22, EQEQUAL=23, NOTEQUAL=24, LESSEQUAL=25, GREATEREQUAL=26, 
-		PLUSEQUAL=27, MINEQUAL=28, STAREQUAL=29, SLASHEQUAL=30, PERCENTEQUAL=31, 
-		AND=32, OR=33, COLON=34, COMMA=35, CALL=36, IF=37, NOT=38, ELIF=39, ELSE=40, 
-		JUMP=41, TOUR=42, LABEL=43, IMPORT=44, BOOL=45, TRUE=46, FALSE=47, NUMBER=48, 
-		ID=49, TAG=50, VARIABLE=51, WS=52, LINE_COMMENT=53, ERROR_CHAR=54, NEWLINE=55, 
-		EMBED_WS=56, PATH_WS=57;
+		STRING_END=7, PATH=8, LPAR=9, RPAR=10, LBRACE=11, RBRACE=12, EXCLAMATION=13, 
+		PLUS=14, MINUS=15, STAR=16, SLASH=17, LESS=18, GREATER=19, EQUAL=20, PERCENT=21, 
+		EQEQUAL=22, NOTEQUAL=23, LESSEQUAL=24, GREATEREQUAL=25, PLUSEQUAL=26, 
+		MINEQUAL=27, STAREQUAL=28, SLASHEQUAL=29, PERCENTEQUAL=30, AND=31, OR=32, 
+		COLON=33, COMMA=34, CALL=35, IF=36, NOT=37, ELIF=38, ELSE=39, JUMP=40, 
+		TOUR=41, LABEL=42, IMPORT=43, BOOL=44, TRUE=45, FALSE=46, NUMBER=47, ID=48, 
+		TAG=49, VARIABLE=50, WS=51, LINE_COMMENT=52, ERROR_CHAR=53, NEWLINE=54, 
+		EMBED_WS=55, PATH_WS=56;
 	public const int
 		STRING_MODE=1, EMBED_EXPR_MODE=2, PATH_MODE=3;
 	public static string[] channelNames = {
@@ -127,7 +127,7 @@ public partial class DSLexer : Lexer {
 
 	        if (InputStream.LA(1) == Eof)
 			{
-	            if (token.Type != NEWLINE && _tokenList.Count == 0)
+	            if (token.Type != NEWLINE && token.Type != DEDENT && _tokenList.Count == 0)
 				{
 					var newlineToken = new CommonToken(NEWLINE, "\n");
 					_tokenList.Add(newlineToken);
@@ -149,8 +149,11 @@ public partial class DSLexer : Lexer {
 	        if (_pre_token != null && _pre_token.Type == NEWLINE && token.Type == NEWLINE)
 				return NextToken();
 
-	        //if (token.Channel == 0)
-	        //    System.Console.WriteLine($"[{token.Channel}] {Vocabulary.GetSymbolicName(token.Type)}: {token.Text}: {token.Line}");
+	        /*
+	        if (token.Channel == 0)
+	            System.Console.WriteLine($"[{token.Channel}] {Vocabulary.GetSymbolicName(token.Type)}: {token.Text}: {token.Line}");
+	        */
+
 	        _pre_token = token;
 	        return token;
 	    }
@@ -166,21 +169,21 @@ public partial class DSLexer : Lexer {
 	}
 
 	private static readonly string[] _LiteralNames = {
-		null, null, null, null, null, null, null, null, null, null, "'('", "')'", 
-		"'{'", "'}'", "'!'", "'+'", "'-'", "'*'", "'/'", "'<'", "'>'", "'='", 
-		"'%'", "'=='", "'!='", "'<='", "'>='", "'+='", "'-='", "'*='", "'/='", 
-		"'%='", null, null, "':'", "','", "'call'", "'if'", "'not'", "'elif'", 
-		"'else'", null, null, null, "'import'", null, "'true'", "'false'"
+		null, null, null, null, null, null, null, null, null, "'('", "')'", "'{'", 
+		"'}'", "'!'", "'+'", "'-'", "'*'", "'/'", "'<'", "'>'", "'='", "'%'", 
+		"'=='", "'!='", "'<='", "'>='", "'+='", "'-='", "'*='", "'/='", "'%='", 
+		null, null, "':'", "','", "'call'", "'if'", "'not'", "'elif'", "'else'", 
+		null, null, null, "'import'", null, "'true'", "'false'"
 	};
 	private static readonly string[] _SymbolicNames = {
 		null, "INDENT", "DEDENT", "NL", "STRING_START", "STRING_CONTEXT", "STRING_ESCAPE", 
-		"STRING_END", "PATH", "LABEL_NAME", "LPAR", "RPAR", "LBRACE", "RBRACE", 
-		"EXCLAMATION", "PLUS", "MINUS", "STAR", "SLASH", "LESS", "GREATER", "EQUAL", 
-		"PERCENT", "EQEQUAL", "NOTEQUAL", "LESSEQUAL", "GREATEREQUAL", "PLUSEQUAL", 
-		"MINEQUAL", "STAREQUAL", "SLASHEQUAL", "PERCENTEQUAL", "AND", "OR", "COLON", 
-		"COMMA", "CALL", "IF", "NOT", "ELIF", "ELSE", "JUMP", "TOUR", "LABEL", 
-		"IMPORT", "BOOL", "TRUE", "FALSE", "NUMBER", "ID", "TAG", "VARIABLE", 
-		"WS", "LINE_COMMENT", "ERROR_CHAR", "NEWLINE", "EMBED_WS", "PATH_WS"
+		"STRING_END", "PATH", "LPAR", "RPAR", "LBRACE", "RBRACE", "EXCLAMATION", 
+		"PLUS", "MINUS", "STAR", "SLASH", "LESS", "GREATER", "EQUAL", "PERCENT", 
+		"EQEQUAL", "NOTEQUAL", "LESSEQUAL", "GREATEREQUAL", "PLUSEQUAL", "MINEQUAL", 
+		"STAREQUAL", "SLASHEQUAL", "PERCENTEQUAL", "AND", "OR", "COLON", "COMMA", 
+		"CALL", "IF", "NOT", "ELIF", "ELSE", "JUMP", "TOUR", "LABEL", "IMPORT", 
+		"BOOL", "TRUE", "FALSE", "NUMBER", "ID", "TAG", "VARIABLE", "WS", "LINE_COMMENT", 
+		"ERROR_CHAR", "NEWLINE", "EMBED_WS", "PATH_WS"
 	};
 	public static readonly IVocabulary DefaultVocabulary = new Vocabulary(_LiteralNames, _SymbolicNames);
 
@@ -221,7 +224,7 @@ public partial class DSLexer : Lexer {
 	}
 
 	private static int[] _serializedATN = {
-		4,0,57,565,6,-1,6,-1,6,-1,6,-1,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,
+		4,0,56,565,6,-1,6,-1,6,-1,6,-1,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,
 		2,5,7,5,2,6,7,6,2,7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,
 		2,13,7,13,2,14,7,14,2,15,7,15,2,16,7,16,2,17,7,17,2,18,7,18,2,19,7,19,
 		2,20,7,20,2,21,7,21,2,22,7,22,2,23,7,23,2,24,7,24,2,25,7,25,2,26,7,26,
@@ -262,14 +265,14 @@ public partial class DSLexer : Lexer {
 		1,82,1,82,1,82,1,82,1,83,1,83,1,83,1,83,1,84,1,84,1,84,1,84,1,84,1,85,
 		1,85,1,85,1,85,1,86,1,86,1,86,1,86,5,86,542,8,86,10,86,12,86,545,9,86,
 		1,86,1,86,1,86,1,86,1,87,4,87,552,8,87,11,87,12,87,553,1,87,1,87,1,88,
-		3,88,559,8,88,1,88,1,88,1,88,1,88,1,88,0,0,89,4,10,6,11,8,12,10,13,12,
-		14,14,15,16,16,18,17,20,18,22,19,24,20,26,21,28,22,30,23,32,24,34,25,36,
-		26,38,27,40,28,42,29,44,30,46,31,48,32,50,33,52,34,54,35,56,36,58,37,60,
-		38,62,39,64,40,66,41,68,42,70,43,72,44,74,45,76,46,78,47,80,48,82,49,84,
-		50,86,51,88,4,90,0,92,0,94,0,96,0,98,0,100,0,102,0,104,0,106,52,108,53,
-		110,54,112,55,114,0,116,6,118,5,120,7,122,0,124,0,126,0,128,0,130,56,132,
-		0,134,0,136,0,138,0,140,0,142,0,144,0,146,0,148,0,150,0,152,0,154,0,156,
-		0,158,0,160,0,162,0,164,0,166,0,168,0,170,0,172,0,174,57,176,0,178,0,180,
+		3,88,559,8,88,1,88,1,88,1,88,1,88,1,88,0,0,89,4,9,6,10,8,11,10,12,12,13,
+		14,14,16,15,18,16,20,17,22,18,24,19,26,20,28,21,30,22,32,23,34,24,36,25,
+		38,26,40,27,42,28,44,29,46,30,48,31,50,32,52,33,54,34,56,35,58,36,60,37,
+		62,38,64,39,66,40,68,41,70,42,72,43,74,44,76,45,78,46,80,47,82,48,84,49,
+		86,50,88,4,90,0,92,0,94,0,96,0,98,0,100,0,102,0,104,0,106,51,108,52,110,
+		53,112,54,114,0,116,6,118,5,120,7,122,0,124,0,126,0,128,0,130,55,132,0,
+		134,0,136,0,138,0,140,0,142,0,144,0,146,0,148,0,150,0,152,0,154,0,156,
+		0,158,0,160,0,162,0,164,0,166,0,168,0,170,0,172,0,174,56,176,0,178,0,180,
 		0,4,0,1,2,3,10,1,0,49,57,1,0,48,57,3,0,65,90,95,95,97,122,4,0,48,57,65,
 		90,95,95,97,122,3,0,9,9,12,12,32,32,2,0,10,10,13,13,8,0,34,34,39,39,92,
 		92,98,98,102,102,110,110,114,114,116,116,6,0,10,10,13,13,34,34,92,92,123,
@@ -405,10 +408,10 @@ public partial class DSLexer : Lexer {
 		559,5,13,0,0,558,557,1,0,0,0,558,559,1,0,0,0,559,560,1,0,0,0,560,561,5,
 		10,0,0,561,562,1,0,0,0,562,563,6,88,6,0,563,564,6,88,33,0,564,181,1,0,
 		0,0,26,0,1,2,3,240,246,280,289,297,310,324,328,334,341,355,357,364,387,
-		397,413,418,425,541,543,553,558,34,5,3,0,5,1,0,0,1,0,1,54,0,5,2,0,7,12,
-		0,4,0,0,3,0,0,7,13,0,7,36,0,7,51,0,7,10,0,7,11,0,7,35,0,7,49,0,7,48,0,
-		7,45,0,7,14,0,7,15,0,7,16,0,7,17,0,7,18,0,7,19,0,7,20,0,7,22,0,7,23,0,
-		7,24,0,7,25,0,7,26,0,7,32,0,7,33,0,7,4,0,7,8,0,7,55,0
+		397,413,418,425,541,543,553,558,34,5,3,0,5,1,0,0,1,0,1,54,0,5,2,0,7,11,
+		0,4,0,0,3,0,0,7,12,0,7,35,0,7,50,0,7,9,0,7,10,0,7,34,0,7,48,0,7,47,0,7,
+		44,0,7,13,0,7,14,0,7,15,0,7,16,0,7,17,0,7,18,0,7,19,0,7,21,0,7,22,0,7,
+		23,0,7,24,0,7,25,0,7,31,0,7,32,0,7,4,0,7,8,0,7,54,0
 	};
 
 	public static readonly ATN _ATN =

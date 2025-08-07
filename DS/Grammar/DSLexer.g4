@@ -68,7 +68,7 @@ tokens {
 
         if (InputStream.LA(1) == Eof)
 		{
-            if (token.Type != NEWLINE && _tokenList.Count == 0)
+            if (token.Type != NEWLINE && token.Type != DEDENT && _tokenList.Count == 0)
 			{
 				var newlineToken = new CommonToken(NEWLINE, "\n");
 				_tokenList.Add(newlineToken);
@@ -90,8 +90,11 @@ tokens {
         if (_pre_token != null && _pre_token.Type == NEWLINE && token.Type == NEWLINE)
 			return NextToken();
 
-        // if (token.Channel == 0)
-            // UnityEngine.Debug.Log($"[{token.Channel}] {Vocabulary.GetSymbolicName(token.Type)}: {token.Text}: {token.Line}");
+        /*
+        if (token.Channel == 0)
+            System.Console.WriteLine($"[{token.Channel}] {Vocabulary.GetSymbolicName(token.Type)}: {token.Text}: {token.Line}");
+        */
+
         _pre_token = token;
         return token;
     }
