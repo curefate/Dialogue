@@ -84,13 +84,13 @@ namespace DS.Core
         }
     }
 
-    internal class InstructionBuilder : DSParserBaseVisitor<IRInstruction>
+    internal class InstructionBuilder : DSParserBaseVisitor<Statement>
     {
         private readonly ExpressionBuilder _expressionBuilder = new();
 
-        public override IRInstruction VisitDialogue_stmt([NotNull] DSParser.Dialogue_stmtContext context)
+        public override Statement VisitDialogue_stmt([NotNull] DSParser.Dialogue_stmtContext context)
         {
-            var inst = new IR_Dialogue
+            var inst = new Stmt_Dialogue
             {
                 LineNum = context.Start.Line,
                 FilePath = context.Start.InputStream.SourceName,
@@ -105,9 +105,9 @@ namespace DS.Core
             return inst;
         }
 
-        public override IRInstruction VisitMenu_stmt([NotNull] DSParser.Menu_stmtContext context)
+        public override Statement VisitMenu_stmt([NotNull] DSParser.Menu_stmtContext context)
         {
-            var inst = new IR_Menu()
+            var inst = new Stmt_Menu()
             {
                 LineNum = context.Start.Line,
                 FilePath = context.Start.InputStream.SourceName,
@@ -120,7 +120,7 @@ namespace DS.Core
     ?? throw new ArgumentException($"(Compilation Error) Menu option text cannot be null. [Ln: {option.Start.Line}, Fp: {option.Start.InputStream.SourceName}]"));
                 var block = option.block()
     ?? throw new ArgumentException($"(Compilation Error) Menu option block cannot be null. [Ln: {option.Start.Line}, Fp: {option.Start.InputStream.SourceName}]");
-                var actions = new List<IRInstruction>();
+                var actions = new List<Statement>();
                 foreach (var stmt in block.statement())
                 {
                     var instruction = Visit(stmt);
@@ -134,9 +134,9 @@ namespace DS.Core
             return inst;
         }
 
-        public override IRInstruction VisitJump_stmt([NotNull] DSParser.Jump_stmtContext context)
+        public override Statement VisitJump_stmt([NotNull] DSParser.Jump_stmtContext context)
         {
-            var inst = new IR_Jump
+            var inst = new Stmt_Jump
             {
                 LineNum = context.Start.Line,
                 FilePath = context.Start.InputStream.SourceName,
@@ -145,9 +145,9 @@ namespace DS.Core
             return inst;
         }
 
-        public override IRInstruction VisitTour_stmt([NotNull] DSParser.Tour_stmtContext context)
+        public override Statement VisitTour_stmt([NotNull] DSParser.Tour_stmtContext context)
         {
-            var inst = new IR_Tour
+            var inst = new Stmt_Tour
             {
                 LineNum = context.Start.Line,
                 FilePath = context.Start.InputStream.SourceName,
@@ -156,9 +156,9 @@ namespace DS.Core
             return inst;
         }
 
-        public override IRInstruction VisitCall_stmt([NotNull] DSParser.Call_stmtContext context)
+        public override Statement VisitCall_stmt([NotNull] DSParser.Call_stmtContext context)
         {
-            var inst = new IR_Call
+            var inst = new Stmt_Call
             {
                 LineNum = context.Start.Line,
                 FilePath = context.Start.InputStream.SourceName,
@@ -179,9 +179,9 @@ namespace DS.Core
             return inst;
         }
 
-        public override IRInstruction VisitSet_stmt([NotNull] DSParser.Set_stmtContext context)
+        public override Statement VisitSet_stmt([NotNull] DSParser.Set_stmtContext context)
         {
-            var inst = new IR_Set
+            var inst = new Stmt_Set
             {
                 LineNum = context.Start.Line,
                 FilePath = context.Start.InputStream.SourceName,
@@ -192,14 +192,14 @@ namespace DS.Core
             return inst;
         }
 
-        public override IRInstruction VisitIf_stmt([NotNull] DSParser.If_stmtContext context)
+        public override Statement VisitIf_stmt([NotNull] DSParser.If_stmtContext context)
         {
-            var inst = new IR_If()
+            var inst = new Stmt_If()
             {
                 LineNum = context.Start.Line,
                 FilePath = context.Start.InputStream.SourceName,
                 Condition = context._conditions[0].NOT() != null
-                    ? DSExpression.Not(_expressionBuilder.Visit(context._conditions[0].expression()))
+                    ? Expression.Not(_expressionBuilder.Visit(context._conditions[0].expression()))
                     : _expressionBuilder.Visit(context._conditions[0].expression()),
             };
             var current_inst = inst;
@@ -209,12 +209,12 @@ namespace DS.Core
                 var block = context._blocks[i];
                 if (i != 0)
                 {
-                    var new_inst = new IR_If()
+                    var new_inst = new Stmt_If()
                     {
                         LineNum = condition.Start.Line,
                         FilePath = condition.Start.InputStream.SourceName,
                         Condition = condition.NOT() != null
-                            ? DSExpression.Not(_expressionBuilder.Visit(condition.expression()))
+                            ? Expression.Not(_expressionBuilder.Visit(condition.expression()))
                             : _expressionBuilder.Visit(condition.expression()),
                     };
                     current_inst.FalseBranch.Add(new_inst);
@@ -246,49 +246,49 @@ namespace DS.Core
         }
     }
 
-    internal class ExpressionBuilder : DSParserBaseVisitor<DSExpression>
+    internal class ExpressionBuilder : DSParserBaseVisitor<Expression>
     {
-        public override DSExpression VisitExpression([NotNull] DSParser.ExpressionContext context)
+        public override Expression VisitExpression([NotNull] DSParser.ExpressionContext context)
         {
             if (context.expr_logical_and().Length > 1)
             {
-                DSExpression result = Visit(context.expr_logical_and(0));
+                Expression result = Visit(context.expr_logical_and(0));
                 for (int i = 1; i < context.expr_logical_and().Length; i++)
                 {
-                    result = DSExpression.OrElse(result, Visit(context.expr_logical_and(i)));
+                    result = Expression.OrElse(result, Visit(context.expr_logical_and(i)));
                 }
                 return result;
             }
             return Visit(context.expr_logical_and(0));
         }
 
-        public override DSExpression VisitExpr_logical_and([NotNull] DSParser.Expr_logical_andContext context)
+        public override Expression VisitExpr_logical_and([NotNull] DSParser.Expr_logical_andContext context)
         {
             if (context.expr_equality().Length > 1)
             {
-                DSExpression result = Visit(context.expr_equality(0));
+                Expression result = Visit(context.expr_equality(0));
                 for (int i = 1; i < context.expr_equality().Length; i++)
                 {
-                    result = DSExpression.AndAlso(result, Visit(context.expr_equality(i)));
+                    result = Expression.AndAlso(result, Visit(context.expr_equality(i)));
                 }
                 return result;
             }
             return Visit(context.expr_equality(0));
         }
 
-        public override DSExpression VisitExpr_equality([NotNull] DSParser.Expr_equalityContext context)
+        public override Expression VisitExpr_equality([NotNull] DSParser.Expr_equalityContext context)
         {
             if (context.expr_comparison().Length > 1)
             {
-                DSExpression result = Visit(context.expr_comparison(0));
+                Expression result = Visit(context.expr_comparison(0));
                 for (int i = 1; i < context.expr_comparison().Length; i++)
                 {
                     var op = context.GetChild(i * 2 - 1).GetText(); // Get the operator between comparisons
                     var nextExpr = Visit(context.expr_comparison(i));
                     result = op switch
                     {
-                        "==" => DSExpression.Equal(result, nextExpr),
-                        "!=" => DSExpression.NotEqual(result, nextExpr),
+                        "==" => Expression.Equal(result, nextExpr),
+                        "!=" => Expression.NotEqual(result, nextExpr),
                         _ => throw new NotSupportedException($"(Compilation Error) Unsupported operator: {op}")
                     };
                 }
@@ -297,21 +297,21 @@ namespace DS.Core
             return Visit(context.expr_comparison(0));
         }
 
-        public override DSExpression VisitExpr_comparison([NotNull] DSParser.Expr_comparisonContext context)
+        public override Expression VisitExpr_comparison([NotNull] DSParser.Expr_comparisonContext context)
         {
             if (context.expr_term().Length > 1)
             {
-                DSExpression result = Visit(context.expr_term(0));
+                Expression result = Visit(context.expr_term(0));
                 for (int i = 1; i < context.expr_term().Length; i++)
                 {
                     var op = context.GetChild(i * 2 - 1).GetText(); // Get the operator between terms
                     var nextExpr = Visit(context.expr_term(i));
                     result = op switch
                     {
-                        "<" => DSExpression.LessThan(result, nextExpr),
-                        ">" => DSExpression.GreaterThan(result, nextExpr),
-                        "<=" => DSExpression.LessThanOrEqual(result, nextExpr),
-                        ">=" => DSExpression.GreaterThanOrEqual(result, nextExpr),
+                        "<" => Expression.LessThan(result, nextExpr),
+                        ">" => Expression.GreaterThan(result, nextExpr),
+                        "<=" => Expression.LessThanOrEqual(result, nextExpr),
+                        ">=" => Expression.GreaterThanOrEqual(result, nextExpr),
                         _ => throw new NotSupportedException($"(Compilation Error) Unsupported operator: {op}")
                     };
                 }
@@ -320,19 +320,19 @@ namespace DS.Core
             return Visit(context.expr_term(0));
         }
 
-        public override DSExpression VisitExpr_term([NotNull] DSParser.Expr_termContext context)
+        public override Expression VisitExpr_term([NotNull] DSParser.Expr_termContext context)
         {
             if (context.expr_factor().Length > 1)
             {
-                DSExpression result = Visit(context.expr_factor(0));
+                Expression result = Visit(context.expr_factor(0));
                 for (int i = 1; i < context.expr_factor().Length; i++)
                 {
                     var op = context.GetChild(i * 2 - 1).GetText(); // Get the operator between factors
                     var nextExpr = Visit(context.expr_factor(i));
                     result = op switch
                     {
-                        "+" => DSExpression.Add(result, nextExpr),
-                        "-" => DSExpression.Subtract(result, nextExpr),
+                        "+" => Expression.Add(result, nextExpr),
+                        "-" => Expression.Subtract(result, nextExpr),
                         _ => throw new NotSupportedException($"(Compilation Error) Unsupported operator: {op}")
                     };
                 }
@@ -341,20 +341,20 @@ namespace DS.Core
             return Visit(context.expr_factor(0));
         }
 
-        public override DSExpression VisitExpr_factor([NotNull] DSParser.Expr_factorContext context)
+        public override Expression VisitExpr_factor([NotNull] DSParser.Expr_factorContext context)
         {
             if (context.expr_unary().Length > 1)
             {
-                DSExpression result = Visit(context.expr_unary(0));
+                Expression result = Visit(context.expr_unary(0));
                 for (int i = 1; i < context.expr_unary().Length; i++)
                 {
                     var op = context.GetChild(i * 2 - 1).GetText(); // Get the operator between unary expressions
                     var nextExpr = Visit(context.expr_unary(i));
                     result = op switch
                     {
-                        "*" => DSExpression.Multiply(result, nextExpr),
-                        "/" => DSExpression.Divide(result, nextExpr),
-                        "%" => DSExpression.Modulo(result, nextExpr),
+                        "*" => Expression.Multiply(result, nextExpr),
+                        "/" => Expression.Divide(result, nextExpr),
+                        "%" => Expression.Modulo(result, nextExpr),
                         _ => throw new NotSupportedException($"(Compilation Error) Unsupported operator: {op}")
                     };
                 }
@@ -363,7 +363,7 @@ namespace DS.Core
             return Visit(context.expr_unary(0));
         }
 
-        public override DSExpression VisitExpr_unary([NotNull] DSParser.Expr_unaryContext context)
+        public override Expression VisitExpr_unary([NotNull] DSParser.Expr_unaryContext context)
         {
             var op = context.PLUS() ?? context.MINUS() ?? context.EXCLAMATION();
             if (op != null)
@@ -372,33 +372,33 @@ namespace DS.Core
                 return op.GetText() switch
                 {
                     "+" => operand, // Unary plus, no change
-                    "-" => DSExpression.Negate(operand), // Unary minus
-                    "!" => DSExpression.Not(operand), // Logical NOT
+                    "-" => Expression.Negate(operand), // Unary minus
+                    "!" => Expression.Not(operand), // Logical NOT
                     _ => throw new NotSupportedException($"(Compilation Error) Unsupported unary operator: {op.GetText()}")
                 };
             }
             return Visit(context.expr_primary());
         }
 
-        public override DSExpression VisitExpr_primary([NotNull] DSParser.Expr_primaryContext context)
+        public override Expression VisitExpr_primary([NotNull] DSParser.Expr_primaryContext context)
         {
             if (context.VARIABLE() != null)
             {
                 var varName = context.VARIABLE().GetText();
-                return DSExpression.Variable(varName[1..]); // Remove the '$' prefix
+                return Expression.Variable(varName[1..]); // Remove the '$' prefix
             }
             else if (context.NUMBER() != null)
             {
                 var numText = context.NUMBER().GetText();
                 if (numText.Contains('.'))
                 {
-                    return DSExpression.Constant(float.Parse(numText));
+                    return Expression.Constant(float.Parse(numText));
                 }
-                return DSExpression.Constant(int.Parse(numText));
+                return Expression.Constant(int.Parse(numText));
             }
             else if (context.BOOL() != null)
             {
-                return DSExpression.Constant(bool.Parse(context.BOOL().GetText()));
+                return Expression.Constant(bool.Parse(context.BOOL().GetText()));
             }
             else if (context.fstring() != null)
             {
@@ -418,27 +418,27 @@ namespace DS.Core
             }
         }
 
-        public override DSExpression VisitEmbedded_call([NotNull] DSParser.Embedded_callContext context)
+        public override Expression VisitEmbedded_call([NotNull] DSParser.Embedded_callContext context)
         {
             if (context._args.Count > 0)
             {
-                var args = new List<DSExpression>();
+                var args = new List<Expression>();
                 foreach (var arg in context._args)
                 {
                     args.Add(Visit(arg));
                 }
-                return DSExpression.Call(context.func_name.Text, args.ToArray());
+                return Expression.Call(context.func_name.Text, args.ToArray());
             }
             else
             {
-                return DSExpression.Call(context.func_name.Text);
+                return Expression.Call(context.func_name.Text);
             }
         }
 
-        public override DSExpression VisitFstring([NotNull] DSParser.FstringContext context)
+        public override Expression VisitFstring([NotNull] DSParser.FstringContext context)
         {
             var fragments = new List<string>();
-            var embed = new List<DSExpression>();
+            var embed = new List<Expression>();
             foreach (var child in context.children)
             {
                 if (child is DSParser.String_fragmentContext stringFragment)
@@ -508,7 +508,7 @@ namespace DS.Core
                     fragments.Add(FStringNode.EmbedSign);
                 }
             }
-            return DSExpression.FString(fragments, embed);
+            return Expression.FString(fragments, embed);
         }
     }
 }

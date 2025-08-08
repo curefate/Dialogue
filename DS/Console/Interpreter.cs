@@ -3,12 +3,12 @@ namespace DS.Console
     using System;
     using DS.Core;
 
-    public class Interpreter : IIRExecuter
+    public class Interpreter : Executer
     {
-        public RuntimeEnv Runtime { get; private set; } = new();
+        public Runtime Runtime { get; private set; } = new();
         protected readonly Compiler compiler = new();
 
-        public void ExecuteDialogue(IR_Dialogue instruction, RuntimeEnv runtime)
+        public override void ExecuteDialogue(Stmt_Dialogue instruction, Runtime runtime)
         {
             try
             {
@@ -20,7 +20,7 @@ namespace DS.Console
             }
         }
 
-        public void ExecuteMenu(IR_Menu instruction, RuntimeEnv runtime)
+        public override void ExecuteMenu(Stmt_Menu instruction, Runtime runtime)
         {
             try
             {
@@ -67,7 +67,7 @@ namespace DS.Console
             while (Runtime.HasNext)
             {
                 var instruction = Runtime.Pop();
-                IIRExecuter executer = this;
+                Executer executer = this;
                 try
                 {
                     executer.Execute(instruction, Runtime);

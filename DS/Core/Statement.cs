@@ -4,7 +4,7 @@ namespace DS.Core
     {
         public string LabelName { get; private set; }
         public string FileName { get; private set; }
-        public List<IRInstruction> Instructions { get; private set; } = [];
+        public List<Statement> Instructions { get; private set; } = [];
         public LabelBlock(string labelName, string fileName)
         {
             LabelName = labelName;
@@ -12,15 +12,15 @@ namespace DS.Core
         }
     }
 
-    public abstract class IRInstruction
+    public abstract class Statement
     {
         public required int LineNum { get; init; }
         public required string FilePath { get; init; }
     }
 
-    public class IR_Dialogue : IRInstruction
+    public class Stmt_Dialogue : Statement
     {
-        internal IR_Dialogue() { }
+        internal Stmt_Dialogue() { }
         public bool HasSpeaker => !string.IsNullOrEmpty(SpeakerName);
         public required string SpeakerName { get; init; }
         public required FStringNode TextNode { get; init; }
@@ -32,11 +32,11 @@ namespace DS.Core
         }
     }
 
-    public class IR_Menu : IRInstruction
+    public class Stmt_Menu : Statement
     {
-        internal IR_Menu() { }
+        internal Stmt_Menu() { }
         public List<FStringNode> OptionTextNodes { get; private set; } = [];
-        public List<List<IRInstruction>> Blocks { get; private set; } = [];
+        public List<List<Statement>> Blocks { get; private set; } = [];
 
         public override string ToString()
         {
@@ -53,9 +53,9 @@ namespace DS.Core
         }
     }
 
-    public class IR_Jump : IRInstruction
+    public class Stmt_Jump : Statement
     {
-        internal IR_Jump() { }
+        internal Stmt_Jump() { }
         public required string TargetLabel { get; init; }
 
         public override string ToString()
@@ -64,9 +64,9 @@ namespace DS.Core
         }
     }
 
-    public class IR_Tour : IRInstruction
+    public class Stmt_Tour : Statement
     {
-        internal IR_Tour() { }
+        internal Stmt_Tour() { }
         public required string TargetLabel { get; init; }
 
         public override string ToString()
@@ -75,11 +75,11 @@ namespace DS.Core
         }
     }
 
-    public class IR_Call : IRInstruction
+    public class Stmt_Call : Statement
     {
-        internal IR_Call() { }
+        internal Stmt_Call() { }
         public required string FunctionName { get; init; }
-        public List<DSExpression> Arguments { get; private set; } = [];
+        public List<Expression> Arguments { get; private set; } = [];
 
         public override string ToString()
         {
@@ -87,12 +87,12 @@ namespace DS.Core
         }
     }
 
-    public class IR_Set : IRInstruction
+    public class Stmt_Set : Statement
     {
-        internal IR_Set() { }
+        internal Stmt_Set() { }
         public required string VariableName { get; init; }
         public required string Symbol { get; init; } // Could be '=', '+=', '-=', etc.
-        public required DSExpression Value { get; init; }
+        public required Expression Value { get; init; }
 
         public override string ToString()
         {
@@ -100,12 +100,12 @@ namespace DS.Core
         }
     }
 
-    public class IR_If : IRInstruction
+    public class Stmt_If : Statement
     {
-        internal IR_If() { }
-        public required DSExpression Condition { get; init; }
-        public List<IRInstruction> TrueBranch { get; private set; } = [];
-        public List<IRInstruction> FalseBranch { get; private set; } = [];
+        internal Stmt_If() { }
+        public required Expression Condition { get; init; }
+        public List<Statement> TrueBranch { get; private set; } = [];
+        public List<Statement> FalseBranch { get; private set; } = [];
 
         public override string ToString()
         {

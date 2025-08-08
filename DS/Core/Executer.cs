@@ -1,30 +1,30 @@
 namespace DS.Core
 {
-    public interface IIRExecuter
+    public abstract class Executer
     {
-        void Execute(IRInstruction instruction, RuntimeEnv runtime)
+        public virtual void Execute(Statement instruction, Runtime runtime)
         {
             switch (instruction)
             {
-                case IR_Dialogue dialogue:
+                case Stmt_Dialogue dialogue:
                     ExecuteDialogue(dialogue, runtime);
                     break;
-                case IR_Menu menu:
+                case Stmt_Menu menu:
                     ExecuteMenu(menu, runtime);
                     break;
-                case IR_Jump jump:
+                case Stmt_Jump jump:
                     ExecuteJump(jump, runtime);
                     break;
-                case IR_Tour tour:
+                case Stmt_Tour tour:
                     ExecuteTour(tour, runtime);
                     break;
-                case IR_Call call:
+                case Stmt_Call call:
                     ExecuteCall(call, runtime);
                     break;
-                case IR_Set set:
+                case Stmt_Set set:
                     ExecuteSet(set, runtime);
                     break;
-                case IR_If ifInstruction:
+                case Stmt_If ifInstruction:
                     ExecuteIf(ifInstruction, runtime);
                     break;
                 default:
@@ -32,11 +32,11 @@ namespace DS.Core
             }
         }
 
-        void ExecuteDialogue(IR_Dialogue instruction, RuntimeEnv runtime);
+        public abstract void ExecuteDialogue(Stmt_Dialogue instruction, Runtime runtime);
 
-        void ExecuteMenu(IR_Menu instruction, RuntimeEnv runtime);
+        public abstract void ExecuteMenu(Stmt_Menu instruction, Runtime runtime);
 
-        void ExecuteJump(IR_Jump instruction, RuntimeEnv runtime)
+        public virtual void ExecuteJump(Stmt_Jump instruction, Runtime runtime)
         {
             try
             {
@@ -50,7 +50,7 @@ namespace DS.Core
             }
         }
 
-        void ExecuteTour(IR_Tour instruction, RuntimeEnv runtime)
+        public virtual void ExecuteTour(Stmt_Tour instruction, Runtime runtime)
         {
             try
             {
@@ -63,7 +63,7 @@ namespace DS.Core
             }
         }
 
-        void ExecuteCall(IR_Call instruction, RuntimeEnv runtime)
+        public virtual void ExecuteCall(Stmt_Call instruction, Runtime runtime)
         {
             try
             {
@@ -80,7 +80,7 @@ namespace DS.Core
             }
         }
 
-        void ExecuteSet(IR_Set instruction, RuntimeEnv runtime)
+        public virtual void ExecuteSet(Stmt_Set instruction, Runtime runtime)
         {
             try
             {
@@ -103,7 +103,7 @@ namespace DS.Core
 
         }
 
-        void ExecuteIf(IR_If instruction, RuntimeEnv runtime)
+        public virtual void ExecuteIf(Stmt_If instruction, Runtime runtime)
         {
             try
             {

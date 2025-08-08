@@ -1,12 +1,12 @@
 namespace DS.Core
 {
-    public class RuntimeEnv
+    public class Runtime
     {
         public readonly VariableRegistry Variables = new();
         public readonly FunctionRegistry Functions = new();
 
         private readonly Dictionary<string, LabelBlock> labelHub = [];
-        private readonly LinkedList<IRInstruction> executionQueue = new();
+        private readonly LinkedList<Statement> executionQueue = new();
 
         public bool HasNext => executionQueue.Count > 0;
 
@@ -67,7 +67,7 @@ namespace DS.Core
             labelHub.Clear();
         }
 
-        public void Enqueue(IRInstruction instruction, bool fromHead = false)
+        public void Enqueue(Statement instruction, bool fromHead = false)
         {
             if (instruction == null)
             {
@@ -83,7 +83,7 @@ namespace DS.Core
             }
         }
 
-        public void Enqueue(List<IRInstruction> instructions, bool fromHead = false)
+        public void Enqueue(List<Statement> instructions, bool fromHead = false)
         {
             if (instructions == null || instructions.Count == 0)
             {
@@ -105,7 +105,7 @@ namespace DS.Core
             }
         }
 
-        public IRInstruction? LA(int offset = 0)
+        public Statement? LA(int offset = 0)
         {
             if (offset < 0 || offset >= executionQueue.Count)
             {
@@ -123,7 +123,7 @@ namespace DS.Core
             return node.Value;
         }
 
-        public IRInstruction Pop()
+        public Statement Pop()
         {
             if (executionQueue.Count == 0)
             {

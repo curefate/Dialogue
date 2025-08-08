@@ -2,18 +2,18 @@ using System.Text;
 
 namespace DS.Core
 {
-    public class DSExpression
+    public class Expression
     {
         private DSExpressionNode _root;
 
         public DSExpressionNode Root => _root;
 
-        internal DSExpression(DSExpressionNode root)
+        internal Expression(DSExpressionNode root)
         {
             _root = root ?? throw new ArgumentNullException(nameof(root), "Root node cannot be null.");
         }
 
-        public object Evaluate(RuntimeEnv runtime)
+        public object Evaluate(Runtime runtime)
         {
             if (runtime == null)
             {
@@ -27,21 +27,21 @@ namespace DS.Core
             return _root.ToString();
         }
 
-        public static DSExpression Constant(object value)
+        public static Expression Constant(object value)
         {
-            return new DSExpression(new ConstantNode(value));
+            return new Expression(new ConstantNode(value));
         }
 
-        public static DSExpression Variable(string variableName)
+        public static Expression Variable(string variableName)
         {
             if (string.IsNullOrWhiteSpace(variableName))
             {
                 throw new ArgumentException("Variable name cannot be null or empty.", nameof(variableName));
             }
-            return new DSExpression(new VariableNode(variableName));
+            return new Expression(new VariableNode(variableName));
         }
 
-        public static DSExpression Call(string functionName, params DSExpression[] arguments)
+        public static Expression Call(string functionName, params Expression[] arguments)
         {
             if (string.IsNullOrWhiteSpace(functionName))
             {
@@ -49,119 +49,119 @@ namespace DS.Core
             }
             // *Disable null arguments to prevent issues with null nodes
             var argNodes = arguments?.Select(arg => arg?._root).Where(node => node != null).Cast<DSExpressionNode>().ToList() ?? new List<DSExpressionNode>();
-            return new DSExpression(new CallNode(functionName, argNodes));
+            return new Expression(new CallNode(functionName, argNodes));
         }
 
-        public static DSExpression FString(List<string> fragments, List<DSExpression> embed)
+        public static Expression FString(List<string> fragments, List<Expression> embed)
         {
             if (fragments == null) throw new ArgumentNullException(nameof(fragments), "Fragments cannot be null.");
             if (embed == null) throw new ArgumentNullException(nameof(embed), "Embed expressions cannot be null.");
             // *Disable null arguments to prevent issues with null nodes
             var embedNodes = embed.Select(e => e?._root).Where(node => node != null).Cast<DSExpressionNode>().ToList();
-            return new DSExpression(new FStringNode(fragments, embedNodes));
+            return new Expression(new FStringNode(fragments, embedNodes));
         }
 
-        public static DSExpression Negate(DSExpression expression)
+        public static Expression Negate(Expression expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression), "Expression cannot be null.");
-            return new DSExpression(new UnaryOperationNode(UnaryOperator.Negate, expression._root));
+            return new Expression(new UnaryOperationNode(UnaryOperator.Negate, expression._root));
         }
 
-        public static DSExpression Not(DSExpression expression)
+        public static Expression Not(Expression expression)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression), "Expression cannot be null.");
-            return new DSExpression(new UnaryOperationNode(UnaryOperator.Not, expression._root));
+            return new Expression(new UnaryOperationNode(UnaryOperator.Not, expression._root));
         }
 
-        public static DSExpression Add(DSExpression left, DSExpression right)
+        public static Expression Add(Expression left, Expression right)
         {
             if (left == null) throw new ArgumentNullException(nameof(left), "Left expression cannot be null.");
             if (right == null) throw new ArgumentNullException(nameof(right), "Right expression cannot be null.");
-            return new DSExpression(new BinaryOperationNode(BinaryOperator.Add, left._root, right._root));
+            return new Expression(new BinaryOperationNode(BinaryOperator.Add, left._root, right._root));
         }
 
-        public static DSExpression Subtract(DSExpression left, DSExpression right)
+        public static Expression Subtract(Expression left, Expression right)
         {
             if (left == null) throw new ArgumentNullException(nameof(left), "Left expression cannot be null.");
             if (right == null) throw new ArgumentNullException(nameof(right), "Right expression cannot be null.");
-            return new DSExpression(new BinaryOperationNode(BinaryOperator.Subtract, left._root, right._root));
+            return new Expression(new BinaryOperationNode(BinaryOperator.Subtract, left._root, right._root));
         }
 
-        public static DSExpression Multiply(DSExpression left, DSExpression right)
+        public static Expression Multiply(Expression left, Expression right)
         {
             if (left == null) throw new ArgumentNullException(nameof(left), "Left expression cannot be null.");
             if (right == null) throw new ArgumentNullException(nameof(right), "Right expression cannot be null.");
-            return new DSExpression(new BinaryOperationNode(BinaryOperator.Multiply, left._root, right._root));
+            return new Expression(new BinaryOperationNode(BinaryOperator.Multiply, left._root, right._root));
         }
 
-        public static DSExpression Divide(DSExpression left, DSExpression right)
+        public static Expression Divide(Expression left, Expression right)
         {
             if (left == null) throw new ArgumentNullException(nameof(left), "Left expression cannot be null.");
             if (right == null) throw new ArgumentNullException(nameof(right), "Right expression cannot be null.");
-            return new DSExpression(new BinaryOperationNode(BinaryOperator.Divide, left._root, right._root));
+            return new Expression(new BinaryOperationNode(BinaryOperator.Divide, left._root, right._root));
         }
 
-        public static DSExpression Modulo(DSExpression left, DSExpression right)
+        public static Expression Modulo(Expression left, Expression right)
         {
             if (left == null) throw new ArgumentNullException(nameof(left), "Left expression cannot be null.");
             if (right == null) throw new ArgumentNullException(nameof(right), "Right expression cannot be null.");
-            return new DSExpression(new BinaryOperationNode(BinaryOperator.Modulo, left._root, right._root));
+            return new Expression(new BinaryOperationNode(BinaryOperator.Modulo, left._root, right._root));
         }
 
-        public static DSExpression Equal(DSExpression left, DSExpression right)
+        public static Expression Equal(Expression left, Expression right)
         {
             if (left == null) throw new ArgumentNullException(nameof(left), "Left expression cannot be null.");
             if (right == null) throw new ArgumentNullException(nameof(right), "Right expression cannot be null.");
-            return new DSExpression(new BinaryOperationNode(BinaryOperator.Equal, left._root, right._root));
+            return new Expression(new BinaryOperationNode(BinaryOperator.Equal, left._root, right._root));
         }
 
-        public static DSExpression NotEqual(DSExpression left, DSExpression right)
+        public static Expression NotEqual(Expression left, Expression right)
         {
             if (left == null) throw new ArgumentNullException(nameof(left), "Left expression cannot be null.");
             if (right == null) throw new ArgumentNullException(nameof(right), "Right expression cannot be null.");
-            return new DSExpression(new BinaryOperationNode(BinaryOperator.NotEqual, left._root, right._root));
+            return new Expression(new BinaryOperationNode(BinaryOperator.NotEqual, left._root, right._root));
         }
 
-        public static DSExpression LessThan(DSExpression left, DSExpression right)
+        public static Expression LessThan(Expression left, Expression right)
         {
             if (left == null) throw new ArgumentNullException(nameof(left), "Left expression cannot be null.");
             if (right == null) throw new ArgumentNullException(nameof(right), "Right expression cannot be null.");
-            return new DSExpression(new BinaryOperationNode(BinaryOperator.LessThan, left._root, right._root));
+            return new Expression(new BinaryOperationNode(BinaryOperator.LessThan, left._root, right._root));
         }
 
-        public static DSExpression GreaterThan(DSExpression left, DSExpression right)
+        public static Expression GreaterThan(Expression left, Expression right)
         {
             if (left == null) throw new ArgumentNullException(nameof(left), "Left expression cannot be null.");
             if (right == null) throw new ArgumentNullException(nameof(right), "Right expression cannot be null.");
-            return new DSExpression(new BinaryOperationNode(BinaryOperator.GreaterThan, left._root, right._root));
+            return new Expression(new BinaryOperationNode(BinaryOperator.GreaterThan, left._root, right._root));
         }
 
-        public static DSExpression LessThanOrEqual(DSExpression left, DSExpression right)
+        public static Expression LessThanOrEqual(Expression left, Expression right)
         {
             if (left == null) throw new ArgumentNullException(nameof(left), "Left expression cannot be null.");
             if (right == null) throw new ArgumentNullException(nameof(right), "Right expression cannot be null.");
-            return new DSExpression(new BinaryOperationNode(BinaryOperator.LessThanOrEqual, left._root, right._root));
+            return new Expression(new BinaryOperationNode(BinaryOperator.LessThanOrEqual, left._root, right._root));
         }
 
-        public static DSExpression GreaterThanOrEqual(DSExpression left, DSExpression right)
+        public static Expression GreaterThanOrEqual(Expression left, Expression right)
         {
             if (left == null) throw new ArgumentNullException(nameof(left), "Left expression cannot be null.");
             if (right == null) throw new ArgumentNullException(nameof(right), "Right expression cannot be null.");
-            return new DSExpression(new BinaryOperationNode(BinaryOperator.GreaterThanOrEqual, left._root, right._root));
+            return new Expression(new BinaryOperationNode(BinaryOperator.GreaterThanOrEqual, left._root, right._root));
         }
 
-        public static DSExpression AndAlso(DSExpression left, DSExpression right)
+        public static Expression AndAlso(Expression left, Expression right)
         {
             if (left == null) throw new ArgumentNullException(nameof(left), "Left expression cannot be null.");
             if (right == null) throw new ArgumentNullException(nameof(right), "Right expression cannot be null.");
-            return new DSExpression(new BinaryOperationNode(BinaryOperator.AndAlso, left._root, right._root));
+            return new Expression(new BinaryOperationNode(BinaryOperator.AndAlso, left._root, right._root));
         }
 
-        public static DSExpression OrElse(DSExpression left, DSExpression right)
+        public static Expression OrElse(Expression left, Expression right)
         {
             if (left == null) throw new ArgumentNullException(nameof(left), "Left expression cannot be null.");
             if (right == null) throw new ArgumentNullException(nameof(right), "Right expression cannot be null.");
-            return new DSExpression(new BinaryOperationNode(BinaryOperator.OrElse, left._root, right._root));
+            return new Expression(new BinaryOperationNode(BinaryOperator.OrElse, left._root, right._root));
         }
     }
 
@@ -169,7 +169,7 @@ namespace DS.Core
     {
         public Type Type { get; protected set; } = typeof(void);
         public abstract override string ToString();
-        public abstract object Evaluate(RuntimeEnv runtime);
+        public abstract object Evaluate(Runtime runtime);
     }
 
     public class ConstantNode : DSExpressionNode
@@ -203,7 +203,7 @@ namespace DS.Core
             };
         }
 
-        public override object Evaluate(RuntimeEnv? runtime = null)
+        public override object Evaluate(Runtime? runtime = null)
         {
             return Value;
         }
@@ -223,7 +223,7 @@ namespace DS.Core
             return $"${VariableName}";
         }
 
-        public override object Evaluate(RuntimeEnv runtime)
+        public override object Evaluate(Runtime runtime)
         {
             if (runtime == null)
             {
@@ -253,7 +253,7 @@ namespace DS.Core
             return $"{FunctionName}({args})";
         }
 
-        public override object Evaluate(RuntimeEnv runtime)
+        public override object Evaluate(Runtime runtime)
         {
             if (runtime == null)
             {
@@ -289,7 +289,7 @@ namespace DS.Core
             return $"\"{string.Join("", Fragments)}{embedStr}\"";
         }
 
-        public override object Evaluate(RuntimeEnv runtime)
+        public override object Evaluate(Runtime runtime)
         {
             if (runtime == null)
             {
@@ -337,7 +337,7 @@ namespace DS.Core
             return finalStr.ToString();
         }
 
-        public string GetText(RuntimeEnv runtime)
+        public string GetText(Runtime runtime)
         {
             return Evaluate(runtime) as string ?? throw new InvalidOperationException("FString evaluation did not return a string.");
         }
@@ -359,7 +359,7 @@ namespace DS.Core
             return $"({Operator}{Operand})";
         }
 
-        public override object Evaluate(RuntimeEnv runtime)
+        public override object Evaluate(Runtime runtime)
         {
             var operandValue = Operand.Evaluate(runtime);
             switch (Operator)
@@ -418,7 +418,7 @@ namespace DS.Core
             return $"({Left} {Operator} {Right})";
         }
 
-        public override object Evaluate(RuntimeEnv runtime)
+        public override object Evaluate(Runtime runtime)
         {
             var leftValue = Left.Evaluate(runtime);
             var rightValue = Right.Evaluate(runtime);
