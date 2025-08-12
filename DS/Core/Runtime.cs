@@ -172,10 +172,10 @@ namespace DS.Core
             if (variables.ContainsKey(varName))
             {
                 // Check if the type matches the existing variable
-                if (variables[varName].Type != type)
+                /* if (variables[varName].Type != type)
                 {
                     throw new InvalidOperationException($"Variable '{varName}' already exists with type '{variables[varName].Type.Name}', cannot assign value of type '{type.Name}'. Supported types are string, int, float, and bool.");
-                }
+                } */
                 variables[varName] = new TypedVar(value, type);
             }
             else

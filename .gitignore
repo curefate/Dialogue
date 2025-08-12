@@ -1,5 +1,5 @@
 /DS/bin
 /DS/obj
-*.csproj
 *.sln
 /.vscode
+/DS/Grammar/.antlr

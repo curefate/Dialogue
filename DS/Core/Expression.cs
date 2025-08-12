@@ -163,6 +163,13 @@ namespace DS.Core
             if (right == null) throw new ArgumentNullException(nameof(right), "Right expression cannot be null.");
             return new Expression(new BinaryOperationNode(BinaryOperator.OrElse, left._root, right._root));
         }
+
+        public static Expression Assign(Expression left, Expression right)
+        {
+            if (left == null) throw new ArgumentNullException(nameof(left), "Left expression cannot be null.");
+            if (right == null) throw new ArgumentNullException(nameof(right), "Right expression cannot be null.");
+            return new Expression(new BinaryOperationNode(BinaryOperator.Assign, left._root, right._root));
+        }
     }
 
     public abstract class DSExpressionNode
@@ -257,7 +264,7 @@ namespace DS.Core
         {
             if (runtime == null)
             {
-                throw new ArgumentNullException(nameof(runtime), "Interpreter cannot be null.");
+                throw new ArgumentNullException(nameof(runtime), "Runtime Environment cannot be null.");
             }
             var argValues = new List<object>();
             foreach (var arg in Arguments)
@@ -361,6 +368,11 @@ namespace DS.Core
 
         public override object Evaluate(Runtime runtime)
         {
+            if (runtime == null)
+            {
+                throw new ArgumentNullException(nameof(runtime), "Runtime Environment cannot be null.");
+            }
+
             var operandValue = Operand.Evaluate(runtime);
             switch (Operator)
             {
@@ -420,8 +432,29 @@ namespace DS.Core
 
         public override object Evaluate(Runtime runtime)
         {
-            var leftValue = Left.Evaluate(runtime);
+            if (runtime == null)
+            {
+                throw new ArgumentNullException(nameof(runtime), "Runtime Environment cannot be null.");
+            }
+
             var rightValue = Right.Evaluate(runtime);
+
+            // Handle assignment before evaluating the left operand because it may be a new declaration
+            if (Operator == BinaryOperator.Assign)
+            {
+                if (Left is VariableNode variableNode)
+                {
+                    runtime.Variables.Set(variableNode.VariableName, rightValue);
+                    Type = Right.Type;
+                    return Left.Evaluate(runtime);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Assignment can only be performed to a variable.");
+                }
+            }
+
+            var leftValue = Left.Evaluate(runtime);
             switch (Operator)
             {
                 case BinaryOperator.Add:
@@ -701,5 +734,6 @@ namespace DS.Core
         GreaterThanOrEqual,
         AndAlso,
         OrElse,
+        Assign
     }
 }
