@@ -127,7 +127,7 @@ menu_item
 jump_stmt
 tour_stmt
 call_stmt
-set_stmt
+assign_stmt
 if_stmt
 expression
 expr_logical_and

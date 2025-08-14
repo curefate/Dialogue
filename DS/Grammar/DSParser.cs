@@ -48,7 +48,7 @@ public partial class DSParser : Parser {
 	public const int
 		RULE_program = 0, RULE_label_block = 1, RULE_statement = 2, RULE_import_stmt = 3, 
 		RULE_dialogue_stmt = 4, RULE_menu_stmt = 5, RULE_menu_item = 6, RULE_jump_stmt = 7, 
-		RULE_tour_stmt = 8, RULE_call_stmt = 9, RULE_set_stmt = 10, RULE_if_stmt = 11, 
+		RULE_tour_stmt = 8, RULE_call_stmt = 9, RULE_assign_stmt = 10, RULE_if_stmt = 11, 
 		RULE_expression = 12, RULE_expr_logical_and = 13, RULE_expr_equality = 14, 
 		RULE_expr_comparison = 15, RULE_expr_term = 16, RULE_expr_factor = 17, 
 		RULE_expr_unary = 18, RULE_expr_primary = 19, RULE_embedded_expr = 20, 
@@ -56,7 +56,7 @@ public partial class DSParser : Parser {
 		RULE_condition = 25;
 	public static readonly string[] ruleNames = {
 		"program", "label_block", "statement", "import_stmt", "dialogue_stmt", 
-		"menu_stmt", "menu_item", "jump_stmt", "tour_stmt", "call_stmt", "set_stmt", 
+		"menu_stmt", "menu_item", "jump_stmt", "tour_stmt", "call_stmt", "assign_stmt", 
 		"if_stmt", "expression", "expr_logical_and", "expr_equality", "expr_comparison", 
 		"expr_term", "expr_factor", "expr_unary", "expr_primary", "embedded_expr", 
 		"embedded_call", "block", "fstring", "string_fragment", "condition"
@@ -309,8 +309,8 @@ public partial class DSParser : Parser {
 		[System.Diagnostics.DebuggerNonUserCode] public Call_stmtContext call_stmt() {
 			return GetRuleContext<Call_stmtContext>(0);
 		}
-		[System.Diagnostics.DebuggerNonUserCode] public Set_stmtContext set_stmt() {
-			return GetRuleContext<Set_stmtContext>(0);
+		[System.Diagnostics.DebuggerNonUserCode] public Assign_stmtContext assign_stmt() {
+			return GetRuleContext<Assign_stmtContext>(0);
 		}
 		[System.Diagnostics.DebuggerNonUserCode] public If_stmtContext if_stmt() {
 			return GetRuleContext<If_stmtContext>(0);
@@ -375,7 +375,7 @@ public partial class DSParser : Parser {
 				EnterOuterAlt(_localctx, 6);
 				{
 				State = 92;
-				set_stmt();
+				assign_stmt();
 				}
 				break;
 			case 7:
@@ -813,8 +813,8 @@ public partial class DSParser : Parser {
 		return _localctx;
 	}
 
-	public partial class Set_stmtContext : ParserRuleContext {
-		public IToken eq;
+	public partial class Assign_stmtContext : ParserRuleContext {
+		public IToken symbol;
 		public ExpressionContext value;
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode VARIABLE() { return GetToken(DSParser.VARIABLE, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode NEWLINE() { return GetToken(DSParser.NEWLINE, 0); }
@@ -827,23 +827,23 @@ public partial class DSParser : Parser {
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode STAREQUAL() { return GetToken(DSParser.STAREQUAL, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode SLASHEQUAL() { return GetToken(DSParser.SLASHEQUAL, 0); }
 		[System.Diagnostics.DebuggerNonUserCode] public ITerminalNode PERCENTEQUAL() { return GetToken(DSParser.PERCENTEQUAL, 0); }
-		public Set_stmtContext(ParserRuleContext parent, int invokingState)
+		public Assign_stmtContext(ParserRuleContext parent, int invokingState)
 			: base(parent, invokingState)
 		{
 		}
-		public override int RuleIndex { get { return RULE_set_stmt; } }
+		public override int RuleIndex { get { return RULE_assign_stmt; } }
 		[System.Diagnostics.DebuggerNonUserCode]
 		public override TResult Accept<TResult>(IParseTreeVisitor<TResult> visitor) {
 			IDSParserVisitor<TResult> typedVisitor = visitor as IDSParserVisitor<TResult>;
-			if (typedVisitor != null) return typedVisitor.VisitSet_stmt(this);
+			if (typedVisitor != null) return typedVisitor.VisitAssign_stmt(this);
 			else return visitor.VisitChildren(this);
 		}
 	}
 
 	[RuleVersion(0)]
-	public Set_stmtContext set_stmt() {
-		Set_stmtContext _localctx = new Set_stmtContext(Context, State);
-		EnterRule(_localctx, 20, RULE_set_stmt);
+	public Assign_stmtContext assign_stmt() {
+		Assign_stmtContext _localctx = new Assign_stmtContext(Context, State);
+		EnterRule(_localctx, 20, RULE_assign_stmt);
 		int _la;
 		try {
 			EnterOuterAlt(_localctx, 1);
@@ -851,10 +851,10 @@ public partial class DSParser : Parser {
 			State = 146;
 			Match(VARIABLE);
 			State = 147;
-			_localctx.eq = TokenStream.LT(1);
+			_localctx.symbol = TokenStream.LT(1);
 			_la = TokenStream.LA(1);
 			if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 2081423360L) != 0)) ) {
-				_localctx.eq = ErrorHandler.RecoverInline(this);
+				_localctx.symbol = ErrorHandler.RecoverInline(this);
 			}
 			else {
 				ErrorHandler.ReportMatch(this);

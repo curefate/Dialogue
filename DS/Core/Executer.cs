@@ -21,8 +21,8 @@ namespace DS.Core
                 case Stmt_Call call:
                     ExecuteCall(call, runtime);
                     break;
-                case Stmt_Set set:
-                    ExecuteSet(set, runtime);
+                case Stmt_Assign set:
+                    ExecuteAssign(set, runtime);
                     break;
                 case Stmt_If ifInstruction:
                     ExecuteIf(ifInstruction, runtime);
@@ -80,25 +80,15 @@ namespace DS.Core
             }
         }
 
-        public virtual void ExecuteSet(Stmt_Set instruction, Runtime runtime)
+        public virtual void ExecuteAssign(Stmt_Assign instruction, Runtime runtime)
         {
             try
             {
-                var evaluatedValue = instruction.Value.Evaluate(runtime);
-                var symbol = instruction.Symbol;
-                switch (symbol)
-                {
-                    case "=":
-                        runtime.Variables.Set(instruction.VariableName[1..], evaluatedValue);
-                        return;
-                    // TODO ADD +=, -=, etc.
-                    default:
-                        throw new NotSupportedException($"(Runtime Error) Symbol '{symbol}' is not supported.");
-                }
+                instruction.Expression.Evaluate(runtime);
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"(Runtime Error) Failed to set variable '{instruction.VariableName}' with symbol '{instruction.Symbol}'. {ex.Message} [Ln {instruction.LineNum}, Fp {instruction.FilePath}]", ex);
+                throw new InvalidOperationException($"(Runtime Error) Failed to evaluate assignment. {ex.Message} [Ln {instruction.LineNum}, Fp {instruction.FilePath}]", ex);
             }
 
         }

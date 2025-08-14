@@ -87,16 +87,14 @@ namespace DS.Core
         }
     }
 
-    public class Stmt_Set : Statement
+    public class Stmt_Assign : Statement
     {
-        internal Stmt_Set() { }
-        public required string VariableName { get; init; }
-        public required string Symbol { get; init; } // Could be '=', '+=', '-=', etc.
-        public required Expression Value { get; init; }
+        internal Stmt_Assign() { }
+        public required Expression Expression { get; init; }
 
         public override string ToString()
         {
-            return $"{VariableName} {Symbol} {Value}";
+            return Expression.ToString();
         }
     }
 

@@ -179,17 +179,50 @@ namespace DS.Core
             return inst;
         }
 
-        public override Statement VisitSet_stmt([NotNull] DSParser.Set_stmtContext context)
+        public override Statement VisitAssign_stmt([NotNull] DSParser.Assign_stmtContext context)
         {
-            var inst = new Stmt_Set
+            var value = _expressionBuilder.Visit(context.expression());
+            var varName = context.VARIABLE().GetText();
+            return context.symbol.Text switch
             {
-                LineNum = context.Start.Line,
-                FilePath = context.Start.InputStream.SourceName,
-                VariableName = context.VARIABLE().GetText(),
-                Symbol = context.eq.Text,
-                Value = _expressionBuilder.Visit(context.value),
+                "=" => new Stmt_Assign
+                {
+                    LineNum = context.Start.Line,
+                    FilePath = context.Start.InputStream.SourceName,
+                    Expression = Expression.Assign(Expression.Variable(varName[1..]), value)
+                },
+                "+=" => new Stmt_Assign
+                {
+                    LineNum = context.Start.Line,
+                    FilePath = context.Start.InputStream.SourceName,
+                    Expression = Expression.Assign(Expression.Variable(varName[1..]), Expression.Add(Expression.Variable(varName[1..]), value))
+                },
+                "-=" => new Stmt_Assign
+                {
+                    LineNum = context.Start.Line,
+                    FilePath = context.Start.InputStream.SourceName,
+                    Expression = Expression.Assign(Expression.Variable(varName[1..]), Expression.Subtract(Expression.Variable(varName[1..]), value))
+                },
+                "*=" => new Stmt_Assign
+                {
+                    LineNum = context.Start.Line,
+                    FilePath = context.Start.InputStream.SourceName,
+                    Expression = Expression.Assign(Expression.Variable(varName[1..]), Expression.Multiply(Expression.Variable(varName[1..]), value))
+                },
+                "/=" => new Stmt_Assign
+                {
+                    LineNum = context.Start.Line,
+                    FilePath = context.Start.InputStream.SourceName,
+                    Expression = Expression.Assign(Expression.Variable(varName[1..]), Expression.Divide(Expression.Variable(varName[1..]), value))
+                },
+                "%=" => new Stmt_Assign
+                {
+                    LineNum = context.Start.Line,
+                    FilePath = context.Start.InputStream.SourceName,
+                    Expression = Expression.Assign(Expression.Variable(varName[1..]), Expression.Modulo(Expression.Variable(varName[1..]), value))
+                },
+                _ => throw new NotSupportedException($"(Compilation Error) Unsupported assignment operator: {context.symbol.Text} [Ln: {context.Start.Line}, Fp: {context.Start.InputStream.SourceName}]")
             };
-            return inst;
         }
 
         public override Statement VisitIf_stmt([NotNull] DSParser.If_stmtContext context)

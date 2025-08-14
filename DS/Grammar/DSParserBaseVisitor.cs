@@ -135,7 +135,7 @@ public partial class DSParserBaseVisitor<Result> : AbstractParseTreeVisitor<Resu
 	/// <return>The visitor result.</return>
 	public virtual Result VisitCall_stmt([NotNull] DSParser.Call_stmtContext context) { return VisitChildren(context); }
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="DSParser.set_stmt"/>.
+	/// Visit a parse tree produced by <see cref="DSParser.assign_stmt"/>.
 	/// <para>
 	/// The default implementation returns the result of calling <see cref="AbstractParseTreeVisitor{Result}.VisitChildren(IRuleNode)"/>
 	/// on <paramref name="context"/>.
@@ -143,7 +143,7 @@ public partial class DSParserBaseVisitor<Result> : AbstractParseTreeVisitor<Resu
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	public virtual Result VisitSet_stmt([NotNull] DSParser.Set_stmtContext context) { return VisitChildren(context); }
+	public virtual Result VisitAssign_stmt([NotNull] DSParser.Assign_stmtContext context) { return VisitChildren(context); }
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="DSParser.if_stmt"/>.
 	/// <para>

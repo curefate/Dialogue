@@ -440,6 +440,7 @@ namespace DS.Core
             var rightValue = Right.Evaluate(runtime);
 
             // Handle assignment before evaluating the left operand because it may be a new declaration
+            // 在Expression类层面支持赋值嵌套，但语法层面另说了
             if (Operator == BinaryOperator.Assign)
             {
                 if (Left is VariableNode variableNode)

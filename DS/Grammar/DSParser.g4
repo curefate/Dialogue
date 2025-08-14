@@ -18,7 +18,7 @@ statement
     | jump_stmt
     | tour_stmt
     | call_stmt
-    | set_stmt
+    | assign_stmt
     | if_stmt
     ;
 
@@ -56,9 +56,9 @@ call_stmt
     : CALL func_name=ID LPAR (args+=expression (COMMA args+=expression)*)? RPAR NEWLINE
     ;
 
-// ====================== set ===========================
-set_stmt
-    : VARIABLE eq=(EQUAL | PLUSEQUAL | MINEQUAL | STAREQUAL | SLASHEQUAL | PERCENTEQUAL) value=expression NEWLINE
+// ====================== assign ========================
+assign_stmt
+    : VARIABLE symbol=(EQUAL | PLUSEQUAL | MINEQUAL | STAREQUAL | SLASHEQUAL | PERCENTEQUAL) value=expression NEWLINE
     ;
 
 // ====================== if ============================
