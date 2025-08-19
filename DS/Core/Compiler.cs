@@ -5,7 +5,7 @@ namespace DS.Core
 
     public class Compiler
     {
-        private readonly InstructionBuilder _instructionBuilder = new();
+        private readonly StatementBuilder _statementBuilder = new();
         private readonly HashSet<string> _impotedFiles = [];
 
         public Dictionary<string, LabelBlock> Compile(string filePath, bool reset = true)
@@ -70,7 +70,7 @@ namespace DS.Core
                 var newLabelBlock = new LabelBlock(lb.label.Text, parser.InputStream.SourceName);
                 foreach (var stmt in lb.statement())
                 {
-                    var instruction = _instructionBuilder.Visit(stmt);
+                    var instruction = _statementBuilder.Visit(stmt);
                     if (instruction != null)
                     {
                         newLabelBlock.Instructions.Add(instruction);
@@ -84,9 +84,10 @@ namespace DS.Core
         }
     }
 
-    internal class InstructionBuilder : DSParserBaseVisitor<Statement>
+    internal class StatementBuilder : DSParserBaseVisitor<Statement>
     {
         private readonly ExpressionBuilder _expressionBuilder = new();
+        private readonly string _currentLabel = string.Empty; //TODO
 
         public override Statement VisitDialogue_stmt([NotNull] DSParser.Dialogue_stmtContext context)
         {
@@ -281,6 +282,8 @@ namespace DS.Core
 
     internal class ExpressionBuilder : DSParserBaseVisitor<Expression>
     {
+        private readonly string _currentLabel = string.Empty; //TODO
+
         public override Expression VisitExpression([NotNull] DSParser.ExpressionContext context)
         {
             if (context.expr_logical_and().Length > 1)

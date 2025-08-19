@@ -149,7 +149,7 @@ FALSE        : 'false';
 NUMBER       : MINUS? (INTEGER | FLOAT);
 ID           : ALPHABET CHAR*;
 TAG          : AT CHAR+;
-VARIABLE     : '$' ID;
+VARIABLE     : '$' (ID DOT)? ID;
 STRING_START : '"' -> pushMode(STRING_MODE);
 
 // ===================== fragment ======================

@@ -148,16 +148,21 @@ namespace DS.Core
     {
         internal VariableRegistry() { }
 
-        private readonly Dictionary<string, TypedVar> variables = [];
+        private readonly Dictionary<string, Dictionary<string, TypedVar>> variables = [];
 
         public void Clear() => variables.Clear();
 
-        public void Set(string varName, object value)
+        private void Set(string labelNamespace, string varName, object value)
         {
+            if (string.IsNullOrEmpty(labelNamespace) || string.IsNullOrEmpty(varName))
+            {
+                throw new ArgumentException("Label namespace and variable name cannot be null or empty.");
+            }
             if (value == null)
             {
                 throw new ArgumentNullException(nameof(value), "Value cannot be null.");
             }
+
             var type = value.GetType();
             if (type == typeof(TypedVar))
             {
@@ -165,32 +170,70 @@ namespace DS.Core
                 type = typedValue.Type;
                 value = typedValue.Value;
             }
+
             if (type != typeof(string) && type != typeof(int) && type != typeof(float) && type != typeof(bool))
             {
                 throw new ArgumentException($"Unsupported type '{type.Name}' for variable '{varName}'. Supported types are string, int, float, and bool.", nameof(value));
             }
-            if (variables.ContainsKey(varName))
+
+            if (variables.ContainsKey(labelNamespace) && variables[labelNamespace].ContainsKey(varName))
             {
                 // Check if the type matches the existing variable
                 /* if (variables[varName].Type != type)
                 {
                     throw new InvalidOperationException($"Variable '{varName}' already exists with type '{variables[varName].Type.Name}', cannot assign value of type '{type.Name}'. Supported types are string, int, float, and bool.");
                 } */
-                variables[varName] = new TypedVar(value, type);
+                variables[labelNamespace][varName] = new TypedVar(value, type);
             }
             else
             {
-                variables.Add(varName, new TypedVar(value, type));
+                if (!variables.ContainsKey(labelNamespace))
+                {
+                    variables[labelNamespace] = [];
+                }
+                variables[labelNamespace][varName] = new TypedVar(value, type);
             }
         }
 
-        public TypedVar Get(string varName)
+        public void Set(string variableName, object value)
         {
-            if (variables.TryGetValue(varName, out var variable))
+            var parts = variableName.Split('.');
+            if (parts.Length != 2)
             {
-                return variable;
+                throw new ArgumentException("Variable name must be in the format 'labelnamespace.variableName'.", nameof(variableName));
             }
-            throw new KeyNotFoundException($"Variable '{varName}' not found in the interpreter's variable dictionary.");
+
+            var labelNamespace = parts[0];
+            var varName = parts[1];
+
+            Set(labelNamespace, varName, value);
+        }
+
+        private TypedVar Get(string labelNamespace, string varName)
+        {
+            if (string.IsNullOrEmpty(labelNamespace) || string.IsNullOrEmpty(varName))
+            {
+                throw new ArgumentException("Label namespace and variable name cannot be null or empty.");
+            }
+            if (variables.TryGetValue(labelNamespace, out var namespaceVars) && namespaceVars.TryGetValue(varName, out var typedVar))
+            {
+                return typedVar;
+            }
+            throw new KeyNotFoundException($"Variable '{labelNamespace}.{varName}' not found in the interpreter's variable dictionary.");
+        }
+
+        public TypedVar Get(string variableName)
+        {
+            var parts = variableName.Split('.');
+            if (parts.Length != 2)
+            {
+                throw new ArgumentException("Variable name must be in the format 'labelnamespace.variableName'.", nameof(variableName));
+            }
+
+            var labelNamespace = parts[0];
+            var varName = parts[1];
+
+            return Get(labelNamespace, varName);
         }
     }
 
