@@ -1,4 +1,4 @@
-import test5.txt
+import test5.ds
 
 label a:
     "这里是a"

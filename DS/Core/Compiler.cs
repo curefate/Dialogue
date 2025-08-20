@@ -8,13 +8,8 @@ namespace DS.Core
         private readonly StatementBuilder _statementBuilder = new();
         private readonly HashSet<string> _impotedFiles = [];
 
-        public Dictionary<string, LabelBlock> Compile(string filePath, bool reset = true)
+        private Dictionary<string, LabelBlock> ImportCompile(string filePath)
         {
-            if (reset)
-            {
-                _impotedFiles.Clear();
-            }
-
             if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
             {
                 throw new ArgumentException($"File not found: {filePath}");
@@ -44,12 +39,16 @@ namespace DS.Core
                 {
                     throw new ArgumentException($"Import file not found: {importPath}");
                 }
+                if (!string.Equals(Path.GetExtension(importPath), ".ds", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new ArgumentException($"Invalid import file type: {importPath}. Only '.ds' files are allowed.");
+                }
                 if (_impotedFiles.Contains(importPath))
                 {
                     continue;
                 }
 
-                var importedLabels = Compile(importPath, false);
+                var importedLabels = ImportCompile(importPath);
                 foreach (var kvp in importedLabels)
                 {
                     if (labelDict.ContainsKey(kvp.Key))
@@ -82,12 +81,19 @@ namespace DS.Core
 
             return labelDict;
         }
+
+        public Dictionary<string, LabelBlock> Compile(string filePath)
+        {
+            _impotedFiles.Clear();
+
+            return ImportCompile(filePath);
+        }
     }
 
     internal class StatementBuilder : DSParserBaseVisitor<Statement>
     {
         private readonly ExpressionBuilder _expressionBuilder = new();
-        private readonly string _currentLabel = string.Empty; //TODO
+        private string _currentLabel = string.Empty; //TODO
 
         public override Statement VisitDialogue_stmt([NotNull] DSParser.Dialogue_stmtContext context)
         {
@@ -282,7 +288,7 @@ namespace DS.Core
 
     internal class ExpressionBuilder : DSParserBaseVisitor<Expression>
     {
-        private readonly string _currentLabel = string.Empty; //TODO
+        private string _currentLabel = string.Empty; //TODO
 
         public override Expression VisitExpression([NotNull] DSParser.ExpressionContext context)
         {
