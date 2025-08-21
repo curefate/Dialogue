@@ -18,6 +18,7 @@ tour B
     "Good Bye!"
 
 label B:
+$b = 1
 "Aloha~ here is label B, let's use some functions!"
-"{$hello}! Don't {"forget"} you can embed function in dialogue! Like this! {call Add($a, $b)}"
-call Print($hello)
+"{$A.hello}! Don't {"forget"} you can embed function in dialogue! Like this! {call Add($A.a, $b)}"
+call Print($A.hello)

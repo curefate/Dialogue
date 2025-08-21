@@ -67,6 +67,8 @@ namespace DS.Core
                 }
 
                 var newLabelBlock = new LabelBlock(lb.label.Text, parser.InputStream.SourceName);
+                _statementBuilder.CurrentLabel = lb.label.Text;
+
                 foreach (var stmt in lb.statement())
                 {
                     var instruction = _statementBuilder.Visit(stmt);
@@ -93,7 +95,7 @@ namespace DS.Core
     internal class StatementBuilder : DSParserBaseVisitor<Statement>
     {
         private readonly ExpressionBuilder _expressionBuilder = new();
-        private string _currentLabel = string.Empty; //TODO
+        public string CurrentLabel { get => _expressionBuilder.CurrentLabel; set => _expressionBuilder.CurrentLabel = value; }
 
         public override Statement VisitDialogue_stmt([NotNull] DSParser.Dialogue_stmtContext context)
         {
@@ -190,6 +192,10 @@ namespace DS.Core
         {
             var value = _expressionBuilder.Visit(context.expression());
             var varName = context.VARIABLE().GetText();
+            if (!varName.Contains('.'))
+            {
+                varName = varName.Insert(1, CurrentLabel + ".");
+            }
             return context.symbol.Text switch
             {
                 "=" => new Stmt_Assign
@@ -288,7 +294,7 @@ namespace DS.Core
 
     internal class ExpressionBuilder : DSParserBaseVisitor<Expression>
     {
-        private string _currentLabel = string.Empty; //TODO
+        public string CurrentLabel = string.Empty;
 
         public override Expression VisitExpression([NotNull] DSParser.ExpressionContext context)
         {
@@ -427,6 +433,10 @@ namespace DS.Core
             if (context.VARIABLE() != null)
             {
                 var varName = context.VARIABLE().GetText();
+                if (!varName.Contains('.'))
+                {
+                    varName = varName.Insert(1, CurrentLabel + ".");
+                }
                 return Expression.Variable(varName[1..]); // Remove the '$' prefix
             }
             else if (context.NUMBER() != null)
