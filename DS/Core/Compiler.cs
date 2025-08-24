@@ -8,7 +8,7 @@ namespace DS.Core
         private readonly StatementBuilder _statementBuilder = new();
         private readonly HashSet<string> _impotedFiles = [];
 
-        private Dictionary<string, LabelBlock> ImportCompile(string filePath)
+        private Dictionary<string, LabelBlock> _compile(string filePath)
         {
             if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath))
             {
@@ -48,7 +48,7 @@ namespace DS.Core
                     continue;
                 }
 
-                var importedLabels = ImportCompile(importPath);
+                var importedLabels = _compile(importPath);
                 foreach (var kvp in importedLabels)
                 {
                     if (labelDict.ContainsKey(kvp.Key))
@@ -88,7 +88,7 @@ namespace DS.Core
         {
             _impotedFiles.Clear();
 
-            return ImportCompile(filePath);
+            return _compile(filePath);
         }
     }
 

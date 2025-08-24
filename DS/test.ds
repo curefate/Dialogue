@@ -1,7 +1,7 @@
 label start:
 me "Hello!" @happy
 "This is a test script!"
-speaker "1 plus 1 equals {1+1} !"
+speaker "1 plus 1 plus 1 equals {1+1+1} !"
 jump A
 
 label A:
