@@ -15,7 +15,8 @@ namespace DS.Core
                 throw new ArgumentException($"File not found: {filePath}");
             }
 
-            _impotedFiles.Add(Path.GetFileName(filePath));
+            filePath = Path.GetFullPath(filePath);
+            _impotedFiles.Add(filePath);
 
             var fileStream = new AntlrFileStream(filePath);
             var lexer = new DSLexer(fileStream);
