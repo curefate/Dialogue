@@ -10,7 +10,7 @@ public class Program
         interpreter.Runtime.Functions.AddFunction<int, int, int>(tester.Add);
         interpreter.Runtime.Functions.AddFunction<string>(tester.Print);
 
-        interpreter.Run(@"../../../test4.ds", "a");
+        interpreter.Run(@"../../../test.ds", "start");
     }
 }
 

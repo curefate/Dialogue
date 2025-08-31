@@ -71,6 +71,8 @@ tokens {
             if (token.Type != NEWLINE && token.Type != DEDENT && _tokenList.Count == 0)
 			{
 				var newlineToken = new CommonToken(NEWLINE, "\n");
+                newlineToken.Line = token.Line;
+				newlineToken.Column = token.Column + token.Text.Length;
 				_tokenList.Add(newlineToken);
 				_pre_token = token;
 				return token;
