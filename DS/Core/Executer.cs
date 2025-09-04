@@ -1,120 +1,119 @@
 namespace DS.Core
 {
-    public abstract class Executer
+    public class Executer
     {
-        public virtual void Execute(Statement instruction, Runtime runtime)
+        public void Execute(Runtime runtime, Statement statement)
         {
-            switch (instruction)
+            switch (statement)
             {
                 case Stmt_Dialogue dialogue:
-                    ExecuteDialogue(dialogue, runtime);
+                    OnDialogue?.Invoke(runtime, dialogue);
                     break;
                 case Stmt_Menu menu:
-                    ExecuteMenu(menu, runtime);
+                    OnMenu?.Invoke(runtime, menu);
                     break;
                 case Stmt_Jump jump:
-                    ExecuteJump(jump, runtime);
+                    OnJump?.Invoke(runtime, jump);
                     break;
                 case Stmt_Tour tour:
-                    ExecuteTour(tour, runtime);
+                    OnTour?.Invoke(runtime, tour);
                     break;
                 case Stmt_Call call:
-                    ExecuteCall(call, runtime);
+                    OnCall?.Invoke(runtime, call);
                     break;
                 case Stmt_Assign set:
-                    ExecuteAssign(set, runtime);
+                    OnAssign?.Invoke(runtime, set);
                     break;
-                case Stmt_If ifInstruction:
-                    ExecuteIf(ifInstruction, runtime);
+                case Stmt_If ifStmt:
+                    OnIf?.Invoke(runtime, ifStmt);
                     break;
                 default:
-                    throw new NotSupportedException($"(Runtime Error) Unsupported instruction type: {instruction.GetType().Name}");
+                    throw new NotSupportedException($"(Runtime Error) Unsupported instruction type: {statement.GetType().Name}");
             }
         }
 
-        public abstract void ExecuteDialogue(Stmt_Dialogue instruction, Runtime runtime);
+        public Action<Runtime, Stmt_Dialogue> OnDialogue = (runtime, statement) => { throw new NotImplementedException("Ondialogue event must be implemented"); };
 
-        public abstract void ExecuteMenu(Stmt_Menu instruction, Runtime runtime);
+        public Action<Runtime, Stmt_Menu> OnMenu = (runtime, statement) => { throw new NotImplementedException("OnMenu event must be implemented"); };
 
-        public virtual void ExecuteJump(Stmt_Jump instruction, Runtime runtime)
+        private readonly Action<Runtime, Stmt_Jump> OnJump = (runtime, statement) =>
         {
             try
             {
-                var block = runtime.GetLabelBlock(instruction.TargetLabel);
+                var block = runtime.GetLabelBlock(statement.TargetLabel);
                 runtime.ClearQueue();
                 runtime.Enqueue(block.Instructions);
             }
             catch (KeyNotFoundException)
             {
-                throw new KeyNotFoundException($"(Runtime Error) Label '{instruction.TargetLabel}' not found.[Ln {instruction.LineNum}, Fp {instruction.FilePath}]");
+                throw new KeyNotFoundException($"(Runtime Error) Label '{statement.TargetLabel}' not found.[Ln {statement.LineNum}, Fp {statement.FilePath}]");
             }
-        }
+        };
 
-        public virtual void ExecuteTour(Stmt_Tour instruction, Runtime runtime)
+        private readonly Action<Runtime, Stmt_Tour> OnTour = (runtime, statement) =>
         {
             try
             {
-                var block = runtime.GetLabelBlock(instruction.TargetLabel);
+                var block = runtime.GetLabelBlock(statement.TargetLabel);
                 runtime.Enqueue(block.Instructions, true);
             }
             catch (KeyNotFoundException)
             {
-                throw new KeyNotFoundException($"(Runtime Error) Label '{instruction.TargetLabel}' not found.[Ln {instruction.LineNum}, Fp {instruction.FilePath}]");
+                throw new KeyNotFoundException($"(Runtime Error) Label '{statement.TargetLabel}' not found.[Ln {statement.LineNum}, Fp {statement.FilePath}]");
             }
-        }
+        };
 
-        public virtual void ExecuteCall(Stmt_Call instruction, Runtime runtime)
+        private readonly Action<Runtime, Stmt_Call> OnCall = (runtime, statement) =>
         {
             try
             {
-                var args = instruction.Arguments.Select(arg => arg.Evaluate(runtime)).ToArray();
-                runtime.Functions.Invoke(instruction.FunctionName, args);
+                var args = statement.Arguments.Select(arg => arg.Evaluate(runtime)).ToArray();
+                runtime.Functions.Invoke(statement.FunctionName, args);
             }
             catch (KeyNotFoundException)
             {
-                throw new KeyNotFoundException($"(Runtime Error) Function '{instruction.FunctionName}' not found.[Ln {instruction.LineNum}, Fp {instruction.FilePath}]");
+                throw new KeyNotFoundException($"(Runtime Error) Function '{statement.FunctionName}' not found.[Ln {statement.LineNum}, Fp {statement.FilePath}]");
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"(Runtime Error) Failed to call function '{instruction.FunctionName}'. {ex.Message} [Ln {instruction.LineNum}, Fp {instruction.FilePath}]", ex);
+                throw new InvalidOperationException($"(Runtime Error) Failed to call function '{statement.FunctionName}'. {ex.Message} [Ln {statement.LineNum}, Fp {statement.FilePath}]", ex);
             }
-        }
+        };
 
-        public virtual void ExecuteAssign(Stmt_Assign instruction, Runtime runtime)
+        private readonly Action<Runtime, Stmt_Assign> OnAssign = (runtime, statement) =>
         {
             try
             {
-                instruction.Expression.Evaluate(runtime);
+                statement.Expression.Evaluate(runtime);
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"(Runtime Error) Failed to evaluate assignment. {ex.Message} [Ln {instruction.LineNum}, Fp {instruction.FilePath}]", ex);
+                throw new InvalidOperationException($"(Runtime Error) Failed to evaluate assignment. {ex.Message} [Ln {statement.LineNum}, Fp {statement.FilePath}]", ex);
             }
+        };
 
-        }
-
-        public virtual void ExecuteIf(Stmt_If instruction, Runtime runtime)
+        private readonly Action<Runtime, Stmt_If> OnIf = (runtime, statement) =>
         {
             try
             {
-                var conditionResult = instruction.Condition.Evaluate(runtime);
+                var conditionResult = statement.Condition.Evaluate(runtime);
                 if (conditionResult == null || conditionResult is not bool)
                 {
                     throw new InvalidOperationException($"(Runtime Error) Condition must evaluate to a boolean value.");
                 }
                 if ((bool)conditionResult)
                 {
-                    runtime.Enqueue(instruction.TrueBranch, true);
+                    runtime.Enqueue(statement.TrueBranch, true);
                 }
                 else
                 {
-                    runtime.Enqueue(instruction.FalseBranch, true);
+                    runtime.Enqueue(statement.FalseBranch, true);
                 }
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"(Runtime Error) Failed to evaluate if condition. {ex.Message} [Ln {instruction.LineNum}, Fp {instruction.FilePath}]", ex);
+                throw new InvalidOperationException($"(Runtime Error) Failed to evaluate if condition. {ex.Message} [Ln {statement.LineNum}, Fp {statement.FilePath}]", ex);
             }
-        }
+        };
     }
 }

@@ -6,9 +6,16 @@ namespace DS.Console
     public class Interpreter : Executer
     {
         public Runtime Runtime { get; private set; } = new();
+        protected readonly Executer executer = new();
         protected readonly Compiler compiler = new();
 
-        public override void ExecuteDialogue(Stmt_Dialogue instruction, Runtime runtime)
+        public Interpreter()
+        {
+            executer.OnDialogue = ExecuteDialogue;
+            executer.OnMenu = ExecuteMenu;
+        }
+
+        private void ExecuteDialogue(Runtime runtime, Stmt_Dialogue instruction)
         {
             try
             {
@@ -20,7 +27,7 @@ namespace DS.Console
             }
         }
 
-        public override void ExecuteMenu(Stmt_Menu instruction, Runtime runtime)
+        private void ExecuteMenu(Runtime runtime, Stmt_Menu instruction)
         {
             try
             {
@@ -66,11 +73,10 @@ namespace DS.Console
 
             while (Runtime.HasNext)
             {
-                var instruction = Runtime.Pop();
-                Executer executer = this;
+                var statement = Runtime.Pop();
                 try
                 {
-                    executer.Execute(instruction, Runtime);
+                    executer.Execute(Runtime, statement);
                 }
                 catch (Exception ex)
                 {

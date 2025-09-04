@@ -23,6 +23,7 @@ namespace DS.Core
             var tokens = new CommonTokenStream(lexer);
             var parser = new DSParser(tokens);
             var tree = parser.program();
+            
             var labelDict = new Dictionary<string, LabelBlock>();
 
             foreach (var import in tree.import_stmt())
